@@ -1,0 +1,8 @@
+{
+    "rootDir": "source",
+    "stagingDir": "dist",
+    "retainStagingDir": true,
+    "createPackage": false,
+    "sourceMap": true,
+    "autoImportComponentScript": true
+}
