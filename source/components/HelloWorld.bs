@@ -2,7 +2,7 @@
 '** Example: Edit a Label size and color with BrightScript
 '**
 
-function init()
+function Show(args)
     m.top.setFocus(true)
     m.myLabel = m.top.findNode("myLabel")
 

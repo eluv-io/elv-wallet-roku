@@ -4,5 +4,9 @@
     "retainStagingDir": true,
     "createPackage": false,
     "sourceMap": true,
-    "autoImportComponentScript": true
+    "autoImportComponentScript": true,
+    "diagnosticFilters": [
+        "**/SGDEX/**",
+        "**/SGDEX.brs"
+    ]
 }

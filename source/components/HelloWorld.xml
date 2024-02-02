@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<component name="HelloWorld" extends="Scene"> 
+<component name="HelloWorld" extends="BaseScene"> 
 	<children>
       <Label id="myLabel" 
       	text="Hello World! elv"
