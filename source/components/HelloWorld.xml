@@ -1,12 +1,26 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<component name="HelloWorld" extends="BaseScene"> 
+<?xml version="1.0" encoding="utf-8"?>
+<component name="HelloWorld" extends="BaseScene" initialFocus="btn_signin">
 	<children>
-      <Label id="myLabel" 
-      	text="Hello World! elv"
-      	width="1280" 
-      	height="720" 
-      	horizAlign="center"
-      	vertAlign="center"
-      	/>
-    </children>
+		<Rectangle color="#6e6e6e" width="1280" height="720">
+			<LayoutGroup
+				translation="[640,360]"
+				layoutDirection="vert"
+				horizAlignment="center"
+				vertAlignment="center"
+			>
+				<SimpleLabel text="LOGO GOES HERE" />
+				<ButtonGroup>
+
+					<TvButton
+						id="btn_signin"
+						text="Sign In"
+						iconUri=""
+						showFocusFootprint="true"
+						focusedIconUri=""
+					/>
+					<Button id="other" text="other button" />
+				</ButtonGroup>
+			</LayoutGroup>
+		</Rectangle>
+	</children>
 </component>

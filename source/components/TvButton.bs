@@ -1,0 +1,32 @@
+sub init()
+    print "Button init: " + m.top.id
+
+    m.selectedScaleAnim = m.top.findNode("selectedScaleAnimation")
+    m.selectedFieldInterpolator = m.top.findNode("selectedFieldInterpolator")
+
+    m.focusScaleAnim = m.top.findNode("focusScaleAnimation")
+    m.focusFieldInterpolator = m.top.findNode("focusFieldInterpolator")
+
+    m.top.observeField("id", "rootIdChange")
+    m.top.observeField("buttonSelected", "OnClick")
+    m.top.observeField("focusedChild", "OnFocus")
+end sub
+
+sub rootIdChange()
+    if (m.top.id = invalid) return
+    field = m.top.id + ".scale"
+    print "setting anim to field: " + field
+    m.focusFieldInterpolator.fieldToInterp = field
+    m.selectedFieldInterpolator.fieldToInterp = field
+end sub
+
+sub OnClick()
+    m.selectedScaleAnim.control = "start"
+end sub
+
+sub OnFocus()
+    focused = m.top.hasFocus()
+    m.focusFieldInterpolator.reverse = not focused
+    m.focusScaleAnim.control = "start"
+    print "some focus event?? focused:" + focused.toStr()
+end sub

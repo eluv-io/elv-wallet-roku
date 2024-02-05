@@ -1,0 +1,19 @@
+namespace Stores
+    sub InitStores(globalNode)
+        g = GetGlobalAA()
+        if g.init <> invalid
+            print "redundant init. Skipping."
+            return
+        end if
+        g.init = true
+        ' Do store init here
+    end sub
+
+    sub RootStore() as RootStore
+        g = GetGlobalAA()
+        if g.rootStore = invalid
+            g.rootStore = new RootStore()
+        end if
+        return g.rootStore
+    end sub
+end namespace

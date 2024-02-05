@@ -4,7 +4,16 @@
 '** Use of the Roku Platform is subject to the Roku SDK License Agreement:
 '** https://docs.roku.com/doc/developersdk/en-us
 '*************************************************************
+import "pkg:/source/stores/RootStore.bs"
 
 sub GetSceneName() as string
     return "HelloWorld"
+end sub
+
+
+sub MainInit(screen, args)
+    globalNode = screen.getGlobalNode()
+
+    Stores.InitStores(globalNode)
+    Stores.RootStore()
 end sub

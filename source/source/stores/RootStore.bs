@@ -1,0 +1,5 @@
+class RootStore
+    sub new()
+        print "RootStore init"
+    end sub
+end class

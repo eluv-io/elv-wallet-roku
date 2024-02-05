@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="TvButton" extends="Button">
+    <children>
+        <Animation id="focusScaleAnimation"
+            duration="0.1"
+            repeat="false"
+            easeFunction="linear"
+        >
+            <Vector2DFieldInterpolator id="focusFieldInterpolator"
+                key="[0.0, 1.0]"
+                keyValue="[ [1.0, 1.0], [1.05, 1.05] ]"
+            />
+        </Animation>
+
+        <Animation id="selectedScaleAnimation"
+            duration="0.2"
+            repeat="false"
+            easeFunction="linear"
+        >
+            <Vector2DFieldInterpolator id="selectedFieldInterpolator"
+                key="[0.0, 0.5, 1.0]"
+                keyValue="[ [1.05, 1.05], [1.0, 1.0], [1.05, 1.05] ]"
+            />
+        </Animation>
+    </children>
+</component>
