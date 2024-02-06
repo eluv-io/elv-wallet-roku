@@ -1,32 +1,47 @@
 sub init()
-    print "Button init: " + m.top.id
-
     m.selectedScaleAnim = m.top.findNode("selectedScaleAnimation")
     m.selectedFieldInterpolator = m.top.findNode("selectedFieldInterpolator")
 
     m.focusScaleAnim = m.top.findNode("focusScaleAnimation")
     m.focusFieldInterpolator = m.top.findNode("focusFieldInterpolator")
 
-    m.top.observeField("id", "rootIdChange")
-    m.top.observeField("buttonSelected", "OnClick")
-    m.top.observeField("focusedChild", "OnFocus")
+    ' Find the label. Center text
+    for i = 0 to m.top.getChildCount() - 1
+        child = m.top.getChild(i)
+        if child.subtype() = "Label"
+            child.horizAlign = "center"
+            child.observeField("horizAlign", "onHorizAlignChanged")
+            exit for
+        end if
+    end for
+
+    ' Wait for the parent to give the root element an ID before we can bind it to the animations
+    ' That has the side-effect of buttons without an ID not behaving the same, but that shouldn't be a problem.
+    m.top.observeField("id", "onRootIdChange")
+    m.top.observeField("buttonSelected", "onClick")
+    m.top.observeField("focusedChild", "onFocus")
 end sub
 
-sub rootIdChange()
+sub onHorizAlignChanged(msg as object)
+    label = msg.getRoSGNode()
+    if label.horizAlign <> "center"
+        label.horizAlign = "center"
+    end if
+end sub
+
+sub onRootIdChange()
     if (m.top.id = invalid) return
-    field = m.top.id + ".scale"
-    print "setting anim to field: " + field
+    field = `${m.top.id}.scale`
     m.focusFieldInterpolator.fieldToInterp = field
     m.selectedFieldInterpolator.fieldToInterp = field
 end sub
 
-sub OnClick()
+sub onClick()
     m.selectedScaleAnim.control = "start"
 end sub
 
-sub OnFocus()
+sub onFocus()
     focused = m.top.hasFocus()
     m.focusFieldInterpolator.reverse = not focused
     m.focusScaleAnim.control = "start"
-    print "some focus event?? focused:" + focused.toStr()
 end sub
