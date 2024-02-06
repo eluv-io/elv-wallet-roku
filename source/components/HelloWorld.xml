@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="HelloWorld" extends="BaseScene" initialFocus="btn_signin">
 	<children>
-		<Rectangle color="#6e6e6e" width="1280" height="720">
+		<Rectangle color="#6e6e6e" width="1920" height="1080">
 			<LayoutGroup
-				translation="[640,360]"
+				translation="[960,540]"
 				layoutDirection="vert"
 				horizAlignment="center"
 				vertAlignment="center"

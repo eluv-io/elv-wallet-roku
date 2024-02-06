@@ -25,3 +25,6 @@ splash_screen_sd=pkg:/images/splash-screen_sd.jpg
 
 splash_color=#000000
 splash_min_time=1
+
+# Lock UI resolution to FHD (1080p)
+ui_resolutions=FHD
