@@ -1,0 +1,7 @@
+sub setRouter(cc)
+    m.global.addFields({ router: cc })
+end sub
+
+sub router() as dynamic
+    return m.global.router
+end sub

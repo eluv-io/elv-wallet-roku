@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Dashboard" extends="Group">
+    <children>
+        <Rectangle color="#000000" width="1920" height="1080">
+            <LayoutGroup
+                translation="[960,540]"
+                layoutDirection="vert"
+                horizAlignment="center"
+                vertAlignment="center"
+            >
+                <SimpleLabel text="DASHBOARD" />
+            </LayoutGroup>
+        </Rectangle>
+    </children>
+</component>

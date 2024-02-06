@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Home" extends="Group" initialFocus="btn_signin">
+    <children>
+        <Rectangle color="#000000" width="1920" height="1080">
+            <LayoutGroup
+                translation="[960,540]"
+                layoutDirection="vert"
+                horizAlignment="center"
+                vertAlignment="center"
+            >
+                <SimpleLabel text="LOGO GOES HERE" />
+                <TvButton
+                    id="btn_signin"
+                    text="Sign In"
+                    iconUri=""
+                    showFocusFootprint="true"
+                    focusedIconUri=""
+                />
+            </LayoutGroup>
+        </Rectangle>
+    </children>
+</component>

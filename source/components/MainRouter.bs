@@ -1,0 +1,12 @@
+import "pkg:/source/stores/stores.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+
+function Show(args)
+    setRouter(m.top.ComponentController)
+
+    if Stores.TokenStore().fabricToken = invalid
+        router()@.show({ view: CreateObject("roSGNode", "Home") })
+    else
+        router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
+    end if
+end function

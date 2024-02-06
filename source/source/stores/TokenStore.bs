@@ -1,0 +1,8 @@
+class TokenStore
+    public fabricToken as string = invalid
+    private rootStore as RootStore
+
+    sub new(_rootStore as RootStore)
+        m.rootStore = _rootStore
+    end sub
+end class

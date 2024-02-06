@@ -1,12 +1,17 @@
+import "pkg:/source/stores/ContentStore.bs"
+import "pkg:/source/stores/RootStore.bs"
+import "pkg:/source/stores/TokenStore.bs"
+
 namespace Stores
     sub InitStores(globalNode)
-        g = GetGlobalAA()
-        if g.init <> invalid
+        storeInit = globalNode.storeInit
+        if (storeInit <> invalid) and storeInit
             print "redundant init. Skipping."
             return
         end if
-        g.init = true
+        globalNode.AddFields({ storeInit: true })
         ' Do store init here
+        RootStore()
     end sub
 
     sub RootStore() as RootStore
@@ -15,5 +20,23 @@ namespace Stores
             g.rootStore = new RootStore()
         end if
         return g.rootStore
+    end sub
+
+    sub ContentStore() as RootStore
+        g = GetGlobalAA()
+        if g.contentStore = invalid
+            _rootStore = Stores.RootStore()
+            g.contentStore = new ContentStore(_rootStore)
+        end if
+        return g.contentStore
+    end sub
+
+    sub TokenStore() as RootStore
+        g = GetGlobalAA()
+        if g.tokenStore = invalid
+            _rootStore = Stores.RootStore()
+            g.contentStore = new TokenStore(_rootStore)
+        end if
+        return g.contentStore
     end sub
 end namespace

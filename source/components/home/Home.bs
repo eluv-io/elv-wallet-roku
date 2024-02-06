@@ -1,13 +1,10 @@
-'**
-'** Example: Edit a Label size and color with BrightScript
-'**
+import "pkg:/components/utils/RouterUtils.bs"
 
-function Show(args)
-    m.top.setFocus(true)
+sub Init()
     signinButton = m.top.findNode("btn_signin")
     signinButton.ObserveField("buttonSelected", "onSigninClicked")
-end function
+end sub
 
 sub OnSigninClicked()
-    print "clickity"
+    router()@.show({ view: CreateObject("roSGNode", "SignIn") })
 end sub
