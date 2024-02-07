@@ -9,10 +9,3 @@ import "pkg:/source/stores/RootStore.bs"
 sub GetSceneName() as string
     return "MainRouter"
 end sub
-
-
-sub MainInit(screen, args)
-    globalNode = screen.getGlobalNode()
-
-    Stores.InitStores(globalNode)
-end sub
