@@ -4,7 +4,7 @@ import "pkg:/components/utils/RouterUtils.bs"
 function Show(args)
     setRouter(m.top.ComponentController)
     Stores.InitStores()
-    
+
     if Stores.TokenStore().fabricToken = invalid
         router()@.show({ view: CreateObject("roSGNode", "Home") })
     else
