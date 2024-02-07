@@ -9,13 +9,16 @@
                 vertAlignment="center"
             >
                 <SimpleLabel text="LOGO GOES HERE" />
-                <TvButton
-                    id="btn_signin"
-                    text="Sign In"
-                    iconUri=""
-                    showFocusFootprint="true"
-                    focusedIconUri=""
-                />
+                <ButtonGroup id="btngroup">
+                    <TvButton
+                        id="btn_signin"
+                        text="Sign In"
+                        iconUri=""
+                        showFocusFootprint="true"
+                        focusedIconUri=""
+                    />
+                    <TvButton text="random btn" id="foo" />
+                </ButtonGroup>
             </LayoutGroup>
         </Rectangle>
     </children>
