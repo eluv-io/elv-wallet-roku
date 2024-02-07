@@ -1,0 +1,28 @@
+sub Init()
+    m.shouldRestoreFocus = false
+    m.top.ObserveField("focusedChild", "onFocusedChildChanged")
+end sub
+
+sub onFocusedChildChanged()
+    if m.top.IsInFocusChain()
+        if m.shouldRestoreFocus
+            ' The view is becoming visible, restore focus to the last known focused child
+            _ = m.lastFocusedChild?.setFocus?(true)
+            m.shouldRestoreFocus = false
+        else
+            ' Focused child changed, just save it for now
+            m.lastFocusedChild = findFocuseNode(m.top.focusedChild)
+        end if
+    else
+        ' The view is losing focus, save a flag to restore focus next time we come back
+        m.shouldRestoreFocus = true
+    end if
+end sub
+
+' If [node] or a decendant has key focus, finds and returns that node.
+sub findFocuseNode(node as roSGNode) as roSGNode
+    if node?.IsInFocusChain() <> true return invalid
+    if node.HasFocus() return node
+    ' Node is in focus chain, but isn't the actual focused node. Recurse into child.
+    return findFocuseNode(node.focusedChild)
+end sub
