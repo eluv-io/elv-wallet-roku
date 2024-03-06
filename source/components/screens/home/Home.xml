@@ -13,9 +13,7 @@
                     <TvButton
                         id="btn_signin"
                         text="Sign In"
-                        iconUri=""
                         showFocusFootprint="true"
-                        focusedIconUri=""
                     />
                     <TvButton text="random btn" id="foo" />
                 </ButtonGroup>

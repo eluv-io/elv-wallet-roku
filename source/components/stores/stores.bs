@@ -1,0 +1,11 @@
+namespace stores
+    sub init()
+        m.global.addFields({
+            tokenStore: CreateObject("roSGNode", "TokenStore")
+        })
+    end sub
+
+    function tokenStore() as roSGNode
+        return m.global.tokenStore
+    end function
+end namespace

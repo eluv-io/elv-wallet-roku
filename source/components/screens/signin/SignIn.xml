@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="SignIn" extends="BaseView">
+<component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
     <children>
+        <Timer id="code_expiration_timer" />
+
         <Rectangle color="#000000" width="1920" height="1080">
             <LayoutGroup
                 translation="[960,540]"
@@ -8,7 +10,12 @@
                 horizAlignment="center"
                 vertAlignment="center"
             >
-                <SimpleLabel text="SIGN IN!!" />
+                <SimpleLabel text="Scan QR Code" />
+                <SimpleLabel
+                    text="Scan the QR Code with your camera app or a QR code reader on your device to verify the code." />
+                <SimpleLabel id="qr_code" />
+                <Poster id="qr_image" />
+                <TvButton id="btn_new_code" text="request new code" />
             </LayoutGroup>
         </Rectangle>
     </children>

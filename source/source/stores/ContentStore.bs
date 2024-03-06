@@ -1,8 +1,0 @@
-class ContentStore
-    private rootStore as RootStore
-
-    sub new(_rootStore as RootStore)
-        m.rootStore = _rootStore
-        print "new content store"
-    end sub
-end class

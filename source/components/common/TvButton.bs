@@ -1,4 +1,6 @@
 sub init()
+    m.top.iconUri = ""
+    m.top.focusedIconUri = ""
     m.selectedScaleAnim = m.top.findNode("selectedScaleAnimation")
     m.selectedFieldInterpolator = m.top.findNode("selectedFieldInterpolator")
 

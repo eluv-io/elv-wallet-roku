@@ -1,0 +1,11 @@
+import "pkg:/components/http/http.bs"
+sub init()
+    m.top.fabricToken = invalid
+end sub
+
+function GetActivationData(_ = invalid) as object
+    return http.post("https://prod-elv.us.auth0.com/oauth/device/code", {
+        client_id: "***REMOVED***",
+        scope: "openid profile email offline_access"
+    })
+end function

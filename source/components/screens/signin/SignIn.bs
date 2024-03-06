@@ -1,2 +1,27 @@
+import "pkg:/components/utils/promise.bs"
+import "pkg:/components/stores/stores.bs"
+
 sub init()
+    m.qrCode = m.top.findNode("qr_code")
+    m.qrImage = m.top.findNode("qr_image")
+
+    m.timer = m.top.findNode("code_expiration_timer")
+    m.timer.ObserveField("fire", "getNewCode")
+
+    m.top.findNode("btn_new_code").ObserveField("buttonSelected", "getNewCode")
+
+    getNewCode()
+end sub
+
+sub getNewCode()
+    promise = stores.tokenStore()@.GetActivationData()
+    promises.onThen(promise, sub(response, context)
+        url = response.verification_uri_complete
+        data = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=${url}`
+        m.qrCode.text = response.user_code
+        m.qrImage.uri = data
+
+        m.timer.duration = response.expires_in
+        m.timer.control = "start"
+    end sub)
 end sub

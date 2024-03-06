@@ -1,11 +1,13 @@
-import "pkg:/source/stores/stores.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
 function Show(args)
     setRouter(m.top.ComponentController)
-    Stores.InitStores()
+    stores.init()
+    http.init()
 
-    if Stores.TokenStore().fabricToken = invalid
+    if stores.tokenStore().fabricToken = ""
         router()@.show({ view: CreateObject("roSGNode", "Home") })
     else
         router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
