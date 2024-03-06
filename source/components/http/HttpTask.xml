@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="HttpTask" extends="Task">
+    <interface>
+        <field id="request" type="node" alwaysNotify="true" />
+    </interface>
+</component>

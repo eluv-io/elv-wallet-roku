@@ -1,9 +1,0 @@
-namespace Utils
-    sub requireGlobalNode() as roSGNode
-        globalNode = m.global
-        if globalNode = invalid
-            throw "requireGlobalNode must be called from a context with global node access"
-        end if
-        return globalNode
-    end sub
-end namespace

@@ -1,0 +1,28 @@
+import "pkg:/components/utils/promise.bs"
+
+namespace http
+    sub init()
+        task = CreateObject("roSGNode", "HttpTask")
+        m.global.addFields({ httpTask: task })
+        task.control = "run"
+    end sub
+
+    function get(url as string) as object
+        return request("GET", url)
+    end function
+
+    function post(url as string, body = invalid) as object
+        return request("POST", url, body)
+    end function
+
+    function request(method as string, url as string, body = invalid) as object
+        promise = promises.create()
+        requestNode = CreateObject("roSGNode", "HttpRequestNode")
+        requestNode.method = method
+        requestNode.url = url
+        if body <> invalid requestNode.body = FormatJSON(body)
+        promise.addFields({ request: requestNode })
+        m.global.httpTask.request = promise
+        return promise
+    end function
+end namespace

@@ -1,0 +1,78 @@
+import "pkg:/components/utils/promise.bs"
+
+sub init()
+    m.top.functionName = "EventLoop"
+    m.port = createObject("roMessagePort")
+    m.pendingRequests = {}
+end sub
+
+sub EventLoop()
+    m.top.observeField("request", m.port)
+    while true
+        msg = wait(0, m.port)
+        if msg <> invalid
+            msgType = type(msg)
+            if msgType = "roUrlEvent"
+                handleHttpResponse(msg)
+            else if msgType = "roSGNodeEvent"
+                field = msg.getField()
+                observer = msg.getData()
+                if field = "request" and observer <> invalid
+                    m.top.request = invalid ' prevent infinite loop after observer.output changes
+                    fireHttpRequest(observer)
+                end if
+            end if
+        end if
+    end while
+end sub
+
+sub fireHttpRequest(promise)
+    request = createObject("roUrlTransfer")
+    request.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    request.InitClientCertificates()
+    request.RetainBodyOnError(true)
+    request.setMessagePort(m.port)
+    request.setUrl(promise.request.url)
+    request.AddHeader("Content-Type", "application/json")
+
+    method = promise.request.method
+    body = promise.request.body
+    request.SetRequest(method)
+
+    printRequest(request, body)
+    sent = invalid
+    if method = "GET"
+        sent = request.AsyncGetToString()
+    else if method = "HEAD"
+        sent = request.AsyncHead()
+    else
+        'POST, PUT, PATCH, DELETE
+        sent = request.AsyncPostFromString(body)
+    end if
+
+    if sent
+        m.pendingRequests[request.getIdentity().toStr()] = { promise: promise, request: request }
+    else
+        print "Failed to fire HTTP request to URL: "; promise.request.url
+    end if
+end sub
+
+sub printRequest(request as roUrlTransfer, body)
+    print `
+[HTTP] ${request.GetRequest()}: ${request.getUrl()} (Request ID: ${request.getIdentity()})
+       Payload: ${body}
+    `
+end sub
+
+sub handleHttpResponse(response as roUrlEvent)
+    key = response.getSourceIdentity().toStr()
+    request = m.pendingRequests[key]
+    data = response.getString()
+    print `
+[HTTP] Reponse ${response.getResponseCode()} ${request.request.getUrl()} (Request ID: ${key})
+       Headers: ${formatJson(response.getResponseHeaders())}
+       Payload: ${data}
+    `
+    m.pendingRequests.Delete(key)
+    promises.resolve(parseJson(data), request.promise)
+end sub
