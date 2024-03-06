@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
     <children>
-        <Timer id="code_expiration_timer" />
+        <Timer id="code_expiration_timer" repeat="false" />
+        <Timer id="status_poll_timer" repeat="true" />
 
         <Rectangle color="#000000" width="1920" height="1080">
             <LayoutGroup

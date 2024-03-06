@@ -2,6 +2,10 @@
 <component name="TokenStore" extends="Node">
     <interface>
         <field id="fabricToken" type="string" />
+        <field id="idToken" type="string" />
+        <field id="accessToken" type="string" />
+        <field id="refreshToken" type="string" />
         <function name="GetActivationData" />
+        <function name="checkToken" />
     </interface>
 </component>

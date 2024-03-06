@@ -24,7 +24,7 @@ namespace promises
     end function
 
     ' TODO rename this to `then` once BrighterScript supports using keywords as namespaced function names
-    function onThen(promise as dynamic, callback as function, context = {} as object) as dynamic
+    function onThen(promise as dynamic, callback as function, context = "__INVALID__" as object) as dynamic
         return promises.internal.on("then", promise, callback, context)
     end function
 
