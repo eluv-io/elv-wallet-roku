@@ -1,0 +1,81 @@
+namespace base58
+
+    function encode(inputString as string)
+        bytes = createObject("roByteArray")
+        bytes.fromHexString(inputString)
+        return encodeBytes(bytes)
+    end function
+
+    function encodeBytes(inputBytes as roByteArray) as string
+        ALPHABET = CreateObject("roByteArray")
+        ALPHABET.fromAsciiString("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+        ENCODED_ZERO = ALPHABET[0]
+        if inputBytes.Count() = 0 then
+            return ""
+        end if
+
+        ' Count leading zeros
+        zeros = 0
+        for i = 0 to inputBytes.Count() - 1
+            if inputBytes[i] = 0 then
+                zeros = zeros + 1
+            else
+                exit for
+            end if
+        next
+
+        ' Convert base-256 digits to base-58 digits
+        encoded = createObject("roByteArray")' Upper bound
+        encoded.setresize(inputBytes.count() * 2, false)
+        outputStart = inputBytes.count() * 2
+        inputStart = zeros
+        while inputStart < inputBytes.Count()
+            outputStart -= 1
+            remainder = base58.internal.divmod(inputBytes, inputStart, 256, 58)
+            char = ALPHABET[remainder]
+            encoded[outputStart] = char
+            if inputBytes[inputStart] = 0 then
+                inputStart = inputStart + 1 ' Optimization - skip leading zeros
+            end if
+        end while
+
+        ' Preserve exactly as many leading encoded zeros in output as there were leading zeros in input
+        while outputStart < encoded.Count() and encoded[outputStart] = ENCODED_ZERO
+            outputStart = outputStart + 1
+        end while
+
+        for i = 1 to zeros
+            outputStart -= 1
+            encoded[outputStart] = ENCODED_ZERO
+        next
+
+        result = createObject("roByteArray")
+        delta = encoded.count() - outputStart
+        for i = 0 to delta
+            result[i] = encoded[i + outputStart]
+        next
+        ' Return encoded string (including encoded leading zeros)
+        'return Mid(encoded, outputStart + 1, encoded.Count() - outputStart)
+        return result.toAsciiString()
+    end function
+
+    namespace internal
+        function divmod(number as roByteArray, firstDigit as integer, base as integer, divisor as integer) as integer
+            ' This function performs long division, accounting for the base of the input digits
+            remainder = 0
+
+            for i = firstDigit to number.Count() - 1
+                ' Convert byte to integer and mask to ensure it's treated as unsigned
+                digit = (number[i] and &HFF)
+
+                ' Perform division
+                temp = remainder * base + digit
+                number[i] = int(temp \ divisor)
+                remainder = temp mod divisor
+            next
+
+            return remainder
+        end function
+    end namespace
+
+end namespace
