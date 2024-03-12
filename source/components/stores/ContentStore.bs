@@ -1,0 +1,23 @@
+import "pkg:/components/utils/promise.bs"
+import "pkg:/components/http/apis/GatewayApi.bs"
+import "pkg:/components/utils/Time.bs"
+
+const NFT_FETCH_TROTTLE_MILLIS = 5000
+
+function fetchWalletData(_ = invalid) as void
+    now = time.now()
+    if (m.lastFetch <> invalid and (now - m.lastFetch < NFT_FETCH_TROTTLE_MILLIS))
+        print "[ContentStore] NFT fetch throttled."
+        return
+    end if
+
+    print "[ContentStore] Starting NFT fetch"
+    m.lastFetch = now
+
+    promises.onThen(
+    GatewayApi.getNftsRequest(),
+    sub (result)
+        m.top.nfts = result.json.contents
+        print "NFTs fetched and saved"
+    end sub)
+end function

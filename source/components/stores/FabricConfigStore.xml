@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="FabricConfigStore" extends="Node">
+    <interface>
+        <field id="config" type="assocarray" />
+        <function name="getAuthdBaseUrl" />
+    </interface>
+    <children>
+        <Timer id="config_refresh_timer" duration="180" repeat="true" />
+    </children>
+</component>

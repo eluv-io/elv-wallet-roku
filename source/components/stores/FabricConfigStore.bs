@@ -1,0 +1,22 @@
+import "pkg:/components/http/http.bs"
+sub init()
+    m.refreshTimer = m.top.findNode("config_refresh_timer")
+    m.refreshTimer.observeFieldScoped("fire", "refreshConfig")
+    m.refreshTimer.control = "start"
+    
+    ' Get pre-loaded config
+    m.top.config = m.global.tempConfig
+    m.global.tempConfig = invalid
+end sub
+
+sub refreshConfig(_ = invalid)
+    promises.onThen(
+    http.get("https://main.net955305.contentfabric.io/config"),
+    sub (result)
+        m.top.config = result.json
+    end sub)
+end sub
+
+function getAuthdBaseUrl(_ = invalid) as string
+    return m.top.config.network.services.authority_service[0]
+end function

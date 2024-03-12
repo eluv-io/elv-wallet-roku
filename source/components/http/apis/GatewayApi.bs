@@ -1,0 +1,10 @@
+import "pkg:/components/http/http.bs"
+import "pkg:/components/stores/stores.bs"
+
+namespace GatewayApi
+    function getNftsRequest() as object
+        url = stores.fabricConfigStore()@.getAuthdBaseUrl() + "/apigw/nfts"
+        print "Going to fetch nfts from " + url
+        return http.get(url)
+    end function
+end namespace

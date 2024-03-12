@@ -4,6 +4,20 @@
 '** Use of the Roku Platform is subject to the Roku SDK License Agreement:
 '** https://docs.roku.com/doc/developersdk/en-us
 '*************************************************************
+sub MainInit(screen, args)
+    ' Block until Fabric config is loaded.
+    ' An alternative to this blocking approach is to create our own Splash Screen that will load 
+    ' after the "real" roku splash screen, and put our init code there.
+    ' Since the config object is the only thing we REALLY need to be there before 
+    ' everything else, we're taking the simple approach for now.
+    request = createObject("roUrlTransfer")
+    request.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    request.InitClientCertificates()
+    request.RetainBodyOnError(true)
+    request.setUrl("https://main.net955305.contentfabric.io/config")
+    ' Save config in global. FabricConfigStore will yank it from here later. TODO: some error handling?
+    screen.getGlobalNode().addFields({ tempConfig: parseJson(request.getToString()) })
+end sub
 
 sub GetSceneName() as string
     return "MainRouter"

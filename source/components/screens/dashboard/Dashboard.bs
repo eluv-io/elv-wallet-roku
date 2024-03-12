@@ -1,2 +1,5 @@
+import "pkg:/components/stores/stores.bs"
+
 sub init()
+    stores.contentStore()@.fetchWalletData()
 end sub

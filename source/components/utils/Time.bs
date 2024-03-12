@@ -1,0 +1,8 @@
+namespace time
+    ' Return the current Epoch time in milliseconds
+    function now()
+        dateTime = createObject("roDateTime")
+        dateTime.mark()
+        return dateTime.asSeconds() * 1000
+    end function
+end namespace

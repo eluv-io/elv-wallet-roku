@@ -4,5 +4,7 @@
         <field id="url" type="string" />
         <field id="method" type="string" value="GET" />
         <field id="body" type="string" />
+        <!-- Responses that are too big can mess up the console -->
+        <field id="printResponseBody" type="boolean" value="false" />
     </interface>
 </component>

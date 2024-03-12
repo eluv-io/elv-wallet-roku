@@ -69,7 +69,7 @@ sub getDefaultHeaders(request) as object
         if stores.tokenStore().idToken <> invalid
             headers["Authorization"] = `Bearer ${stores.tokenStore().idToken}`
         end if
-    else if url.inStr("wlt/sign/eth")
+    else if url.inStr("wlt/sign/eth") <> -1
         if stores.tokenStore().clusterToken <> invalid
             headers["Authorization"] = `Bearer ${stores.tokenStore().clusterToken}`
         end if
@@ -81,8 +81,9 @@ sub getDefaultHeaders(request) as object
 end sub
 
 sub printRequest(request as roUrlTransfer, body, headers)
+    ' Note this might not be the actual full list of headers, as roku migth inject stuff we don't have access to.
     print `
-[HTTP] ${request.GetRequest()}: ${request.getUrl()} (Request ID: ${request.getIdentity()})
+[HTTP] Request ${request.GetRequest()}: ${request.getUrl()} (Request ID: ${request.getIdentity()})
        Headers: ${formatJson(headers)}
        Payload: ${body}
     `
@@ -101,9 +102,9 @@ sub handleHttpResponse(response as roUrlEvent)
     result.code = response.getResponseCode()
     result.headers = response.getResponseHeaders()
     print `
-[HTTP] Reponse ${result.code} ${request.request.getUrl()} (Request ID: ${key})
+[HTTP] Response ${result.code} ${request.request.getUrl()} (Request ID: ${key})
        Headers: ${formatJson(result.headers)}
-       Payload: ${data}
+       Payload: ${request.promise.request.printResponseBody ? data : "TRIMMED"}
     `
     m.pendingRequests.Delete(key)
     promises.resolve(result, request.promise)

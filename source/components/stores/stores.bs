@@ -2,10 +2,20 @@ namespace stores
     sub init()
         m.global.addFields({
             tokenStore: CreateObject("roSGNode", "TokenStore")
+            fabricConfigStore: CreateObject("roSGNode", "FabricConfigStore")
+            contentStore: CreateObject("roSGNode", "ContentStore")
         })
     end sub
 
     function tokenStore() as roSGNode
         return m.global.tokenStore
+    end function
+
+    function fabricConfigStore() as roSGNode
+        return m.global.fabricConfigStore
+    end function
+
+    function contentStore() as roSGNode
+        return m.global.contentStore
     end function
 end namespace
