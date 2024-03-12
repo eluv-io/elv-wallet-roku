@@ -12,6 +12,7 @@
             "password": "roku",
             "rootDir": "${workspaceFolder}/dist",
             "preLaunchTask": "build",
+            "injectRdbOnDeviceComponent": true
         }
     ]
 }

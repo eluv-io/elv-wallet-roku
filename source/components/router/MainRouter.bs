@@ -3,6 +3,7 @@ import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
 function Show(args)
+    ' vscode_rdb_on_device_component_entry
     setRouter(m.top.ComponentController)
     stores.init()
     http.init()

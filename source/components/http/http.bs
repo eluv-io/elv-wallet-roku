@@ -17,7 +17,7 @@ namespace http
 
     function request(method as string, url as string, body = invalid) as object
         promise = promises.create()
-        requestNode = CreateObject("roSGNode", "HttpRequestNode")
+        requestNode = CreateObject("roSGNode", "HttpRequest")
         requestNode.method = method
         requestNode.url = url
         if body <> invalid requestNode.body = FormatJSON(body)

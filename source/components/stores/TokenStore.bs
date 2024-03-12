@@ -4,7 +4,29 @@ const AUTH0_BASE_URL = "https://prod-elv.us.auth0.com/"
 const AUTH0_CLIENT_ID = "***REMOVED***"
 
 sub init()
-    m.top.fabricToken = invalid
+    m.registry = createObject("roRegistrySection", "tokens")
+    keepFieldsSyncedWithRegistry(["fabricToken", "walletAddress"])
+end sub
+
+' All [trackedFields] must be values in m.top.
+' This methods reads the current registry and sets the corresponding fields in m.top.
+' Then it indefinitely observes changes to these fields and writes them to registry as they change.
+sub keepFieldsSyncedWithRegistry(trackedFields as roArray)
+    values = m.registry.readMulti(trackedFields)
+    for each field in trackedFields
+        print `[TokenStore] restore token: ${field}=${values[field]}`
+        m.top[field] = values[field]
+        m.top.observeField(field, "onTrackedFieldChange")
+    end for
+    
+end sub
+
+sub onTrackedFieldChange(message)
+    field = message.getField()
+    data = message.getData()
+    print `[TokenStore] Detected token change. Persisting ${field}=${data}`
+    m.registry.write(field, data)
+    m.registry.flush()
 end sub
 
 function GetActivationData(_ = invalid) as object
