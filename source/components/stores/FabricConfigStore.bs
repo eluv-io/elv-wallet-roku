@@ -1,12 +1,16 @@
 import "pkg:/components/http/http.bs"
 sub init()
+    m.registry = createObject("roRegistrySection", "config")
+    m.top.observeFieldScoped("config", "onConfigChange")
+
     m.refreshTimer = m.top.findNode("config_refresh_timer")
     m.refreshTimer.observeFieldScoped("fire", "refreshConfig")
     m.refreshTimer.control = "start"
-    
+
     ' Get pre-loaded config
     m.top.config = m.global.tempConfig
     m.global.tempConfig = invalid
+
 end sub
 
 sub refreshConfig(_ = invalid)
@@ -15,6 +19,10 @@ sub refreshConfig(_ = invalid)
     sub (result)
         m.top.config = result.json
     end sub)
+end sub
+
+sub onConfigChange()
+    m.registry.write("config", formatJson(m.top.config))
 end sub
 
 function getAuthdBaseUrl(_ = invalid) as string
