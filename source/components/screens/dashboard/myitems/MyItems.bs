@@ -1,0 +1,9 @@
+import "pkg:/components/stores/stores.bs"
+sub init()
+    print "INIT MY ITEMS"
+    stores.contentStore().observeField("nfts", "onNftsChanged")
+end sub
+
+sub onNftsChanged()
+    print "got some nfts"
+end sub

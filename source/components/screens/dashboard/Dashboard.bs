@@ -3,8 +3,7 @@ import "pkg:/components/stores/stores.bs"
 sub init()
     stores.contentStore()@.fetchWalletData()
 
-    m.lbl = m.top.findNode("lbl")
-
+    m.tabContainer = m.top.findNode("tab_container")
     tabRow = m.top.findNode("tab_row")
     m.tabrow = tabrow
 
@@ -13,5 +12,14 @@ sub init()
 end sub
 
 sub onTabFocused()
-    m.lbl.text = `Selected tab: ${m.tabrow.focusedTabName}`
+    ' Maybe cache nodes for re-use? I'm not sure what the memory implcations will be..
+    currentTab = m.tabrow.focusedTabName
+    m.tabContainer.removeChildIndex(0)
+    if currentTab = "My Items"
+        m.tabContainer.createChild("MyItems")
+    else if currentTab = "My Media"
+        m.tabContainer.createChild("MyMedia")
+    else if currentTab = "Profile"
+        m.tabContainer.createChild("Profile")
+    end if
 end sub

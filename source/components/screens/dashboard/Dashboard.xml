@@ -9,7 +9,7 @@
                 vertAlignment="center"
             >
                 <TabRow id="tab_row" />
-                <Label text="hi" id="lbl" />
+                <Group id="tab_container" />
             </LayoutGroup>
         </Rectangle>
     </children>
