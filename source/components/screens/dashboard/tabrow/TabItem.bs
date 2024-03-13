@@ -1,0 +1,19 @@
+sub init()
+    m.label = m.top.findNode("label")
+end sub
+
+sub onItemContentChanged()
+    m.label.text = m.top.itemContent.title
+end sub
+
+sub onItemFocusChanged()
+    if m.top.itemHasFocus
+        m.label.color = "0x000000FF"
+    else
+        m.label.color = "0xFFFFFFFF"
+    end if
+end sub
+
+sub onFocusPercentChanged()
+
+end sub

@@ -1,0 +1,22 @@
+sub init()
+    m.top.setFocus(true)
+
+    grid = m.top.findNode("grid")
+    m.grid = grid
+
+    content = createObject("roSGNode", "ContentNode")
+    content.createChild("ContentNode").title = "My Items"
+    content.createChild("ContentNode").title = "My Media"
+    content.createChild("ContentNode").title = "Profile"
+    grid.content = content
+
+    grid.observeField("itemFocused", "onGridFocusChanged")
+end sub
+
+sub onGridFocusChanged()
+    grid = m.grid
+    tabName = grid.content.getchild(grid.itemFocused).title
+    print "[TabRow] Selected tab: "; tabName
+    m.top.focusedTabName = tabName
+end sub
+

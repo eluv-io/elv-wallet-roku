@@ -8,7 +8,8 @@
             "name": "BrightScript Debug: Launch",
             "type": "brightscript",
             "request": "launch",
-            "host": "192.168.90.114",
+            // "host": "192.168.90.112", // new office roku
+            "host": "192.168.0.31", // home
             "password": "roku",
             "rootDir": "${workspaceFolder}/dist",
             "preLaunchTask": "build",

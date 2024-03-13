@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="TabRow" extends="Group" initialFocus="grid">
+    <interface>
+        <field id="focusedTabName" type="string" />
+    </interface>
+    <children>
+        <MarkupGrid
+            id="grid"
+            translation="[ 168, 66 ]"
+            itemComponentName="TabItem"
+            numColumns="3"
+            numRows="1"
+            itemSize="[ 162, 62 ]"
+            itemSpacing="[ 68, 0 ]"
+            focusBitmapUri="pkg:/images/btn_tab_selected.9.png"
+            drawFocusFeedbackOnTop="false"
+            drawFocusFeedback="true" />
+    </children>
+</component>

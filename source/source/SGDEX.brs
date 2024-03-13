@@ -3,7 +3,7 @@
 sub RunUserInterface(args)
     m.args = args
     print "launched from source: " + args.Source
-    if Type(GetSceneName) <> "<uninitialized>" AND GetSceneName <> invalid AND GetInterface(GetSceneName, "ifFunction") <> invalid then
+    if Type(GetSceneName) <> "<uninitialized>" and GetSceneName <> invalid and GetInterface(GetSceneName, "ifFunction") <> invalid then
         StartSGDEXChannel(GetSceneName(), args)
     else
         ? "Error: SGDEX, please implement 'GetSceneName() as String' function and return name of your scene that is extended from BaseScene"
@@ -17,18 +17,19 @@ sub StartSGDEXChannel(componentName, args)
     scene = screen.CreateScene(componentName)
 
     ' Execute MainInit function, if defined by developer, prior to showing the RSG scene
-    if Type(MainInit) = "Function" OR Type(MainInit) = "roFunction"
+    if Type(MainInit) = "Function" or Type(MainInit) = "roFunction"
         MainInit(screen, args)
     end if
 
     screen.Show()
+    ' vscode_rdb_on_device_component_entry
     scene.ObserveField("exitChannel", m.port)
     scene.launch_args = args
 
     ' create roInput context for handling roInputEvent messages
     input = CreateObject("roInput")
     input.setMessagePort(m.port)
-    
+
     while (true)
         msg = Wait(0, m.port)
         msgType = Type(msg)
@@ -46,7 +47,7 @@ sub StartSGDEXChannel(componentName, args)
         end if
 
         ' Pass event msg to MainHandleEvent, if defined by developer
-        if Type(MainHandleEvent) = "Function" OR Type(MainHandleEvent) = "roFunction"
+        if Type(MainHandleEvent) = "Function" or Type(MainHandleEvent) = "roFunction"
             MainHandleEvent(msg)
         end if
 

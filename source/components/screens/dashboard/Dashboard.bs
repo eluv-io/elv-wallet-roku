@@ -2,4 +2,16 @@ import "pkg:/components/stores/stores.bs"
 
 sub init()
     stores.contentStore()@.fetchWalletData()
+
+    m.lbl = m.top.findNode("lbl")
+
+    tabRow = m.top.findNode("tab_row")
+    m.tabrow = tabrow
+
+    tabRow.ObserveField("focusedTabName", "onTabFocused")
+    onTabFocused()
+end sub
+
+sub onTabFocused()
+    m.lbl.text = `Selected tab: ${m.tabrow.focusedTabName}`
 end sub
