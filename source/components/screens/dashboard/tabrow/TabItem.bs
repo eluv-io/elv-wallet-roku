@@ -7,13 +7,13 @@ sub onItemContentChanged()
 end sub
 
 sub onItemFocusChanged()
-    if m.top.itemHasFocus
+
+end sub
+
+sub onFocusPercentChanged()
+    if m.top.focusPercent > 0.8
         m.label.color = "0x000000FF"
     else
         m.label.color = "0xFFFFFFFF"
     end if
-end sub
-
-sub onFocusPercentChanged()
-
 end sub
