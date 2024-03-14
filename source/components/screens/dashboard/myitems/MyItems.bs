@@ -2,8 +2,17 @@ import "pkg:/components/stores/stores.bs"
 sub init()
     print "INIT MY ITEMS"
     stores.contentStore().observeField("nfts", "onNftsChanged")
+    onNftsChanged()
 end sub
 
 sub onNftsChanged()
     print "got some nfts"
+    print "myitems:", stores.contentStore().nfts
+
+    nfts = stores.contentStore().nfts
+    if nfts = invalid
+        return
+    end if
+
+    
 end sub
