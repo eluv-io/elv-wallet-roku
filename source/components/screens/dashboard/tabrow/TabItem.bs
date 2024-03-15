@@ -10,11 +10,18 @@ sub onItemFocusChanged()
 
 end sub
 
-sub onFocusPercentChanged()
-    if m.top.focusPercent > 0.8
-        m.label.color = "0x000000FF"
+' Called for both focusPercent and gridHasFocus changes
+sub onFocusChanged()
+    tabFocused = m.top.focusPercent > 0.8
+    if not tabFocused
+        m.label.color = "#D8D8D8"
     else
-        m.label.color = "0xFFFFFFFF"
+        rowFocused = m.top.gridHasFocus
+        if rowFocused ' and tabFocused
+            m.label.color = "#2A2A2A"
+        else ' tabFocused and !rowFocused
+            m.label.color = "#202020"
+        end if
     end if
 end sub
 

@@ -8,7 +8,7 @@
                 horizAlignment="center"
                 vertAlignment="top"
             >
-                <Rectangle height="40" /> <!-- Spacer -->
+                <Spacer height="40" />
                 <TabRow id="tab_row" />
                 <Rectangle id="tab_container" width="1920" />
             </LayoutGroup>

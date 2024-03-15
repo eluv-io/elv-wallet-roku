@@ -1,8 +1,17 @@
 import "pkg:/components/stores/stores.bs"
 sub init()
-    print "INIT MY ITEMS"
+    m.grid = m.top.findNode("grid")
+    showPlaceholderGrid()
     stores.contentStore().observeField("nfts", "onNftsChanged")
     onNftsChanged()
+end sub
+
+sub showPlaceholderGrid()
+    content = createObject("roSGNode", "ContentNode")
+    for i = 0 to 8
+        content.createChild("ContentNode").title = "placeholder"
+    end for
+    m.grid.content = content
 end sub
 
 sub onNftsChanged()
@@ -14,5 +23,23 @@ sub onNftsChanged()
         return
     end if
 
-    
+    content = createObject("roSGNode", "ContentNode")
+    for each nft in nfts
+        nftToContentNode(nft, content)
+    end for
+
+    m.grid.content = content
 end sub
+
+function nftToContentNode(nft, rootNode)
+    node = rootNode.createChild("MediaNode")
+    template = nft.nft_template
+    node.key = template.id
+    node.contractAddress = template.address
+    node.imageUrl = nft.meta.image
+    node.title = nft.contract_name
+    node.subtitle = template.edition_name
+    node.description = template.description
+    node.tokenId = nft.token_id_str
+    'node.tenant = fetched later from /nft/info/{ictr}/{tokenId}
+end function

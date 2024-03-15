@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="TabRow" extends="Group" initialFocus="grid">
+<component name="TabRow" extends="BaseView" initialFocus="grid">
     <interface>
         <field id="focusedTabName" type="string" />
     </interface>
     <children>
+        <Poster
+            uri="pkg:/images/tabs_bg.9.png"
+            width="634"
+            height="80"
+            loadDisplayMode="scaleToFit"
+            inheritParentTransform="false"
+            translation="[644,64]"
+            loadSync="true">
+        </Poster>
         <MarkupGrid
             id="grid"
-            translation="[ 168, 66 ]"
+            translation="[ 52, 42 ]"
             itemComponentName="TabItem"
             numColumns="3"
             numRows="1"
-            itemSize="[0,40]"
-            columnWidths="[162,162,100]"
-            itemSpacing="[ 68, 0 ]"
-            focusBitmapUri="pkg:/images/btn_tab_selected.9.png"
+            itemSize="[0,46]"
+            columnWidths="[178,188,140]"
+            itemSpacing="[ 40, 0 ]"
+            focusBitmapUri="pkg:/images/tab_pill_indicator.9.png"
+            focusFootprintBitmapUri="pkg:/images/tab_pill_indicator.9.png"
+            focusBitmapBlendColor="#BFBFBFFF"
+            focusFootprintBlendColor="#888888FF"
             drawFocusFeedbackOnTop="false"
             drawFocusFeedback="true" />
     </children>

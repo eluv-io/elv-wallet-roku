@@ -1,0 +1,62 @@
+sub init()
+    m.bg = m.top.findNode("bg")
+    m.container = m.top.findNode("content_container")
+    m.tokenId = m.top.findNode("token_id")
+    m.image = m.top.findNode("image")
+    m.title = m.top.findNode("title")
+    m.subtitle = m.top.findNode("subtitle")
+end sub
+
+sub onItemContentChanged()
+    content = m.top.itemContent
+    if content.title = "placeholder"
+        setupPlaceholderView()
+        return
+    end if
+
+    m.tokenId.text = `#${content.tokenId}`
+    m.image.uri = urlWithWidth(content.imageUrl, m.image.width)
+    m.title.text = content.title
+    m.subtitle.text = content.subtitle
+end sub
+
+' Returns [url] with an appended "width" query parameter
+function urlWithWidth(url as string, width as float) as string
+    if url.inStr("?") <> -1
+        separator = "&"
+    else
+        separator = "?"
+    end if
+    return `${url}${separator}${`width=${width}`}`
+end function
+
+sub onWidthChanged()
+    width = m.top.width
+    padding = 36
+    widthWithPadding = width - (padding * 2)
+    m.container.translation = [padding, 0]
+    m.bg.width = width
+    m.tokenId.width = widthWithPadding
+
+    m.image.width = widthWithPadding
+    m.image.height = widthWithPadding
+
+    m.title.width = widthWithPadding
+    m.subtitle.width = widthWithPadding
+end sub
+
+sub onFocusChanged()
+    if m.top.gridHasFocus and m.top.focusPercent > 0.8
+        m.bg.color = "0xFF0000FF"
+    else
+        m.bg.color = "0x0000FFFF"
+    end if
+end sub
+
+sub onHeightChanged()
+    m.bg.height = m.top.height
+end sub
+
+sub setupPlaceholderView()
+    m.title.text = "wait for it..."
+end sub

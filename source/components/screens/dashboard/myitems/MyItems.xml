@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="MyItems" extends="Group">
+<component name="MyItems" extends="BaseView" initialFocus="grid">
     <children>
-        <SimpleLabel text="MY ITEMS" />
+        <MarkupGrid
+            id="grid"
+            itemComponentName="MediaCard"
+            numColumns="3"
+            numRows="2"
+            itemSize="[468,720]"
+            vertFocusAnimationStyle="fixed"
+            translation="[204, 10]"
+            itemSpacing="[ 48, 48 ]"
+            drawFocusFeedback="false"
+        />
     </children>
 </component>

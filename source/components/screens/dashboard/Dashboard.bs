@@ -23,3 +23,17 @@ sub onTabFocused()
         m.tabContainer.createChild("Profile")
     end if
 end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "down" and m.tabRow.IsInFocusChain()
+            m.tabContainer.getChild(0).setFocus(true)
+            handled = true
+        else if key = "up" and m.tabContainer.IsInFocusChain()
+            m.tabRow.setFocus(true)
+            handled = true
+        end if
+    end if
+    return handled
+end function

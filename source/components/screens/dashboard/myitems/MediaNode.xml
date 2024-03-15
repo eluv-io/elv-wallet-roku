@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Represents the data required to display a MediaCard -->
+<component name="MediaNode" extends="ContentNode">
+    <interface>
+        <field id="key" type="string" />
+        <field id="contractAddress" type="string" />
+        <field id="imageUrl" type="string" />
+        <field id="title" type="string" />
+        <field id="subtitle" type="string" />
+        <!-- Doesn't show up in cards, but is used in the detail view. -->
+        <field id="description" type="string" />
+        <!-- if there's only one token, we can show the token id -->
+        <field id="tokenId" type="string" />
+        <field id="tenant" type="string" />
+    </interface>
+</component>
