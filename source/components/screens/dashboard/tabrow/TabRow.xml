@@ -5,6 +5,21 @@
     </interface>
     <children>
         <Poster
+            id="logo"
+            uri="pkg:/images/elv_logo.png"
+            inheritParentTransform="false"
+            width="100"
+            height="100"
+            translation="[96,54]"
+        />
+        <TvLabel
+            text="Media Wallet"
+            fontStyle="label_40"
+            inheritParentTransform="false"
+            translation="[236,80]"
+        />
+        <Poster
+            id="tabs_bg"
             uri="pkg:/images/tabs_bg.9.png"
             width="634"
             height="80"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="Profile" extends="Group">
     <children>
-        <SimpleLabel text="PROFILE" />
+        <TvLabel text="PROFILE" />
     </children>
 </component>

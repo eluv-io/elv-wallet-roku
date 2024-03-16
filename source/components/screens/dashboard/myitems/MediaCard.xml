@@ -15,7 +15,7 @@
             >
 
                 <Spacer height="36" />
-                <Label id="token_id" horizAlign="right" />
+                <TvLabel id="token_id" horizAlign="right" />
                 <Spacer height="36" />
 
                 <Poster
@@ -26,10 +26,10 @@
                 />
 
                 <Spacer height="36" />
-                <Label id="title" numLines="1" horizAlign="center" />
+                <TvLabel id="title" numLines="1" horizAlign="center" />
                 <Spacer height="36" />
 
-                <Label id="subtitle" numLines="1" horizAlign="center" />
+                <TvLabel id="subtitle" numLines="1" horizAlign="center" />
             </LayoutGroup>
         </Rectangle>
     </children>

@@ -8,5 +8,8 @@
     "diagnosticFilters": [
         "**/SGDEX/**",
         "**/SGDEX.brs"
+    ],
+    "files":[
+        "**/*"
     ]
 }

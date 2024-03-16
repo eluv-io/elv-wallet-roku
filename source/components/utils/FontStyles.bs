@@ -1,0 +1,50 @@
+namespace FontStyles
+    function getFontForStyle(fontStyle)
+        if fontStyle = ""
+            fontStyle = "label_40"
+        end if
+        font = CreateObject("roSGNode", "Font")
+        if fontStyle = "title_62"
+            font.size = 62
+            font.uri = "pkg:/fonts/inter_SemiBold.ttf"
+        else if fontStyle = "body_32"
+            font.size = 32
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "carousel_48"
+            font.size = 48
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "carousel_36"
+            font.size = 36
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "header_53"
+            font.size = 53
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "header_30"
+            font.size = 30
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "button_32"
+            font.size = 32
+            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "button_28"
+            font.size = 28
+            font.uri = "pkg:/fonts/inter_SemiBold.ttf"
+        else if fontStyle = "button_24"
+            font.size = 24
+            font.uri = "pkg:/fonts/inter_SemiBold.ttf"
+        else if fontStyle = "label_40"
+            font.size = 40
+            font.uri = "pkg:/fonts/inter_Medium.ttf"
+        else if fontStyle = "label_37"
+            font.size = 37
+            font.uri = "pkg:/fonts/inter_Bold.ttf"
+        else if fontStyle = "label_24"
+            font.size = 24
+            font.uri = "pkg:/fonts/inter_Medium.ttf"
+        else
+            print `Unkown fontStyle [${fontStyle}], defaulting to label_40`
+            font.size = 40
+            font.uri = "pkg:/fonts/inter_Medium.ttf"
+        end if
+        return font
+    end function
+end namespace

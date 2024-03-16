@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="TvButton" extends="Button">
+    <interface>
+        <field id="fontStyle" type="string" onChange="onFontStyleChanged"/>
+    </interface>
     <children>
         <Animation id="focusScaleAnimation"
             duration="0.1"

@@ -11,10 +11,10 @@
                 horizAlignment="center"
                 vertAlignment="center"
             >
-                <SimpleLabel text="Scan QR Code" />
-                <SimpleLabel
+                <TvLabel text="Scan QR Code" />
+                <TvLabel
                     text="Scan the QR Code with your camera app or a QR code reader on your device to verify the code." />
-                <SimpleLabel id="qr_code" />
+                <TvLabel id="qr_code" />
                 <Poster id="qr_image" />
                 <TvButton id="btn_new_code" text="request new code" />
             </LayoutGroup>

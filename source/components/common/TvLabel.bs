@@ -1,0 +1,10 @@
+import "pkg:/components/utils/FontStyles.bs"
+
+sub init()
+    onFontStyleChange()
+end sub
+
+sub onFontStyleChange()
+    font = FontStyles.getFontForStyle(m.top.fontStyle)
+    m.top.font = font
+end sub

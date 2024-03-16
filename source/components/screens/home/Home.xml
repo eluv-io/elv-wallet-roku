@@ -8,14 +8,13 @@
                 horizAlignment="center"
                 vertAlignment="center"
             >
-                <SimpleLabel text="LOGO GOES HERE" />
+                <Poster uri="pkg:/images/elv_logo.png" />
                 <ButtonGroup id="btngroup">
                     <TvButton
                         id="btn_signin"
                         text="Sign In"
                         showFocusFootprint="true"
                     />
-                    <TvButton text="random btn" id="foo" />
                 </ButtonGroup>
             </LayoutGroup>
         </Rectangle>

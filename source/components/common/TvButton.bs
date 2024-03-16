@@ -1,3 +1,5 @@
+import "pkg:/components/utils/FontStyles.bs"
+
 sub init()
     m.top.iconUri = ""
     m.top.focusedIconUri = ""
@@ -16,12 +18,19 @@ sub init()
             exit for
         end if
     end for
+    onFontStyleChanged()
 
     ' Wait for the parent to give the root element an ID before we can bind it to the animations
     ' That has the side-effect of buttons without an ID not behaving the same, but that shouldn't be a problem.
     m.top.observeField("id", "onRootIdChange")
     m.top.observeField("buttonSelected", "onClick")
     m.top.observeField("focusedChild", "onFocus")
+end sub
+
+sub onFontStyleChanged()
+    font = FontStyles.getFontForStyle(m.top.fontStyle)
+    m.top.textFont = font
+    m.top.focusedTextFont = font
 end sub
 
 sub onHorizAlignChanged(msg as object)

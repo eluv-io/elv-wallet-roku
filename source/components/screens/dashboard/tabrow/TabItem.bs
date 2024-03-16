@@ -24,8 +24,3 @@ sub onFocusChanged()
         end if
     end if
 end sub
-
-sub onSizeChange()
-    ' center label according to size
-    m.label.translation = [m.top.width / 2, m.top.height / 2]
-end sub
