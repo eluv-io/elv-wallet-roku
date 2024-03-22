@@ -1,6 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="Profile" extends="Group">
+<component name="Profile" extends="BaseView" initialFocus="btn_signout">
     <children>
-        <TvLabel text="PROFILE" />
+        <Rectangle color="#000000" width="1920" height="1080">
+            <LayoutGroup
+                layoutDirection="vert"
+                itemSpacings="[20]"
+                translation="[442,0]"
+            >
+                <!-- Wrapping elements in a Rectangle is the easiest way I found to make
+                "translation" work inside a LayoutGroup -->
+                <Rectangle>
+                    <TvLabel
+                        text="PROFILE"
+                        fontStyle="header_30"
+                        color="#979797"
+                        translation="[20,0]"
+                    />
+                </Rectangle>
+
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel id="address" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel id="userid" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+
+                <Rectangle>
+                    <TvLabel
+                        text="FABRIC"
+                        fontStyle="header_30"
+                        color="#979797"
+                        translation="[20,24]"
+                    />
+                </Rectangle>
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel text="Network: Main" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel id="fabricnode" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel id="authservice" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+                <Rectangle color="#232323" width="1036" height="82">
+                    <TvLabel id="ethservice" fontStyle="header_30" translation="[20,24]" />
+                </Rectangle>
+                <Rectangle>
+                    <TvButton text="Sign Out" id="btn_signout" translation="[320,0]" />
+                </Rectangle>
+            </LayoutGroup>
+        </Rectangle>
     </children>
 </component>

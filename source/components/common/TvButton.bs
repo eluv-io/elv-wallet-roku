@@ -3,6 +3,9 @@ import "pkg:/components/utils/FontStyles.bs"
 sub init()
     m.top.iconUri = ""
     m.top.focusedIconUri = ""
+    m.top.focusBitmapUri = "pkg:/images/button_focused.9.png"
+    m.top.showFocusFootprint = true
+    m.top.focusFootprintBitmapUri = "pkg:/images/button_unfocused.9.png"
     m.selectedScaleAnim = m.top.findNode("selectedScaleAnimation")
     m.selectedFieldInterpolator = m.top.findNode("selectedFieldInterpolator")
 
