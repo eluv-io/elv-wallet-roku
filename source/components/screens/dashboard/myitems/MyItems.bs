@@ -1,9 +1,25 @@
+import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/stores/stores.bs"
 sub init()
-    m.grid = m.top.findNode("grid")
+    grid = m.top.findNode("grid")
+    m.grid = grid
+    grid.observeField("itemSelected", "onGridItemSelected")
     showPlaceholderGrid()
     stores.contentStore().observeField("nfts", "onNftsChanged")
     onNftsChanged()
+end sub
+
+sub onGridItemSelected()
+    grid = m.grid
+    item = grid.content.getChild(grid.itemSelected)
+    if item.title = "placeholder"
+        print "NFT grid still loading - ignoring click."
+        return
+    end if
+    print "selected item ", grid.itemSelected, item
+    nftDetail = CreateObject("roSGNode", "NftDetail")
+    nftDetail.nft = item
+    router()@.show({ view: nftDetail })
 end sub
 
 sub showPlaceholderGrid()
@@ -15,9 +31,6 @@ sub showPlaceholderGrid()
 end sub
 
 sub onNftsChanged()
-    print "got some nfts"
-    print "myitems:", stores.contentStore().nfts
-
     nfts = stores.contentStore().nfts
     if nfts = invalid
         return
@@ -34,6 +47,7 @@ end sub
 function nftToContentNode(nft, rootNode)
     node = rootNode.createChild("MediaNode")
     template = nft.nft_template
+    node.sourceNft = nft
     node.key = template.id
     node.contractAddress = template.address
     node.imageUrl = nft.meta.image

@@ -2,6 +2,8 @@
 <!-- Represents the data required to display a MediaCard -->
 <component name="MediaNode" extends="ContentNode">
     <interface>
+        <!-- The NFT object used to create this node -->
+        <field id="sourceNft" type="assocarray" />
         <field id="key" type="string" />
         <field id="contractAddress" type="string" />
         <field id="imageUrl" type="string" />

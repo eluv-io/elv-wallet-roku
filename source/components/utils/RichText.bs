@@ -1,0 +1,28 @@
+import "pkg:/components/utils/FontStyles.bs"
+namespace RichText
+    sub setText(multiStyleLabel as roSGNodeMultiStyleLabel, text as string)
+        multiStyleLabel.drawingStyles = uniformDrawingStyle()
+        multiStyleLabel.text = sanitizeRichText(text)
+    end sub
+
+    function uniformDrawingStyle(fontStyle = "label_40")
+        font = FontStyles.getFontForStyle(fontStyle)
+        fontAA = {
+            "fontSize": font.size
+            "fontUri": font.uri
+        }
+        return {
+            "h1": fontAA
+            "h2": fontAA
+            "h3": fontAA
+            "h4": fontAA
+            "p": fontAA
+            "b": fontAA
+            "br": fontAA
+        }
+    end function
+
+    function sanitizeRichText(text as string) as string
+        return text.replace("&nbsp;", " ").replace("<br>", chr(10))
+    end function
+end namespace

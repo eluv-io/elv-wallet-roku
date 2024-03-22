@@ -1,0 +1,17 @@
+import "pkg:/components/utils/RichText.bs"
+sub init()
+    m.title = m.top.findNode("title")
+    m.subtitle = m.top.findNode("subtitle")
+    m.rowlist = m.top.findNode("rowlist")
+end sub
+
+sub onNftItemChanged()
+    ' At this point, our other apps observe ContentStore for live updates of this NFT.
+    ' For Roku, we can just hold onto the node as it was clicked and display it "statically".
+    ' This is fine because the NFT details shouldn't really change frequently, or as you're observing it.
+    ' And also, Roku sucks and it's annoying and painful to do it, so I'll pass for now.
+    nft = m.top.nft.sourceNft
+    m.title.text = nft.meta.display_name ?? nft.nft_template.display_name
+    RichText.setText(m.subtitle, nft.nft_template.description_rich_text)
+    ' TODO: Ellipsis doesn't work for m.subtitle
+end sub
