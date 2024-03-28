@@ -3,6 +3,7 @@ sub init()
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
     m.rowlist = m.top.findNode("rowlist")
+    m.rowlist.setfocus(true)
 end sub
 
 sub onNftItemChanged()
@@ -14,4 +15,63 @@ sub onNftItemChanged()
     m.title.text = nft._name
     RichText.setText(m.subtitle, nft.nft_template.description_rich_text)
     ' TODO: Ellipsis doesn't work for m.subtitle
+
+    updateRowList(nft)
+end sub
+
+sub updateRowList(nft)
+    root = createObject("roSGNode", "ContentNode")
+    createFeaturedMediaRow(nft, root)
+    createSectionRows(nft, root)
+    m.rowlist.content = root
+    m.rowlist.numrows = root.getChildCount()
+end sub
+
+sub createFeaturedMediaRow(nft, root)
+    if nft._featured_media.count() = 0
+        return
+    end if
+
+    row = root.createChild("ContentNode")
+    row.title = "FEATURED_MEDIA ROW (remove title)"
+    for each item in nft._featured_media
+        node = row.createChild("ContentNode")
+        node.title = item.name
+    end for
+end sub
+
+sub createSectionRows(nft, root)
+    if nft._sections.count() = 0
+        return
+    end if
+
+    for each section in nft._sections
+        createSectionRow(section, root)
+    end for
+end sub
+
+sub createSectionRow(section, root)
+    row = root.createChild("ContentNode")
+    row.title = section.name
+    for each collection in section.collections
+        ' The first collection adds its items to the Section row itself. Subsequent collections add a new row to the root.
+        collectionRow = row.getChildCount() = 0 ? row : root.createChild("ContentNode")
+        populateCollectionRow(collection, collectionRow)
+    end for
+end sub
+
+' Doesn't create new rows because the first Collection in a Section will add its items to the Section row itself.
+sub populateCollectionRow(collection, row)
+    name = collection.name
+    if name <> invalid and name <> ""
+        ' If the row already has a title, it's the Section title and we need to add a linebreak before appending the collection name
+        if row.title <> ""
+            row.title += chr(10)
+        end if
+        row.title += name
+    end if
+    for each media in collection.media
+        node = row.createChild("ContentNode")
+        node.title = media.name
+    end for
 end sub

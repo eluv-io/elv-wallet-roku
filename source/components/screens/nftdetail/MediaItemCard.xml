@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="MediaItemCard" extends="TvLabel">
+    <interface>
+        <field id="itemContent" type="node" onChange="onItemContentChanged" />
+    </interface>
+</component>

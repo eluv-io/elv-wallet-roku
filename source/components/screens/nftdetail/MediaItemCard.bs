@@ -1,0 +1,7 @@
+sub init()
+end sub
+
+sub onItemContentChanged()
+    content = m.top.itemContent
+    m.top.text = content.title
+end sub

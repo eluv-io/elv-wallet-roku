@@ -1,0 +1,7 @@
+sub init()
+    m.label = m.top.findNode("lbl")
+end sub
+
+sub onItemContentChanged()
+    m.label.text = m.top.content.title
+end sub

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="NftDetailRowTitle" extends="Group">
+    <interface>
+        <field id="content" type="node" onChange="onItemContentChanged" />
+    </interface>
+    <children>
+        <MultiStyleLabel
+            id="lbl"
+            maxLines="2"
+            wrap="true"
+            width="1920"
+        />
+    </children>
+</component>
