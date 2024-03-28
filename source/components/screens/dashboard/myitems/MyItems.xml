@@ -3,7 +3,7 @@
     <children>
         <MarkupGrid
             id="grid"
-            itemComponentName="MediaCard"
+            itemComponentName="NftCard"
             numColumns="3"
             numRows="2"
             itemSize="[468,720]"

@@ -51,7 +51,7 @@ function nftToContentNode(nft, rootNode)
     node.key = template.id
     node.contractAddress = template.address
     node.imageUrl = nft.meta.image
-    node.title = nft.contract_name
+    node.title = nft._name
     node.subtitle = template.edition_name
     node.description = template.description
     node.tokenId = nft.token_id_str

@@ -1,8 +1,8 @@
 import "pkg:/components/utils/FontStyles.bs"
 namespace RichText
-    sub setText(multiStyleLabel as roSGNodeMultiStyleLabel, text as string)
+    sub setText(multiStyleLabel as roSGNodeMultiStyleLabel, text as dynamic)
         multiStyleLabel.drawingStyles = uniformDrawingStyle()
-        multiStyleLabel.text = sanitizeRichText(text)
+        multiStyleLabel.text = text = invalid ? "" : sanitizeRichText(text)
     end sub
 
     function uniformDrawingStyle(fontStyle = "label_40")

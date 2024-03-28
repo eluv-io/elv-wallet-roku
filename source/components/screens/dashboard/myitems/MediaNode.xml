@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Represents the data required to display a MediaCard -->
+<!-- Represents the data required to display a NftCard -->
 <component name="MediaNode" extends="ContentNode">
     <interface>
         <!-- The NFT object used to create this node -->

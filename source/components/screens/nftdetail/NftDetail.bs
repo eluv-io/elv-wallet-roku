@@ -11,7 +11,7 @@ sub onNftItemChanged()
     ' This is fine because the NFT details shouldn't really change frequently, or as you're observing it.
     ' And also, Roku sucks and it's annoying and painful to do it, so I'll pass for now.
     nft = m.top.nft.sourceNft
-    m.title.text = nft.meta.display_name ?? nft.nft_template.display_name
+    m.title.text = nft._name
     RichText.setText(m.subtitle, nft.nft_template.description_rich_text)
     ' TODO: Ellipsis doesn't work for m.subtitle
 end sub

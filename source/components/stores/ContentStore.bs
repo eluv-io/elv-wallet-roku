@@ -17,7 +17,26 @@ function fetchWalletData(_ = invalid) as void
     promises.onThen(
     GatewayApi.getNftsRequest(),
     sub (result)
-        m.top.nfts = result.json.contents
+        nfts = result.json.contents
+        if nfts <> invalid
+            addConvenienceProperties(nfts)
+        end if
+        m.top.nfts = nfts
         print "NFTs fetched and saved"
     end sub)
 end function
+
+
+sub addConvenienceProperties(nfts)
+    for each nft in nfts
+        nft._uid = `${nft.contract_addr}_${nft.token_id}`
+        nft._name = nft.meta?.display_name ?? nft.nft_template?.display_name ?? ""
+        nft._featured_media = nft.nft_template?.additional_media_sections?.featured_media ?? []
+
+        for each section in (nft.nft_template?.additional_media_sections?.sections ?? [])
+            section._uid = `${nft.token_id}_${section.id}`
+        end for
+
+        nft._sections = nft?.nft_template?.additional_media_sections?.sections ?? []
+    end for
+end sub
