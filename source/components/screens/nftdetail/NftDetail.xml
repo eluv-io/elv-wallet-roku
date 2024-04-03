@@ -18,19 +18,21 @@
                 maxLines="5"
                 wrap="true"
                 width="1300"
+                fontStyle="body_32"
             />
             <RowList id="rowlist"
                 rowTitleComponentName="NftDetailRowTitle"
-                height="1000"
                 itemComponentName="MediaItemCard"
-                rowFocusAnimationStyle="floatingFocus"
-                rowItemSize="[ [196, 213], [196, 213], [196, 213] ]"
+                height="1000"
                 width="1920"
-                itemSize="[1920,300]"
-                itemSpacing="[ 0, 80 ]"
-                rowItemSpacing="[ [20, 0] ]"
+                rowFocusAnimationStyle="fixedFocusWrap"
                 showRowLabel="[true]"
-                rowHeights="[100]"
+                rowLabelOffset="[[0,20]]"
+                rowItemSize="[ [0, 270] ]"
+                itemSize="[1920,300]"
+                itemSpacing="[ 0, 60 ]"
+                variableWidthItems="[true]"
+                rowItemSpacing="[ [40, 0] ]"
             />
         </LayoutGroup>
     </children>

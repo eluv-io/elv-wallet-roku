@@ -2,6 +2,7 @@ import "pkg:/components/utils/UrlUtil.bs"
 sub init()
     m.image = m.top.findNode("image")
     m.title = m.top.findNode("title")
+    m.overlay = m.top.findNode("overlay")
     m.video_icon = m.top.findNode("video_icon")
 end sub
 
@@ -10,20 +11,39 @@ sub onItemContentChanged()
 
     m.title.text = content.name
 
-    url = UrlUtil.appendQuery(content.image, "height", m.top.height)
-    print "fetching image url ", url
-    m.image.uri = url
-    ' m.top.text = content.title
+    m.image.uri = UrlUtil.appendQuery(content.image, "height", m.top.height)
 
-    m.video_icon.visible = lcase(content.media_type ?? "") = "video"
+    m.mediaType = lcase(content.media_type ?? "")
+    m.video_icon.visible = isVideo(content)
 end sub
 
 sub onSizeChanged()
-    print `item size ${m.top.width}x${m.top.height}`
-    m.image.width = m.top.width
-    m.image.height = m.top.height
+    width = m.top.width
+    height = m.top.height
+    m.image.width = width
+    m.image.height = height
+    m.overlay.width = width
+    m.overlay.height = height
+
+    ' Assume icon is 1x1 ratio
+    iconSize = height * 0.3
+    m.video_icon.height = iconSize
+    m.video_icon.width = iconSize
+    m.video_icon.translation = [(width - iconsize) / 2, (height - iconSize) / 2]
+
+    padding = 20
+    m.title.width = width - (padding * 2)
+    m.title.height = height - (padding * 2)
+    m.title.translation = [padding, padding]
 end sub
 
-sub onItemFocusChanged()
-    m.title.visible = m.top.itemHasFocus
+sub onFocusChanged()
+    hasFocus = m.top.rowFocusPercent > 0.8 and m.top.focusPercent > 0.8
+    m.title.visible = hasFocus
+    m.video_icon.visible = not hasFocus and isVideo()
+    m.overlay.visible = hasFocus
 end sub
+
+function isVideo(content = m.top.itemContent?.aa)
+    return lcase(content?.media_type ?? "") = "video"
+end function

@@ -4,11 +4,24 @@
         <field id="itemContent" type="node" onChange="onItemContentChanged" />
         <field id="width" type="float" onChange="onSizeChanged" />
         <field id="height" type="float" onChange="onSizeChanged" />
-        <field id="itemHasFocus" type="boolean" onChange="onItemFocusChanged" />
+        <field id="focusPercent" type="float" onChange="onFocusChanged" />
+        <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
     </interface>
     <children>
         <Poster id="image" />
-        <TvLabel id="title" visible="false" />
-        <Poster id="video_icon" visible="false" uri="pkg:/images/video_icon.png" />
+        <Rectangle id="overlay" color="#000000CC" visible="false" />
+        <TvLabel
+            id="title"
+            visible="false"
+            fontStyle="body_32"
+            horizAlign="center"
+            vertAlign="bottom"
+        />
+        <Poster
+            id="video_icon"
+            loadDisplayMode="scaleToFit"
+            visible="false"
+            uri="pkg:/images/video_icon.png"
+        />
     </children>
 </component>

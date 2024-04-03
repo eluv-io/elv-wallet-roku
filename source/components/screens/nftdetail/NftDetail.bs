@@ -1,6 +1,9 @@
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/RichText.bs"
+
+const ITEM_HEIGHT = 270
+
 sub init()
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
@@ -48,7 +51,6 @@ sub createFeaturedMediaRow(nft, root)
     end if
 
     row = root.createChild("ContentNode")
-    row.title = "FEATURED_MEDIA ROW (remove title)"
     createNodes(row, nft._featured_media)
 end sub
 
@@ -90,5 +92,8 @@ sub createNodes(root, items)
     for each item in items
         node = root.createChild("AAContentNode")
         node.aa = item
+        aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
+        node.addField("FHDItemWidth", "float", false)
+        node.FHDItemWidth = ITEM_HEIGHT * aspectRatio
     end for
 end sub
