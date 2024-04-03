@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A content node that supports passing any arbitrary Associate Array -->
+<component name="AAContentNode" extends="ContentNode">
+    <interface>
+        <field id="aa" type="assocarray" />
+    </interface>
+</component>

@@ -1,0 +1,11 @@
+namespace UrlUtil
+    ' [url] is assumed to be a valid url. Query parameter will be added at the end of the url.
+    function appendQuery(url as string, key as string, value as dynamic) as string
+        if url.inStr("?") <> -1
+            separator = "&"
+        else
+            separator = "?"
+        end if
+        return `${url}${separator}${`${key}=${value}`}`
+    end function
+end namespace

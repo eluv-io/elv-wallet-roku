@@ -49,10 +49,7 @@ sub createFeaturedMediaRow(nft, root)
 
     row = root.createChild("ContentNode")
     row.title = "FEATURED_MEDIA ROW (remove title)"
-    for each item in nft._featured_media
-        node = row.createChild("ContentNode")
-        node.title = item.name
-    end for
+    createNodes(row, nft._featured_media)
 end sub
 
 sub createSectionRows(nft, root)
@@ -85,8 +82,13 @@ sub populateCollectionRow(collection, row)
         end if
         row.title += name
     end if
-    for each media in collection.media
-        node = row.createChild("ContentNode")
-        node.title = media.name
+    createNodes(row, collection.media)
+end sub
+
+' Creates an [AAContentNode] for each item in [items], as a child node of [root]
+sub createNodes(root, items)
+    for each item in items
+        node = root.createChild("AAContentNode")
+        node.aa = item
     end for
 end sub

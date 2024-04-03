@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Represents the data required to display a NftCard -->
+<!-- TODO: consider dumping this in favor of AAContentNode..? -->
 <component name="MediaNode" extends="ContentNode">
     <interface>
         <!-- The NFT object used to create this node -->

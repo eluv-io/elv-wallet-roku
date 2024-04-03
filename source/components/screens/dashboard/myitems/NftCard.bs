@@ -1,3 +1,4 @@
+import "pkg:/components/utils/UrlUtil.bs"
 sub init()
     m.bg = m.top.findNode("bg")
     m.container = m.top.findNode("content_container")
@@ -15,20 +16,10 @@ sub onItemContentChanged()
     end if
 
     m.tokenId.text = `#${content.tokenId}`
-    m.image.uri = urlWithWidth(content.imageUrl, m.image.width)
+    m.image.uri = UrlUtil.appendQuery(content.imageUrl, "width", m.image.width)
     m.title.text = content.title
     m.subtitle.text = content.subtitle
 end sub
-
-' Returns [url] with an appended "width" query parameter
-function urlWithWidth(url as string, width as float) as string
-    if url.inStr("?") <> -1
-        separator = "&"
-    else
-        separator = "?"
-    end if
-    return `${url}${separator}${`width=${width}`}`
-end function
 
 sub onWidthChanged()
     width = m.top.width

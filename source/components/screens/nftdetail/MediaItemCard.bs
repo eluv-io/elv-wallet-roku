@@ -1,7 +1,29 @@
+import "pkg:/components/utils/UrlUtil.bs"
 sub init()
+    m.image = m.top.findNode("image")
+    m.title = m.top.findNode("title")
+    m.video_icon = m.top.findNode("video_icon")
 end sub
 
 sub onItemContentChanged()
-    content = m.top.itemContent
-    m.top.text = content.title
+    content = m.top.itemContent.aa
+
+    m.title.text = content.name
+
+    url = UrlUtil.appendQuery(content.image, "height", m.top.height)
+    print "fetching image url ", url
+    m.image.uri = url
+    ' m.top.text = content.title
+
+    m.video_icon.visible = lcase(content.media_type ?? "") = "video"
+end sub
+
+sub onSizeChanged()
+    print `item size ${m.top.width}x${m.top.height}`
+    m.image.width = m.top.width
+    m.image.height = m.top.height
+end sub
+
+sub onItemFocusChanged()
+    m.title.visible = m.top.itemHasFocus
 end sub
