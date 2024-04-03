@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Dashboard" extends="BaseView" initialFocus="tab_row">
     <children>
-        <Rectangle color="#000000" width="1920" height="1080">
-            <LayoutGroup
-                translation="[960,0]"
-                layoutDirection="vert"
-                horizAlignment="center"
-                vertAlignment="top"
-            >
-                <Spacer height="40" />
-                <TabRow id="tab_row" />
-                <Spacer height="40" />
-                <Rectangle id="tab_container" width="1920" />
-            </LayoutGroup>
-        </Rectangle>
+        <LayoutGroup
+            translation="[960,0]"
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="top"
+        >
+            <Spacer height="40" />
+            <TabRow id="tab_row" />
+            <Spacer height="40" />
+            <Rectangle id="tab_container" width="1920" />
+        </LayoutGroup>
     </children>
 </component>

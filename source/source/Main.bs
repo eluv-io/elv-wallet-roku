@@ -1,3 +1,4 @@
+import "pkg:/components/http/http.bs"
 '*************************************************************
 '** Hello World example
 '** Copyright (c) 2015 Roku, Inc.  All rights reserved.
@@ -21,7 +22,7 @@ sub MainInit(screen, args)
         request.SetCertificatesFile("common:/certs/ca-bundle.crt")
         request.InitClientCertificates()
         request.RetainBodyOnError(true)
-        request.setUrl("https://main.net955305.contentfabric.io/config")
+        request.setUrl(http.CONFIG_URL)
         ' TODO: some error handling?
         configStr = request.getToString()
     end if

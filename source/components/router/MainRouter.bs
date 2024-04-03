@@ -1,12 +1,18 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/http/http.bs"
+import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
-function Show(args)
-    ' vscode_rdb_on_device_component_entry
-    setRouter(m.top.ComponentController)
-    stores.init()
+sub Init()
+    m.top.backgroundColor = "#000000"
+    m.top.backgroundUri = ""
+
     http.init()
+    stores.init()
+end sub
+
+function Show(args)
+    setRouter(m.top.ComponentController)
 
     if stores.tokenStore().fabricToken = ""
         router()@.show({ view: CreateObject("roSGNode", "Home") })

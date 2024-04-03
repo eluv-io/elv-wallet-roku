@@ -4,35 +4,34 @@
         <field id="nft" type="node" onChange="onNftItemChanged" />
     </interface>
     <children>
-        <Rectangle color="#000000" width="1920" height="1080">
-            <LayoutGroup layoutDirection="vert" translation="[80, 80]">
-                <TvLabel
-                    id="title"
-                    numLines="2"
-                    width="1000"
-                    wrap="true"
-                    maxLines="2"
-                />
-                <MultiStyleLabel
-                    id="subtitle"
-                    maxLines="5"
-                    wrap="true"
-                    width="1300"
-                />
-                <RowList id="rowlist"
-                    rowTitleComponentName="NftDetailRowTitle"
-                    height="1000"
-                    itemComponentName="MediaItemCard"
-                    rowFocusAnimationStyle="floatingFocus"
-                    rowItemSize="[ [196, 213], [196, 213], [196, 213] ]"
-                    width="1920"
-                    itemSize="[1920,300]"
-                    itemSpacing="[ 0, 80 ]"
-                    rowItemSpacing="[ [20, 0] ]"
-                    showRowLabel="[true]"
-                    rowHeights="[100]"
-                />
-            </LayoutGroup>
-        </Rectangle>
+        <Poster id="bgImage" width="1920" height="1080" />
+        <LayoutGroup layoutDirection="vert" translation="[80, 80]">
+            <TvLabel
+                id="title"
+                numLines="2"
+                width="1000"
+                wrap="true"
+                maxLines="2"
+            />
+            <TvLabel
+                id="subtitle"
+                maxLines="5"
+                wrap="true"
+                width="1300"
+            />
+            <RowList id="rowlist"
+                rowTitleComponentName="NftDetailRowTitle"
+                height="1000"
+                itemComponentName="MediaItemCard"
+                rowFocusAnimationStyle="floatingFocus"
+                rowItemSize="[ [196, 213], [196, 213], [196, 213] ]"
+                width="1920"
+                itemSize="[1920,300]"
+                itemSpacing="[ 0, 80 ]"
+                rowItemSpacing="[ [20, 0] ]"
+                showRowLabel="[true]"
+                rowHeights="[100]"
+            />
+        </LayoutGroup>
     </children>
 </component>

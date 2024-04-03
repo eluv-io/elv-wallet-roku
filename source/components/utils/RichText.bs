@@ -1,28 +1,17 @@
 import "pkg:/components/utils/FontStyles.bs"
 namespace RichText
-    sub setText(multiStyleLabel as roSGNodeMultiStyleLabel, text as dynamic)
-        multiStyleLabel.drawingStyles = uniformDrawingStyle()
-        multiStyleLabel.text = text = invalid ? "" : sanitizeRichText(text)
-    end sub
+    ' Even when Roku does support some formatting tags, it never supports nested tags, so it's just easier to remove everything and not support any rich text formatting
+    function stripFormatting(text as dynamic) as string
+        if text = invalid
+            return ""
+        end if
+        ' Replace unsupported characters with known counterparts
+        text = text.replace("&nbsp;", " ").replace("<br>", chr(10))
 
-    function uniformDrawingStyle(fontStyle = "label_40")
-        font = FontStyles.getFontForStyle(fontStyle)
-        fontAA = {
-            "fontSize": font.size
-            "fontUri": font.uri
-        }
-        return {
-            "h1": fontAA
-            "h2": fontAA
-            "h3": fontAA
-            "h4": fontAA
-            "p": fontAA
-            "b": fontAA
-            "br": fontAA
-        }
-    end function
+        ' Match all <foo> and </foo> tags and just remove them
+        regex = CreateObject("roRegex", "<\/?[a-z0-9]+>", "i")
+        text = regex.replaceAll(text, "")
 
-    function sanitizeRichText(text as string) as string
-        return text.replace("&nbsp;", " ").replace("<br>", chr(10))
+        return text
     end function
 end namespace

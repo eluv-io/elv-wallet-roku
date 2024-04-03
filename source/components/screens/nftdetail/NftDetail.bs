@@ -1,9 +1,13 @@
+import "pkg:/components/http/http.bs"
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/RichText.bs"
 sub init()
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
-    m.rowlist = m.top.findNode("rowlist")
-    m.rowlist.setfocus(true)
+    m.rowList = m.top.findNode("rowList")
+    m.bgImage = m.top.findNode("bgImage")
+
+    m.rowList.setfocus(true)
 end sub
 
 sub onNftItemChanged()
@@ -13,18 +17,29 @@ sub onNftItemChanged()
     ' And also, Roku sucks and it's annoying and painful to do it, so I'll pass for now.
     nft = m.top.nft.sourceNft
     m.title.text = nft._name
-    RichText.setText(m.subtitle, nft.nft_template.description_rich_text)
-    ' TODO: Ellipsis doesn't work for m.subtitle
+    m.subtitle.text = RichText.stripFormatting(nft.nft_template.description_rich_text)
 
+    m.bgImage.uri = findBgImage(nft)
     updateRowList(nft)
 end sub
+
+function findBgImage(nft) as dynamic
+    for each item in nft._featured_media
+        bgImage = item.background_image_tv
+        if bgImage <> invalid
+            return NftOps.assetLinkToUrl(bgImage)
+        end if
+    end for
+    return invalid
+end function
+
 
 sub updateRowList(nft)
     root = createObject("roSGNode", "ContentNode")
     createFeaturedMediaRow(nft, root)
     createSectionRows(nft, root)
-    m.rowlist.content = root
-    m.rowlist.numrows = root.getChildCount()
+    m.rowList.content = root
+    m.rowList.numrows = root.getChildCount()
 end sub
 
 sub createFeaturedMediaRow(nft, root)

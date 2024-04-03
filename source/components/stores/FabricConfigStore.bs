@@ -15,7 +15,7 @@ end sub
 
 sub refreshConfig(_ = invalid)
     promises.onThen(
-    http.get("https://main.net955305.contentfabric.io/config"),
+    http.get(http.CONFIG_URL),
     sub (result)
         m.top.config = result.json
     end sub)
