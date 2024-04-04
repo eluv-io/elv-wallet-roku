@@ -7,10 +7,32 @@ const ITEM_HEIGHT = 270
 sub init()
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
+    m.subtitleAnim = m.top.findNode("subtitleAnimation")
+    m.subtitleInterp = m.top.findNode("subtitleInterpolator")
     m.rowList = m.top.findNode("rowList")
     m.bgImage = m.top.findNode("bgImage")
 
+    m.rowList.observeFieldScoped("currFocusRow", "onFocusedRowChanged")
+    m.rowList.observeFieldScoped("rowItemSelected", "onItemSelected")
     m.rowList.setfocus(true)
+end sub
+
+sub onItemSelected()
+end sub
+
+sub onFocusedRowChanged()
+    ' Only show m.subtitle when first row is selected.
+    if m.subtitleAnim.state <> "running"
+        if m.rowList.itemFocused = 0 and m.rowList.currFocusRow > 0 and m.subtitle.scale[1] > 0
+            m.subtitleAnim.control = "stop"
+            m.subtitleInterp.reverse = true
+            m.subtitleAnim.control = "start"
+        else if m.rowList.itemFocused > 0 and m.rowList.currFocusRow < 1 and m.subtitle.scale[1] < 1
+            m.subtitleAnim.control = "stop"
+            m.subtitleInterp.reverse = false
+            m.subtitleAnim.control = "start"
+        end if
+    end if
 end sub
 
 sub onNftItemChanged()
