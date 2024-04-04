@@ -1,3 +1,4 @@
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 sub init()
     m.image = m.top.findNode("image")
@@ -13,7 +14,6 @@ sub onItemContentChanged()
 
     m.image.uri = UrlUtil.appendQuery(content.image, "height", m.top.height)
 
-    m.mediaType = lcase(content.media_type ?? "")
     m.video_icon.visible = isVideo(content)
 end sub
 
@@ -45,5 +45,5 @@ sub onFocusChanged()
 end sub
 
 function isVideo(content = m.top.itemContent?.aa)
-    return lcase(content?.media_type ?? "") = "video"
+    return content?.media_type = NFtOps.MediaType.VIDEO
 end function

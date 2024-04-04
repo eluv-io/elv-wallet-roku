@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ImageGallery" extends="BaseView" initialFocus="rowList">
+    <interface>
+        <field id="galleryItem" type="assocArray" onChange="onGalleryItemChanged" />
+    </interface>
+    <children>
+        <Poster
+            id="bigImage"
+            width="1920"
+            height="1080"
+            loadDisplayMode="scaleToFit"
+        />
+        <RowList
+            id="rowList"
+            itemComponentName="ImageItem"
+            showRowLabel="[false]"
+            rowItemSize="[ [200, 200] ]"
+            translation="[60,816]"
+            itemSize="[1920, 200]"
+            numRows="1"
+            rowItemSpacing="[ [20, 0] ]"
+        />
+    </children>
+</component>

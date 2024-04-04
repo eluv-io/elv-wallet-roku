@@ -1,5 +1,6 @@
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/RichText.bs"
 
 const ITEM_HEIGHT = 270
@@ -18,6 +19,17 @@ sub init()
 end sub
 
 sub onItemSelected()
+    itemIndex = m.rowList.rowItemSelected
+    mediaItem = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
+    if mediaItem.media_type = NftOps.MediaType.VIDEO
+        print "TODO: click on Video item:", mediaItem.name
+    else if mediaItem.media_type = NftOps.MediaType.IMAGE or mediaItem.media_type = NftOps.MediaType.GALLERY
+        galleryView = CreateObject("roSGNode", "ImageGallery")
+        galleryView.galleryItem = mediaItem
+        router()@.show({ view: galleryView })
+    else
+        print "click on unhandled media type ", mediaItem.name
+    end if
 end sub
 
 sub onFocusedRowChanged()

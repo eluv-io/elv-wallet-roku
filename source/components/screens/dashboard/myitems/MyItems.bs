@@ -16,7 +16,7 @@ sub onGridItemSelected()
         print "NFT grid still loading - ignoring click."
         return
     end if
-    print "selected item ", grid.itemSelected, item
+    print "selected item index:", grid.itemSelected
     nftDetail = CreateObject("roSGNode", "NftDetail")
     nftDetail.nft = item
     router()@.show({ view: nftDetail })

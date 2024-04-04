@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="NftDetail" extends="Group">
+<component name="NftDetail" extends="BaseView">
     <interface>
         <field id="nft" type="node" onChange="onNftItemChanged" />
     </interface>
@@ -33,8 +33,6 @@
             <RowList id="rowlist"
                 rowTitleComponentName="NftDetailRowTitle"
                 itemComponentName="MediaItemCard"
-                height="1000"
-                width="1920"
                 rowFocusAnimationStyle="fixedFocusWrap"
                 showRowLabel="[true]"
                 rowLabelOffset="[[0,20]]"

@@ -1,0 +1,12 @@
+sub init()
+    m.top.loadDisplayMode = "scaleToZoom"
+end sub
+
+sub onItemContentChanged()
+    m.top.uri = m.top.itemContent.FHDPosterUrl
+end sub
+
+sub onFocusChanged()
+    hasFocus = m.top.rowFocusPercent > 0.8 and m.top.focusPercent > 0.8
+    m.top.opacity = hasFocus ? 1.0 : 0.75
+end sub

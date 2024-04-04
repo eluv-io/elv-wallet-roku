@@ -1,4 +1,18 @@
+import "pkg:/components/http/http.bs"
+
 namespace NftOps
+
+    enum MediaType
+        ' Fabric gives capitalized media types. A lot of checks would break if this assumption changes.
+        AUDIO = "Audio"
+        EBOOK = "Ebook"
+        GALLERY = "Gallery"
+        HTML = "HTML"
+        IMAGE = "Image"
+        LIVE = "Live"
+        VIDEO = "Video"
+    end enum
+
     ' Turns an asset container object to a ready-to-use url
     function assetLinkToUrl(assetLinkJson as dynamic) as string
         if assetLinkJson = invalid

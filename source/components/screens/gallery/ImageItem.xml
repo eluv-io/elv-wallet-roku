@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ImageItem" extends="Poster">
+    <interface>
+        <field id="itemContent" type="node" onChange="onItemContentChanged" />
+        <field id="focusPercent" type="float" onChange="onFocusChanged" />
+        <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
+    </interface>
+</component>

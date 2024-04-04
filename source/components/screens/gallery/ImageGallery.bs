@@ -1,0 +1,37 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/NftOps.bs"
+sub init()
+    m.bigImage = m.top.findNode("bigImage")
+    m.rowList = m.top.findNode("rowList")
+
+    m.rowList.observeFieldScoped("rowItemFocused", "onItemFocused")
+end sub
+
+sub onGalleryItemChanged()
+    resolutionFactor = CreateObject("roDeviceInfo").GetUIResolution().width / 1920
+    itemHeight = m.rowList.rowItemSize[0][1] * resolutionFactor
+    item = m.top.galleryItem
+    print "gallery item set!", item
+    if item.media_type = NftOps.MediaType.IMAGE
+        setBigPicture(item.media_file)
+    else if item.media_type = NftOps.MediaType.GALLERY
+        root = createObject("roSGNode", "ContentNode")
+        row = root.createChild("ContentNode")
+        for each image in item.gallery
+            node = row.createChild("ContentNode")
+            print "item url: ", UrlUtil.appendQuery(NftOps.assetLinkToUrl(image.image), "height", itemHeight)
+            node.FHDPosterUrl = UrlUtil.appendQuery(NftOps.assetLinkToUrl(image.image), "height", itemHeight)
+        end for
+        m.rowList.content = root
+    end if
+end sub
+
+sub onItemFocused()
+    itemIndex = m.rowList.rowItemFocused[1]
+    setBigPicture(m.top.galleryItem.gallery[itemIndex].image)
+end sub
+
+sub setBigPicture(assetLink)
+    screenHeight = CreateObject("roDeviceInfo").GetDisplaySize().h
+    m.bigImage.uri = UrlUtil.appendQuery(NftOps.assetLinkToUrl(assetLink), "height", screenHeight)
+end sub
