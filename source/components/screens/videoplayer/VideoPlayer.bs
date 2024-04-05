@@ -1,0 +1,53 @@
+import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/http/http.bs"
+sub init()
+    m.videoPlayer = m.top.findNode("VideoPlayer")
+    m.videoPlayer.content = createobject("roSGNode", "ContentNode")
+    
+    stores.tokenStore().observeFieldScoped("fabricToken", "onFabricTokenChanged")
+    onFabricTokenChanged()
+end sub
+
+sub onFabricTokenChanged()
+    token = stores.tokenStore().fabricToken
+
+    ' Header for DRM license requests
+    m.videoPlayer.addHeader("Authorization", `Bearer ${token}`)
+
+    ' Header for video segment requests
+    m.videoPlayer.content.httpHeaders = `Authorization:Bearer ${token}`
+
+    print "Set video player token to", token
+end sub
+
+sub onVideoItemChanged()
+    media = m.top.videoItem.media_link
+    m.videoPlayer.content.title = media.display_title ?? media.title
+
+    ' Don't use "main.net955305" as baseUrl, but the specific node pointed by the config
+    baseUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
+    optionsJsonUrl = NftOps.assetLinkToUrl(media.sources.default, `${baseUrl}/`)
+    context = { requestUrl: optionsJsonUrl }
+    promises.chain(http.get(optionsJsonUrl), context).then(sub (result, context)
+        ' Sorted by priority
+        playoutConfig = result.json["dash-clear"] ?? result.json["hls-clear"] ?? result.json["dash-widevine"]
+        m.videoPlayer.content.setFields({
+            streamFormat: playoutConfig.properties.protocol,
+            url: context.requestUrl.replace("options.json", playoutConfig.uri),
+            drmParams: buildDrm(playoutConfig.properties)
+        })
+        m.videoPlayer.control = "play"
+
+    end sub)
+end sub
+
+function buildDrm(properties) as dynamic
+    if properties?.drm = invalid
+        return invalid
+    end if
+    return {
+        KeySystem: properties.drm,
+        licenseServerURL: properties.license_servers[0]
+    }
+end function

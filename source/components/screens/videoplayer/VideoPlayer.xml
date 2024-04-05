@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="VideoPlayer" extends="BaseView" initialFocus="videoPlayer">
+    <interface>
+        <field id="videoItem" type="assocArray" onChange="onVideoItemChanged" />
+    </interface>
+    <children>
+        <Video id="videoPlayer" width="1920" height="1080" />
+    </children>
+</component>

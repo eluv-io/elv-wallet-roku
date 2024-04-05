@@ -3,6 +3,7 @@
     <interface>
         <field id="config" type="assocarray" />
         <function name="getAuthdBaseUrl" />
+        <function name="getFabricBaseUrl" />
     </interface>
     <children>
         <Timer id="config_refresh_timer" duration="180" repeat="true" />

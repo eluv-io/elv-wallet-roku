@@ -14,7 +14,7 @@ namespace NftOps
     end enum
 
     ' Turns an asset container object to a ready-to-use url
-    function assetLinkToUrl(assetLinkJson as dynamic) as string
+    function assetLinkToUrl(assetLinkJson as dynamic, baseUrl = http.BASE_URL) as string
         if assetLinkJson = invalid
             return ""
         end if
@@ -22,12 +22,12 @@ namespace NftOps
             ' When the link contains "qfab", it also has a different "container" value,
             ' in that case we ignore [assetLinkJson["."].container]
             ' remove "/qfab/" prefix (6 chars)
-            return `${http.base_url}q/${assetLinkJson["/"].mid(6)}`.EncodeUri()
+            return `${baseUrl}q/${assetLinkJson["/"].mid(6)}`.EncodeUri()
         else
             hash = assetLinkJson["."].container
             ' remove "./" prefix (2 chars)
             filePath = assetLinkJson["/"].mid(2)
-            return `${http.base_url}q/${hash}/${filePath}`.EncodeUri()
+            return `${baseUrl}q/${hash}/${filePath}`.EncodeUri()
         end if
     end function
 end namespace
