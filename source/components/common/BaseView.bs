@@ -1,3 +1,5 @@
+import "pkg:/components/utils/NodeUtil.bs"
+
 sub Init()
     m.shouldRestoreFocus = false
     m.top.ObserveField("focusedChild", "onFocusedChildChanged")
@@ -11,19 +13,10 @@ sub onFocusedChildChanged()
             m.shouldRestoreFocus = false
         else
             ' Focused child changed, just save it for now
-            m.lastFocusedChild = findFocuseNode(m.top.focusedChild)
+            m.lastFocusedChild = findFocusedNode(m.top.focusedChild)
         end if
     else
         ' The view is losing focus, save a flag to restore focus next time we come back
         m.shouldRestoreFocus = true
     end if
-end sub
-
-' If [node] or a decendant has key focus, finds and returns that node.
-sub findFocuseNode(node as roSGNode) as roSGNode
-    while node?.IsInFocusChain() = true
-        if node.HasFocus() return node
-        node = node.focusedChild
-    end while
-    return invalid
 end sub

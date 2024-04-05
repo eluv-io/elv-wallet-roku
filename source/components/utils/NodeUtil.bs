@@ -1,0 +1,8 @@
+' If [node] or a decendant has key focus, finds and returns that node.
+sub findFocusedNode(node as roSGNode) as roSGNode
+    while node?.IsInFocusChain() = true
+        if node.HasFocus() return node
+        node = node.focusedChild
+    end while
+    return invalid
+end sub

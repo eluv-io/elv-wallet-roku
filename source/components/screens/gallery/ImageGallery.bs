@@ -1,4 +1,5 @@
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/PixelUtil.bs"
 import "pkg:/components/utils/NftOps.bs"
 sub init()
     m.bigImage = m.top.findNode("bigImage")
@@ -8,8 +9,7 @@ sub init()
 end sub
 
 sub onGalleryItemChanged()
-    resolutionFactor = CreateObject("roDeviceInfo").GetUIResolution().width / 1920
-    itemHeight = m.rowList.rowItemSize[0][1] * resolutionFactor
+    itemHeight = PixelUtil.convertToRealPixels(m.rowList.rowItemSize[0][1])
     item = m.top.galleryItem
     print "gallery item set!", item
     if item.media_type = NftOps.MediaType.IMAGE

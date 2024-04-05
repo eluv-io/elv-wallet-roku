@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="FullscreenDialog" extends="Rectangle">
+    <interface>
+        <field id="showView" type="node" onChange="onShowView"/>
+    </interface>
+</component>

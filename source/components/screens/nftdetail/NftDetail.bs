@@ -30,7 +30,9 @@ sub onItemSelected()
         galleryView.galleryItem = mediaItem
         router()@.show({ view: galleryView })
     else
-        print "click on unhandled media type ", mediaItem.name
+        qrView = createObject("roSGNode", "ExternalContentQrDialog")
+        qrView.link = NftOps.assetLinkToUrl(mediaItem.media_file)
+        createObject("roSGNode", "FullscreenDialog").showView = qrView
     end if
 end sub
 

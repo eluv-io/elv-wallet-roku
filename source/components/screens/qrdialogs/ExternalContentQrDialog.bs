@@ -1,0 +1,31 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/PixelUtil.bs"
+
+sub init()
+    m.top.translation = "[960,540]"
+    m.top.layoutDirection = "vert"
+    m.top.horizAlignment = "center"
+    m.top.vertAlignment = "center"
+
+    m.qr = m.top.findNode("qr")
+
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+end sub
+
+sub onLinkChanged()
+    width = PixelUtil.convertToRealPixels(m.qr.width)
+    height = PixelUtil.convertToRealPixels(m.qr.height)
+    data = UrlUtil.appendQuery(m.top.link, "authorization", stores.tokenStore().fabricToken).EncodeUriComponent()
+    m.qr.uri = `https://api.qrserver.com/v1/create-qr-code/?size=${width}x${height}&margin=10&data=${data}`
+end sub
+
+
+sub centerSpinner()
+    if(m.spinner.poster.loadStatus = "ready")
+        centerx = (m.qr.width - m.spinner.poster.bitmapWidth) / 2
+        centery = (m.qr.height - m.spinner.poster.bitmapHeight) / 2
+        m.spinner.translation = [centerx, centery]
+    end if
+end sub

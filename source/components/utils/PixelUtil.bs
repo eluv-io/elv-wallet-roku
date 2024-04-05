@@ -1,0 +1,6 @@
+namespace PixelUtil
+    function convertToRealPixels(rokuDimensionValue)
+        resolutionFactor = CreateObject("roDeviceInfo").GetUIResolution().width / 1920
+        return rokuDimensionValue * resolutionFactor
+    end function
+end namespace
