@@ -8,7 +8,7 @@
         <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
     </interface>
     <children>
-        <Poster id="image" />
+        <Poster id="image" loadDisplayMode="scaleToZoom" />
         <Rectangle id="overlay" color="#000000CC" visible="false" />
         <TvLabel
             id="title"
