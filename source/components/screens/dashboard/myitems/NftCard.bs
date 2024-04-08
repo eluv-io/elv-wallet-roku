@@ -12,6 +12,7 @@ sub init()
     m.subtitle_shimmer = m.top.findNode("subtitle_shimmer")
 
     m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
+    onFocusChanged()
 end sub
 
 sub onItemContentChanged()
@@ -50,8 +51,14 @@ end sub
 sub onFocusChanged()
     if m.top.gridHasFocus and m.top.focusPercent > 0.8
         m.bg.uri = "pkg:/images/nft_card_focused_bg.png"
+        m.title.color = "#000000"
+        m.subtitle.color = "#646464"
+        m.tokenId.color = "#000000"
     else
         m.bg.uri = "pkg:/images/nft_card_bg.png"
+        m.title.color = "#FFFFFF"
+        m.subtitle.color = "#7A7A7A"
+        m.tokenId.color = "#7A7A7A"
     end if
 end sub
 
