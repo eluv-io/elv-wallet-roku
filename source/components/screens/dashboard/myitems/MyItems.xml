@@ -6,10 +6,10 @@
             itemComponentName="NftCard"
             numColumns="3"
             numRows="2"
-            itemSize="[468,720]"
+            itemSize="[480,736]"
             vertFocusAnimationStyle="fixed"
             translation="[204, 30]"
-            itemSpacing="[ 48, 48 ]"
+            itemSpacing="[ 36, 36 ]"
             drawFocusFeedback="false"
         />
     </children>

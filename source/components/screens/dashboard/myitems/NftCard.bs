@@ -31,7 +31,7 @@ end sub
 
 sub onWidthChanged()
     width = m.top.width
-    padding = 36
+    padding = 24
     widthWithPadding = width - (padding * 2)
     m.container.translation = [padding, 0]
     m.bg.width = width
