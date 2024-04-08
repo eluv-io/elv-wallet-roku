@@ -8,6 +8,8 @@ sub init()
     m.subtitle = m.top.findNode("subtitle")
 
     m.image_shimmer = m.top.findNode("image_shimmer")
+    m.title_shimmer = m.top.findNode("title_shimmer")
+    m.subtitle_shimmer = m.top.findNode("subtitle_shimmer")
 
     m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
 end sub
@@ -15,14 +17,15 @@ end sub
 sub onItemContentChanged()
     content = m.top.itemContent
     if content.title = "placeholder"
-        setupPlaceholderView()
         return
     end if
 
     m.tokenId.text = `#${content.tokenId}`
     m.image.uri = UrlUtil.appendQuery(content.imageUrl, "width", m.image.width)
     m.title.text = content.title
+    m.title_shimmer.control = "stop"
     m.subtitle.text = content.subtitle
+    m.subtitle_shimmer.control = "stop"
 end sub
 
 sub onWidthChanged()
@@ -50,10 +53,6 @@ sub onFocusChanged()
     else
         m.bg.uri = "pkg:/images/nft_card_bg.png"
     end if
-end sub
-
-sub setupPlaceholderView()
-    m.title.text = "wait for it..."
 end sub
 
 sub onImageLoadStatusChanged()

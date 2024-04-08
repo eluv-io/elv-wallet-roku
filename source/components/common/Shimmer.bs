@@ -1,5 +1,5 @@
 ' Simulates a shimmering effect.
-' Tries to fill the parent size, if parent has width/height properties
+' Tries to fill the parent size, but only at creation. Does not observe changes to size.
 sub init()
     m.top.visible = false
 
@@ -9,7 +9,7 @@ sub init()
     anim.easeOutPercent = rnd(0)
 
     timer = m.top.findNode("timer")
-    timer.observeFieldScoped("fire", "observeParentSize")
+    timer.observeFieldScoped("fire", "matchParentBoundingRect")
     timer.control = "start"
 end sub
 
@@ -22,20 +22,10 @@ sub onControlChanged()
     end if
 end sub
 
-sub observeParentSize()
-    parent = m.top.getParent()
-    if parent <> invalid
-        onParentWidthChanged()
-        onParentHeightChanged()
-        parent.observeFieldScoped("width", "onParentWidthChanged")
-        parent.observeFieldScoped("height", "onParentHeightChanged")
+sub matchParentBoundingRect()
+    rect = m.top.getParent()?.boundingRect()
+    if rect <> invalid
+        m.top.width = rect.width
+        m.top.height = rect.height
     end if
-end sub
-
-sub onParentWidthChanged()
-    m.top.width = m.top.getParent().width
-end sub
-
-sub onParentHeightChanged()
-    m.top.height = m.top.getParent().height
 end sub

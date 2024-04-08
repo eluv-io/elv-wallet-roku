@@ -26,10 +26,15 @@
                 </Poster>
 
                 <Spacer height="36" />
-                <TvLabel id="title" numLines="1" horizAlign="center" fontStyle="carousel_36" />
+                <TvLabel id="title" numLines="1" horizAlign="center"
+                    fontStyle="carousel_36">
+                    <Shimmer id="title_shimmer" control="start" />
+                </TvLabel>
                 <Spacer height="36" />
 
-                <TvLabel id="subtitle" numLines="1" horizAlign="center" fontStyle="label_24" />
+                <TvLabel id="subtitle" numLines="1" horizAlign="center" fontStyle="label_24">
+                    <Shimmer id="subtitle_shimmer" control="start" />
+                </TvLabel>
             </LayoutGroup>
         </Poster>
     </children>

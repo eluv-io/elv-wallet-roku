@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="Shimmer" extends="Group">
     <interface>
-        <!-- "start" / "stop" -->
+        <!-- Accepts same values as AnimationBase.control, but only "start"/"stop" have special treatment -->
         <field
             id="control"
             type="string"
