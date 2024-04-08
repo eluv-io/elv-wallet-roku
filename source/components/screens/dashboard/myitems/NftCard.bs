@@ -6,6 +6,10 @@ sub init()
     m.image = m.top.findNode("image")
     m.title = m.top.findNode("title")
     m.subtitle = m.top.findNode("subtitle")
+
+    m.image_shimmer = m.top.findNode("image_shimmer")
+
+    m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
 end sub
 
 sub onItemContentChanged()
@@ -36,18 +40,24 @@ sub onWidthChanged()
     m.subtitle.width = widthWithPadding
 end sub
 
-sub onFocusChanged()
-    if m.top.gridHasFocus and m.top.focusPercent > 0.8
-        m.bg.color = "0xFF0000FF"
-    else
-        m.bg.color = "0x0000FFFF"
-    end if
-end sub
-
 sub onHeightChanged()
     m.bg.height = m.top.height
 end sub
 
+sub onFocusChanged()
+    if m.top.gridHasFocus and m.top.focusPercent > 0.8
+        m.bg.uri = "pkg:/images/nft_card_focused_bg.png"
+    else
+        m.bg.uri = "pkg:/images/nft_card_bg.png"
+    end if
+end sub
+
 sub setupPlaceholderView()
     m.title.text = "wait for it..."
+end sub
+
+sub onImageLoadStatusChanged()
+    if m.image.loadStatus = "ready"
+        m.image_shimmer.control = "stop"
+    end if
 end sub

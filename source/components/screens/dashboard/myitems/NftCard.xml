@@ -8,29 +8,29 @@
         <field id="height" type="float" onChange="onHeightChanged" />
     </interface>
     <children>
-        <Rectangle id="bg" color="#0000ffff">
+        <Poster id="bg" uri="pkg:/images/nft_card_bg.png">
             <LayoutGroup
                 id="content_container"
                 layoutDirection="vert"
             >
 
                 <Spacer height="36" />
-                <TvLabel id="token_id" horizAlign="right" />
+                <TvLabel id="token_id" horizAlign="right" fontStyle="label_24" />
                 <Spacer height="36" />
 
                 <Poster
                     id="image"
                     loadDisplayMode="scaleToZoom"
-                    uri="pkg:/images/channel-poster_fhd.jpg"
-                    loadingBitmapUri="pkg:/images/channel-poster_fhd.jpg"
-                />
+                >
+                    <Shimmer id="image_shimmer" control="start" />
+                </Poster>
 
                 <Spacer height="36" />
-                <TvLabel id="title" numLines="1" horizAlign="center" />
+                <TvLabel id="title" numLines="1" horizAlign="center" fontStyle="carousel_36" />
                 <Spacer height="36" />
 
-                <TvLabel id="subtitle" numLines="1" horizAlign="center" />
+                <TvLabel id="subtitle" numLines="1" horizAlign="center" fontStyle="label_24" />
             </LayoutGroup>
-        </Rectangle>
+        </Poster>
     </children>
 </component>

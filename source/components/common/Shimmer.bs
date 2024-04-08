@@ -1,0 +1,41 @@
+' Simulates a shimmering effect.
+' Tries to fill the parent size, if parent has width/height properties
+sub init()
+    m.top.visible = false
+
+    anim = m.top.findNode("shimmerAnimation")
+    anim.duration = rnd(3)
+    anim.easeInPercent = rnd(0)
+    anim.easeOutPercent = rnd(0)
+
+    timer = m.top.findNode("timer")
+    timer.observeFieldScoped("fire", "observeParentSize")
+    timer.control = "start"
+end sub
+
+sub onControlChanged()
+    print "control change", m.top.control
+    if m.top.control = "start"
+        m.top.visible = true
+    else if m.top.control = "stop"
+        m.top.visible = false
+    end if
+end sub
+
+sub observeParentSize()
+    parent = m.top.getParent()
+    if parent <> invalid
+        onParentWidthChanged()
+        onParentHeightChanged()
+        parent.observeFieldScoped("width", "onParentWidthChanged")
+        parent.observeFieldScoped("height", "onParentHeightChanged")
+    end if
+end sub
+
+sub onParentWidthChanged()
+    m.top.width = m.top.getParent().width
+end sub
+
+sub onParentHeightChanged()
+    m.top.height = m.top.getParent().height
+end sub

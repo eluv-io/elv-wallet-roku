@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="Shimmer" extends="Group">
+    <interface>
+        <!-- "start" / "stop" -->
+        <field
+            id="control"
+            type="string"
+            alias="shimmerAnimation.control"
+            onChange="onControlChanged"
+        />
+        <field id="width" type="integer" alias="rect.width" />
+        <field id="height" type="integer" alias="rect.height" />
+    </interface>
+    <children>
+        <!-- Queue a timer for 1ms just to skip the first render pass and wait for parent to be
+        attached -->
+        <Timer id="timer" duration="0.001" />
+        <Rectangle id="rect">
+            <Animation id="shimmerAnimation"
+                duration="2.0"
+                repeat="true"
+                easeFunction="piecewise"
+            >
+                <FloatFieldInterpolator
+                    key="[0.0, 0.5, 1.0]"
+                    keyValue="[ 0.2, 0.8, 0.2 ]"
+                    fieldToInterp="rect.opacity"
+                />
+            </Animation>
+        </Rectangle>
+    </children>
+</component>
