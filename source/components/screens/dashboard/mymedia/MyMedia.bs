@@ -19,7 +19,7 @@ sub onNftsChanged()
     row = rootNode.createChild("AAContentNode")
     row.title = "Items"
     row.aa = { fontStyle: "carousel_36" }
-    NftOps.nftsToContentNode(nfts, row)
+    NftOps.nftsToContentNode(nfts, row, "nft")
     m.itemsList.content = rootNode
 end sub
 

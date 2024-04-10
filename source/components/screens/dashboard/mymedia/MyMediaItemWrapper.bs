@@ -1,0 +1,60 @@
+' A wrapper that allows for multiple component types to appear in the same List/Grid
+sub init()
+    ' Properties that will be forwarded to the child once it is created.
+    m.queuedProperties = {}
+end sub
+
+sub onContentChanged()
+    content = m.top.itemContent
+    contentType = content.contentType
+
+    child = getOrMakeChild(contentType)
+    m.lastContentType = contentType
+
+    if child <> invalid
+        child.itemContent = content
+        dumpQueuedProperties(child)
+        ' I don't think it's actually possible for the type to change in runtime,
+        ' but if it did, we might need to retain the properties for the new child
+        m.queuedProperties.clear()
+    end if
+end sub
+
+function getOrMakeChild(contentType) as roSGNode
+    if m.lastContentType = contentType
+        ' Last contentType didn't change, current child should exist and be the right type
+        child = m.top.getChild(0)
+    else
+        if m.lastContentType <> invalid
+            ' Last contentType exists but is changing, remove the old child
+            m.top.removeChildIndex(0)
+        end if
+
+        if contentType = "nft"
+            child = m.top.createChild("NftCard")
+        end if
+    end if
+    return child
+end function
+
+sub dumpQueuedProperties(child)
+    for each item in m.queuedProperties.Items()
+        if child.doesExist(item.key)
+            child[item.key] = item.value
+        end if
+    end for
+end sub
+
+sub delegatedPropertyChanged(event)
+    field = event.getField()
+    data = event.getData()
+
+    child = m.top.getChild(0)
+    if child <> invalid and child.doesExist(field)
+        aa = child
+    else
+        aa = m.queuedProperties
+    end if
+
+    aa[field] = data
+end sub

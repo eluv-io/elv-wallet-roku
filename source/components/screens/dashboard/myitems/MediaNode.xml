@@ -5,6 +5,7 @@
     <interface>
         <!-- The NFT object used to create this node -->
         <field id="sourceNft" type="assocarray" />
+        <field id="contentType" type="string" />
         <field id="key" type="string" />
         <field id="contractAddress" type="string" />
         <field id="imageUrl" type="string" />

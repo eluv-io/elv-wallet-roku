@@ -31,9 +31,10 @@ namespace NftOps
         end if
     end function
 
-    function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode")) as roSGNode
+    function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode"), contentType = invalid) as roSGNode
         for each nft in nfts
             node = rootNode.createChild("MediaNode")
+            node.contentType = contentType
             template = nft.nft_template
             node.sourceNft = nft
             node.key = template.id

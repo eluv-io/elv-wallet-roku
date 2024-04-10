@@ -6,7 +6,7 @@
             accounts for different resolutions/row-title fonts -->
             <RowList
                 id="my_items_list"
-                itemComponentName="NftCard"
+                itemComponentName="MyMediaItemWrapper"
                 showRowLabel="[true]"
                 rowLabelOffset="[[96,12]]"
                 rowItemSize="[ [380, 582] ]"

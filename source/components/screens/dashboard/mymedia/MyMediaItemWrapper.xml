@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A wrapper that allows for multiple component types to appear in the same List/Grid -->
+<component name="MyMediaItemWrapper" extends="Group">
+    <interface>
+        <field id="itemContent" type="node" onChange="onContentChanged" />
+        <field id="focusPercent" type="float" onChange="delegatedPropertyChanged" />
+        <field id="gridHasFocus" type="boolean" onChange="delegatedPropertyChanged" />
+        <field id="rowListHasFocus" type="boolean" onChange="delegatedPropertyChanged" />
+        <field id="width" type="float" onChange="delegatedPropertyChanged" />
+        <field id="height" type="float" onChange="delegatedPropertyChanged" />
+    </interface>
+</component>
