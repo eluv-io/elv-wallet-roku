@@ -1,4 +1,5 @@
 import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
 sub init()
     grid = m.top.findNode("grid")
@@ -36,24 +37,5 @@ sub onNftsChanged()
         return
     end if
 
-    content = createObject("roSGNode", "ContentNode")
-    for each nft in nfts
-        nftToContentNode(nft, content)
-    end for
-
-    m.grid.content = content
+    m.grid.content = NftOps.nftsToContentNode(nfts)
 end sub
-
-function nftToContentNode(nft, rootNode)
-    node = rootNode.createChild("MediaNode")
-    template = nft.nft_template
-    node.sourceNft = nft
-    node.key = template.id
-    node.contractAddress = template.address
-    node.imageUrl = nft.meta.image
-    node.title = nft._name
-    node.subtitle = template.edition_name
-    node.description = template.description
-    node.tokenId = nft.token_id_str
-    'node.tenant = fetched later from /nft/info/{ictr}/{tokenId}
-end function

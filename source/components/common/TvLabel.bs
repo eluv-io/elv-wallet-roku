@@ -8,3 +8,8 @@ sub onFontStyleChange()
     font = FontStyles.getFontForStyle(m.top.fontStyle)
     m.top.font = font
 end sub
+
+sub onContentNodeChange()
+    m.top.text = m.top.content.title
+    m.top.fontStyle = m.top.content.aa?.fontStyle
+end sub

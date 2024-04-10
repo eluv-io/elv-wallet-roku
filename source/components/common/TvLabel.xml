@@ -2,5 +2,7 @@
 <component name="TvLabel" extends="Label">
     <interface>
         <field id="fontStyle" type="string" onChange="onFontStyleChange"/>
+        <!-- This supports using TvLabel as a row title for grids/lists -->
+        <field id="content" type="node" onChange="onContentNodeChange"/>
     </interface>
 </component>

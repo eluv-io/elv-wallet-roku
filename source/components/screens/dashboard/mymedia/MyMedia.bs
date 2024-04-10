@@ -1,0 +1,33 @@
+import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    m.itemsList = m.top.findNode("my_items_list")
+    m.itemsList.observeFieldScoped("rowItemSelected", "onRowItemSelected")
+
+    stores.contentStore().observeField("nfts", "onNftsChanged")
+    onNftsChanged()
+end sub
+
+sub onNftsChanged()
+    nfts = stores.contentStore().nfts
+    if nfts = invalid
+        return
+    end if
+    rootNode = createObject("roSGNode", "ContentNode")
+    row = rootNode.createChild("AAContentNode")
+    row.title = "Items"
+    row.aa = { fontStyle: "carousel_36" }
+    NftOps.nftsToContentNode(nfts, row)
+    m.itemsList.content = rootNode
+end sub
+
+sub onRowItemSelected()
+    rowIndex = m.itemsList.rowItemSelected[0]
+    itemIndex = m.itemsList.rowItemSelected[1]
+    item = m.itemsList.content.getChild(rowIndex).getChild(itemIndex)
+    nftDetail = CreateObject("roSGNode", "NftDetail")
+    nftDetail.nft = item
+    router()@.show({ view: nftDetail })
+end sub

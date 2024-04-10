@@ -30,4 +30,22 @@ namespace NftOps
             return `${baseUrl}q/${hash}/${filePath}`.EncodeUri()
         end if
     end function
+
+    function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode")) as roSGNode
+        for each nft in nfts
+            node = rootNode.createChild("MediaNode")
+            template = nft.nft_template
+            node.sourceNft = nft
+            node.key = template.id
+            node.contractAddress = template.address
+            node.imageUrl = nft.meta.image
+            node.title = nft._name
+            node.subtitle = template.edition_name
+            node.description = template.description
+            node.tokenId = nft.token_id_str
+            'node.tenant = fetched later from /nft/info/{ictr}/{tokenId}
+        end for
+        return rootNode
+    end function
+    
 end namespace

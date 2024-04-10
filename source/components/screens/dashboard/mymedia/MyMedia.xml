@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="MyMedia" extends="Group">
+<component name="MyMedia" extends="BaseView" initialFocus="my_items_list">
     <children>
-        <TvLabel text="MY MEDIA" />
+        <LayoutGroup layoutDirection="vert">
+            <!-- itemSize height is set arbitrarily to fit the card and row-title, I'm not sure this
+            accounts for different resolutions/row-title fonts -->
+            <RowList
+                id="my_items_list"
+                itemComponentName="NftCard"
+                showRowLabel="[true]"
+                rowLabelOffset="[[96,12]]"
+                rowItemSize="[ [380, 582] ]"
+                itemSize="[1920, 639]"
+                numRows="1"
+                rowTitleComponentName="TvLabel"
+                drawFocusFeedback="false"
+                focusXOffset="[96]"
+                rowItemSpacing="[ [20, 0] ]"
+            />
+        </LayoutGroup>
     </children>
 </component>
