@@ -47,19 +47,39 @@ function GetActivationData(_ = invalid) as object
     })
 end function
 
-function checkToken(deviceCode) as object
+function checkDeviceAuthorization(deviceCode) as object
     httpPromise = http.post(`${AUTH0_BASE_URL}oauth/token`, {
         client_id: AUTH0_CLIENT_ID,
         grant_type: "urn:ietf:params:oauth:grant-type:device_code"
         device_code: deviceCode
     })
 
-    return promises.onThen(httpPromise, sub(response) as object
+    return promises.chain(httpPromise).then(sub(response) as object
         if response.code = 200
             m.top.idToken = response.json.id_token
             m.top.accessToken = response.json.access_token
             m.top.refreshToken = response.json.refresh_token
         end if
         return response
-    end sub)
+    end sub).toPromise()
+end function
+
+' Called after id token is set
+function fetchFabricToken(_ = invalid)
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    context = { baseUrl: baseUrl }
+    return promises.chain(http.post(`${baseUrl}/wlt/login/jwt`, { ext: { share_email: true } }), context).then(
+    function(response, context)
+        m.top.clusterToken = response.json.token
+        m.top.walletAddress = response.json.addr
+        print "saved cluster token", m.top.clusterToken
+        print "saved wallet address", m.top.walletAddress
+
+        ' Get fabricToken from server. "clusterToken" will be embedded in the headers by HttpTask.
+        return http.get(`${context.baseUrl}/wlt/sign/csat`)
+    end function).then(function(response, context)
+        m.top.fabricToken = response.json.token
+        return "success"
+    end function
+    ).toPromise()
 end function

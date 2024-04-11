@@ -1,5 +1,6 @@
 import "pkg:/components/utils/promise.bs"
 import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/http/http.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -18,8 +19,8 @@ sub init()
 end sub
 
 sub getNewCode()
-    promise = stores.tokenStore()@.GetActivationData()
-    promises.onThen(promise, sub(response)
+    promises.chain(stores.tokenStore()@.GetActivationData()).then(
+    sub(response)
         url = response.json.verification_uri_complete
         data = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=${url}`
         m.qrCode.text = response.json.user_code
@@ -31,24 +32,25 @@ sub getNewCode()
 
         m.expirationTimer.duration = response.json.expires_in
         m.expirationTimer.control = "start"
-    end sub)
-end sub
-
-sub checkStatus()
-    promises.onThen(
-    stores.tokenStore()@.checkToken(m.deviceCode),
-    sub(response)
-        print "yay"
-        if response.code = 200
-            m.expirationTimer.control = "stop"
-            m.statusTimer.control = "stop"
-            getFabricToken()
-            router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
-        end if
     end sub
     )
 end sub
 
-sub getFabricToken()
-    'todo
+sub checkStatus()
+    promises.chain(stores.tokenStore()@.checkDeviceAuthorization(m.deviceCode)).then(
+    function(response)
+        if response.code = 200
+            m.expirationTimer.control = "stop"
+            m.statusTimer.control = "stop"
+            ' Auth0 gave us an IdToken, move own to obtain client-signed-access-token
+            return stores.tokenStore()@.fetchFabricToken()
+        end if
+        return "pending"
+    end function
+    ).then(sub (result)
+        if result <> "pending"
+            ' Assume success. this is VERY optimistic
+            router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
+        end if
+    end sub)
 end sub

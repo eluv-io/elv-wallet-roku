@@ -10,6 +10,7 @@
         <!-- Clear all data in the token store. Effectively a "sign out" operation. -->
         <function name="wipe" />
         <function name="GetActivationData" />
-        <function name="checkToken" />
+        <function name="checkDeviceAuthorization" />
+        <function name="fetchFabricToken" />
     </interface>
 </component>

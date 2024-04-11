@@ -69,7 +69,7 @@ sub getDefaultHeaders(request) as object
         if stores.tokenStore().idToken <> invalid
             headers["Authorization"] = `Bearer ${stores.tokenStore().idToken}`
         end if
-    else if url.inStr("wlt/sign/eth") <> -1
+    else if url.inStr("wlt/sign/") <> -1 ' this captures both wlt/sign/eth and wlt/sign/csat. currently there are no other /sign endpoints that we use, but this check is still brittle
         if stores.tokenStore().clusterToken <> invalid
             headers["Authorization"] = `Bearer ${stores.tokenStore().clusterToken}`
         end if
