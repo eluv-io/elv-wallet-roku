@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="TabRow" extends="BaseView" initialFocus="grid">
     <interface>
-        <field id="focusedTabName" type="string" />
+        <field id="focusedTabName" type="string" onChange="onFocusedTabNameChanged"/>
     </interface>
     <children>
         <Poster
