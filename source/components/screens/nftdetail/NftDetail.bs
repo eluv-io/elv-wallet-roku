@@ -89,7 +89,7 @@ sub createFeaturedMediaRow(nft, root)
     end if
 
     row = root.createChild("ContentNode")
-    createNodes(row, nft._featured_media)
+    NftOps.mediaItemsToNodes(nft._featured_media, row, ITEM_HEIGHT)
 end sub
 
 sub createSectionRows(nft, root)
@@ -122,16 +122,5 @@ sub populateCollectionRow(collection, row)
         end if
         row.title += name
     end if
-    createNodes(row, collection.media)
-end sub
-
-' Creates an [AAContentNode] for each item in [items], as a child node of [root]
-sub createNodes(root, items)
-    for each item in items
-        node = root.createChild("AAContentNode")
-        node.aa = item
-        aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
-        node.addField("FHDItemWidth", "float", false)
-        node.FHDItemWidth = ITEM_HEIGHT * aspectRatio
-    end for
+    NftOps.mediaItemsToNodes(collection.media, row, ITEM_HEIGHT)
 end sub

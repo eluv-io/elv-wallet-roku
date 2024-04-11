@@ -48,5 +48,20 @@ namespace NftOps
         end for
         return rootNode
     end function
-    
+
+    ' Creates a child in [rootNode] for every item in [items].
+    ' Usually the result will be used in [MediaItemCard] (potentiall via the [MyMediaItemWrapper] delegate)
+    sub mediaItemsToNodes(items, rootNode, itemHeight, contentType = "media")
+        for each item in items
+            node = rootNode.createChild("AAContentNode")
+            node.aa = item
+
+            node.addField("contentType", "string", false)
+            node.contentType = contentType
+
+            aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
+            node.addField("FHDItemWidth", "float", false)
+            node.FHDItemWidth = itemHeight * aspectRatio
+        end for
+    end sub
 end namespace
