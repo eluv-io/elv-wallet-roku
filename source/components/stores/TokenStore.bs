@@ -1,11 +1,23 @@
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/http/http.bs"
 
 const AUTH0_BASE_URL = "https://prod-elv.us.auth0.com/"
 const AUTH0_CLIENT_ID = "***REMOVED***"
 
+const TOKEN_REGISTRY_SECTION = "tokens"
+
+const PERSISTED_FIELDS = ["fabricToken", "walletAddress"]
+
 sub init()
-    m.registry = createObject("roRegistrySection", "tokens")
-    keepFieldsSyncedWithRegistry(["fabricToken", "walletAddress"])
+    m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
+    keepFieldsSyncedWithRegistry(PERSISTED_FIELDS)
+end sub
+
+sub wipe(_ = invalid)
+    for each field in PERSISTED_FIELDS
+        m.top[field] = invalid
+    end for
 end sub
 
 ' All [trackedFields] must be values in m.top.
@@ -18,7 +30,6 @@ sub keepFieldsSyncedWithRegistry(trackedFields as roArray)
         m.top[field] = values[field]
         m.top.observeField(field, "onTrackedFieldChange")
     end for
-    
 end sub
 
 sub onTrackedFieldChange(message)

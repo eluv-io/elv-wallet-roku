@@ -1,6 +1,7 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/Base58.bs"
+import "pkg:/components/utils/Time.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
 sub Init()
@@ -14,11 +15,28 @@ end sub
 function Show(args)
     setRouter(m.top.ComponentController)
 
-    if stores.tokenStore().fabricToken = ""
+    router().observeFieldScoped("activeStack", "onActiveStackChange")
+    initAppStack()
+
+    m.top.signalBeacon("AppLaunchComplete")
+end function
+
+sub onActiveStackChange()
+    if router().activeStack = "default"
+        print `detected "default" viewstack. Queueing "app" stack init..`
+        ' Wait 1ms before setting up the app stack. This allows the previous stack to be completely removed.
+        time.setTimer(0.001, "initAppStack")
+    end if
+end sub
+
+sub initAppStack()
+    print `Initializing "app" stack`
+    router().addStack = "app"
+    if false ' for testing only!!!
+        router()@.show({ view: CreateObject("roSGNode", "MyMedia") })
+    else if stores.tokenStore().fabricToken = ""
         router()@.show({ view: CreateObject("roSGNode", "Home") })
     else
         router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
     end if
-
-    m.top.signalBeacon("AppLaunchComplete")
-end function
+end sub

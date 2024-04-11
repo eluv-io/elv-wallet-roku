@@ -5,4 +5,13 @@ namespace time
         dateTime.mark()
         return dateTime.asSeconds() * 1000
     end function
+
+    sub setTimer(delay, funcName)
+        timer = createObject("roSGNode", "Timer")
+        timer.duration = delay
+        timer.repeat = false
+        timer.observeFieldScoped("fire", funcName)
+        timer.control = "start"
+        m._tempttimer = timer
+    end sub
 end namespace

@@ -1,3 +1,4 @@
+import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/stores/stores.bs"
 sub init()
     signOutButton = m.top.findNode("btn_signout")
@@ -18,6 +19,6 @@ sub init()
 end sub
 
 sub onSignOutClicked()
-    ' TODO
-    print "bleeop"
+    stores.tokenStore()@.wipe()
+    router().removeStack = "app"
 end sub
