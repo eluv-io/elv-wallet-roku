@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="NftCard" extends="Group">
     <interface>
+        <!-- When adding fields here, don't forget to add them to [MyMediaItemWrapper], or they
+        won't be set in the MyMedia view. -->
         <field id="itemContent" type="node" onChange="onItemContentChanged" />
         <field id="focusPercent" type="float" onChange="onFocusChanged" />
         <field id="gridHasFocus" type="boolean" onChange="onFocusChanged" />
         <field id="rowListHasFocus" type="boolean" onChange="onFocusChanged" />
+        <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
         <field id="width" type="float" onChange="onWidthChanged" />
         <field id="height" type="float" onChange="onHeightChanged" />
     </interface>

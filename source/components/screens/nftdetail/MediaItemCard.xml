@@ -6,6 +6,7 @@
         <field id="height" type="float" onChange="onSizeChanged" />
         <field id="focusPercent" type="float" onChange="onFocusChanged" />
         <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
+        <field id="rowListHasFocus" type="boolean" onChange="onFocusChanged" />
     </interface>
     <children>
         <Poster id="image" loadDisplayMode="scaleToZoom" />

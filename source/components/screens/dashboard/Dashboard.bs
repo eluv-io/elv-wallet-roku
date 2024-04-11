@@ -1,17 +1,18 @@
 import "pkg:/components/stores/stores.bs"
 
 sub init()
-    stores.contentStore()@.fetchWalletData()
-
     m.tabContainer = m.top.findNode("tab_container")
     tabRow = m.top.findNode("tab_row")
     m.tabrow = tabrow
-
+    
     tabRow.ObserveField("focusedTabName", "onTabFocused")
     onTabFocused()
 end sub
 
 sub onTabFocused()
+    ' Re-fetch data on tab changes
+    stores.contentStore()@.fetchWalletData()
+    
     ' Maybe cache nodes for re-use? I'm not sure what the memory implcations will be..
     currentTab = m.tabrow.focusedTabName
     m.tabContainer.removeChildIndex(0)

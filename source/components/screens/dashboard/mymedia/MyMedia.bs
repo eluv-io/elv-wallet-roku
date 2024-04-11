@@ -21,6 +21,7 @@ sub onNftsChanged()
     row.aa = { fontStyle: "carousel_36" }
     NftOps.nftsToContentNode(nfts, row, "nft")
     m.itemsList.content = rootNode
+    m.itemsList.numRows = rootNode.getChildCount()
 end sub
 
 sub onRowItemSelected()

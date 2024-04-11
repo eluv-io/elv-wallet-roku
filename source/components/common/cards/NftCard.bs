@@ -49,7 +49,10 @@ sub onHeightChanged()
 end sub
 
 sub onFocusChanged()
-    if (m.top.gridHasFocus or m.top.rowListHasFocus) and m.top.focusPercent > 0.8
+    ' When the card is inside a MarkupGrid (MyItems view), gridHasFocus will be set by the parent.
+    ' When it's inside a RowList, rowFocusPercent/rowListHasFocus will be set.
+    containerFocused = m.top.gridHasFocus or (m.top.rowListHasFocus and m.top.rowFocusPercent > 0.8)
+    if containerFocused and m.top.focusPercent > 0.8
         m.bg.uri = "pkg:/images/nft_card_focused_bg.png"
         m.title.color = "#000000"
         m.subtitle.color = "#646464"
