@@ -12,11 +12,14 @@ sub onContentChanged()
     m.lastContentType = contentType
 
     if child <> invalid
-        child.itemContent = content
+        ' First set all the properties we missed
         dumpQueuedProperties(child)
         ' I don't think it's actually possible for the type to change in runtime,
         ' but if it did, we might need to retain the properties for the new child
         m.queuedProperties.clear()
+
+        ' Now delegate the item
+        child.itemContent = content
     end if
 end sub
 
