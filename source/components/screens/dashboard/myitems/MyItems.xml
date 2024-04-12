@@ -12,5 +12,14 @@
             itemSpacing="[ 36, 36 ]"
             drawFocusFeedback="false"
         />
+        <TvLabel
+            id="emptywallet"
+            text="No items to display"
+            width="1920"
+            height="870"
+            horizAlign="center"
+            vertAlign="center"
+            visible="false"
+        />
     </children>
 </component>

@@ -21,7 +21,7 @@ function fetchWalletData(_ = invalid) as void
         if nfts <> invalid
             addConvenienceProperties(nfts)
         end if
-        m.top.nfts = nfts
+        m.top.nfts = nfts ?? []
         print "NFTs fetched and saved"
     end sub)
 end function

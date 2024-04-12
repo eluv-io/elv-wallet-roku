@@ -2,9 +2,9 @@ import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
 sub init()
-    grid = m.top.findNode("grid")
-    m.grid = grid
-    grid.observeField("itemSelected", "onGridItemSelected")
+    m.emptyWalletLabel = m.top.findNode("emptyWallet")
+    m.grid = m.top.findNode("grid")
+    m.grid.observeField("itemSelected", "onGridItemSelected")
     showPlaceholderGrid()
     stores.contentStore().observeField("nfts", "onNftsChanged")
     onNftsChanged()
@@ -34,8 +34,13 @@ end sub
 sub onNftsChanged()
     nfts = stores.contentStore().nfts
     if nfts = invalid
-        return
+        print "MyItems waiting for nfts to load..."
+    else if nfts.count() = 0
+        m.emptyWalletLabel.visible = true
+        m.grid.visible = false
+    else
+        m.emptyWalletLabel.visible = false
+        m.grid.visible = true
+        m.grid.content = NftOps.nftsToContentNode(nfts)
     end if
-
-    m.grid.content = NftOps.nftsToContentNode(nfts)
 end sub
