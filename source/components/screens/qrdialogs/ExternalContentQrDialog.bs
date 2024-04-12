@@ -21,7 +21,6 @@ sub onLinkChanged()
     m.qr.uri = `https://api.qrserver.com/v1/create-qr-code/?size=${width}x${height}&margin=10&data=${data}`
 end sub
 
-
 sub centerSpinner()
     if(m.spinner.poster.loadStatus = "ready")
         centerx = (m.qr.width - m.spinner.poster.bitmapWidth) / 2

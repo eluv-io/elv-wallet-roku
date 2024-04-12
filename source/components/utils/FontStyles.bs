@@ -32,7 +32,7 @@ namespace FontStyles
             font.size = 24
             font.uri = "pkg:/fonts/inter_SemiBold.ttf"
         else if fontStyle = "label_40"
-            font.size = 40
+            font.size = 42
             font.uri = "pkg:/fonts/inter_Medium.ttf"
         else if fontStyle = "label_37"
             font.size = 37
@@ -47,6 +47,9 @@ namespace FontStyles
         else if fontStyle = "body_63"
             font.size = 63
             font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "hint_31"
+            font.size = 31
+            font.uri = "pkg:/fonts/inter_thin.ttf"
         else
             print `Unkown fontStyle [${fontStyle}], defaulting to label_40`
             font.size = 40

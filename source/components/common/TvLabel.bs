@@ -1,6 +1,7 @@
 import "pkg:/components/utils/FontStyles.bs"
 
 sub init()
+    m.top.color = "#ffffffff"
     onFontStyleChange()
 end sub
 

@@ -15,6 +15,9 @@ sub init()
 
     m.top.findNode("btn_new_code").ObserveField("buttonSelected", "getNewCode")
 
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+
     getNewCode()
 end sub
 
@@ -53,4 +56,12 @@ sub checkStatus()
             router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
         end if
     end sub)
+end sub
+
+sub centerSpinner()
+    if(m.spinner.poster.loadStatus = "ready")
+        centerx = (m.qrImage.width - m.spinner.poster.bitmapWidth) / 2
+        centery = (m.qrImage.height - m.spinner.poster.bitmapHeight) / 2
+        m.spinner.translation = [centerx, centery]
+    end if
 end sub
