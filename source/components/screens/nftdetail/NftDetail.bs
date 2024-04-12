@@ -21,19 +21,7 @@ end sub
 sub onItemSelected()
     itemIndex = m.rowList.rowItemSelected
     mediaItem = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
-    if mediaItem.media_type = NftOps.MediaType.VIDEO
-        videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
-        videoPlayerView.videoItem = mediaItem
-        router()@.show({ view: videoPlayerView })
-    else if mediaItem.media_type = NftOps.MediaType.IMAGE or mediaItem.media_type = NftOps.MediaType.GALLERY
-        galleryView = CreateObject("roSGNode", "ImageGallery")
-        galleryView.galleryItem = mediaItem
-        router()@.show({ view: galleryView })
-    else
-        qrView = createObject("roSGNode", "ExternalContentQrDialog")
-        qrView.link = NftOps.assetLinkToUrl(mediaItem.media_file)
-        createObject("roSGNode", "FullscreenDialog").showView = qrView
-    end if
+    NftOps.launchMedia(mediaItem)
 end sub
 
 sub onFocusedRowChanged()

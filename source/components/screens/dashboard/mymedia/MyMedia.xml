@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="MyMedia" extends="BaseView" initialFocus="my_items_list">
     <children>
-        <!-- itemSize height is set arbitrarily to fit the card and row-title, I'm not sure
-                this
-                    accounts for different resolutions/row-title fonts -->
         <RowList
             id="my_items_list"
             itemComponentName="MyMediaItemWrapper"
-            showRowLabel="[true]"
-            rowLabelOffset="[[96,12]]"
-            rowItemSize="[ [380, 582] ]"
-            itemSize="[1920, 639]"
-            numRows="1"
             rowTitleComponentName="TvLabel"
+            showRowLabel="[false, true]"
+            rowLabelOffset="[[96,12]]"
+            itemSize="[1920, 0]"
             drawFocusFeedback="true"
             focusXOffset="[96]"
+            itemSpacing="[0, 30]"
             rowItemSpacing="[ [20, 0] ]"
+            rowFocusAnimationStyle="fixedFocusWrap"
+        />
+        <TvLabel
+            id="emptywallet"
+            text="No items to display"
+            width="1920"
+            height="870"
+            horizAlign="center"
+            vertAlign="center"
+            visible="false"
         />
     </children>
 </component>

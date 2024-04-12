@@ -1,3 +1,5 @@
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/http/http.bs"
 
 namespace NftOps
@@ -9,7 +11,7 @@ namespace NftOps
         GALLERY = "Gallery"
         HTML = "HTML"
         IMAGE = "Image"
-        LIVE = "Live"
+        LIVE = "Live Video"
         VIDEO = "Video"
     end enum
 
@@ -31,7 +33,7 @@ namespace NftOps
         end if
     end function
 
-    function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode"), contentType = invalid) as roSGNode
+    function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode"), contentType = "nft") as roSGNode
         for each nft in nfts
             node = rootNode.createChild("MediaNode")
             node.contentType = contentType
@@ -63,5 +65,23 @@ namespace NftOps
             node.addField("FHDItemWidth", "float", false)
             node.FHDItemWidth = itemHeight * aspectRatio
         end for
+    end sub
+
+    sub launchMedia(mediaItem)
+        if mediaItem.media_type = NftOps.MediaType.VIDEO or mediaItem.media_type = NftOps.MediaType.LIVE
+            videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
+            videoPlayerView.videoItem = mediaItem
+            router()@.show({ view: videoPlayerView })
+        else if mediaItem.media_type = NftOps.MediaType.IMAGE or mediaItem.media_type = NftOps.MediaType.GALLERY
+            galleryView = CreateObject("roSGNode", "ImageGallery")
+            galleryView.galleryItem = mediaItem
+            router()@.show({ view: galleryView })
+        else if mediaItem.media_file <> invalid
+            qrView = createObject("roSGNode", "ExternalContentQrDialog")
+            qrView.link = NftOps.assetLinkToUrl(mediaItem.media_file)
+            createObject("roSGNode", "FullscreenDialog").showView = qrView
+        else 
+            Toast.show("Unknown media type")
+        end if
     end sub
 end namespace

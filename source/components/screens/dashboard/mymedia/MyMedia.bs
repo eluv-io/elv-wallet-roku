@@ -3,6 +3,7 @@ import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
+    m.emptyWalletLabel = m.top.findNode("emptyWallet")
     m.itemsList = m.top.findNode("my_items_list")
     m.itemsList.observeFieldScoped("rowItemSelected", "onRowItemSelected")
 
@@ -13,29 +14,68 @@ end sub
 sub onNftsChanged()
     nfts = stores.contentStore().nfts
     if nfts = invalid
-        return
+        ' Still loading
+        print "MyMedia waiting for nfts to load..."
+    else if nfts.count() = 0
+        m.emptyWalletLabel.visible = true
+        m.itemsList.visible = false
+    else
+        m.emptyWalletLabel.visible = false
+        m.itemsList.visible = true
+        loadRowList(nfts)
     end if
+end sub
+
+' Assumes non-empty [nfts]
+sub loadRowList(nfts)
     rootNode = createObject("roSGNode", "ContentNode")
 
+    variableWidthItems = []
+    rowItemSize = []
+    rowHeights = []
     addFeaturedMediaRow(nfts, rootNode)
+    if rootNode.getChildCount() = 1
+        ' If featured_media row was added, all items should be the same size.
+        variableWidthItems.push(false)
+        rowItemSize.push([380, 582])
+        rowHeights.push(582) ' No title here, so itemHeight = RowHeight
+    end if
+
+    titleHeight = 57 ' arbitrary value right now. might not scale well. Find a way to get at runtime?
+
+    previousRowCount = rootNode.getChildCount()
     addMediaSectionRows(nfts, rootNode)
+    for i = 0 to (rootNode.getChildCount() - previousRowCount - 1)
+        ' Add [true] here for every row, as items may have different widths
+        variableWidthItems.push(true)
+        rowItemSize.push([0, 270])
+        rowHeights.push(270 + titleHeight)
+    end for
+
     addMyItemsRow(nfts, rootNode)
+    ' No need to check. If there are 0 items this value will be ignored anyway
+    variableWidthItems.push(false)
+    rowItemSize.push([380, 582])
+    rowHeights.push(582 + titleHeight)
 
     m.itemsList.content = rootNode
     m.itemsList.numRows = rootNode.getChildCount()
+    m.itemsList.variableWidthItems = variableWidthItems
+    m.itemsList.rowItemSize = rowItemSize
+    m.itemsList.rowHeights = rowHeights
 end sub
 
 sub onRowItemSelected()
     rowIndex = m.itemsList.rowItemSelected[0]
     itemIndex = m.itemsList.rowItemSelected[1]
     item = m.itemsList.content.getChild(rowIndex).getChild(itemIndex)
-    
+
     if item.contentType = "nft"
         nftDetail = CreateObject("roSGNode", "NftDetail")
         nftDetail.nft = item
         router()@.show({ view: nftDetail })
     else if item.contentType = "media"
-        ' TODO: open media
+        NftOps.launchMedia(item.aa)
     end if
 end sub
 
