@@ -57,5 +57,7 @@ end sub
 sub onFocus()
     focused = m.top.hasFocus()
     m.focusFieldInterpolator.reverse = not focused
+    boundingRect = m.top.boundingRect()
+    m.top.scaleRotateCenter = [boundingRect.width / 2, boundingRect.height / 2]
     m.focusScaleAnim.control = "start"
 end sub
