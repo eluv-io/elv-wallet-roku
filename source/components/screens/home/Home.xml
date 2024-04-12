@@ -9,6 +9,9 @@
                 vertAlignment="center"
             >
                 <Poster uri="pkg:/images/elv_logo.png" />
+                <TvLabel text="Welcome to" fontStyle="body_63" color="#ffffff66" />
+                <TvLabel text="Media Wallet" fontStyle="body_111" color="#ffffffff" />
+                <Spacer height="45" />
                 <ButtonGroup id="btngroup">
                     <TvButton
                         id="btn_signin"
