@@ -1,20 +1,24 @@
 import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/stores/stores.bs"
+
 sub init()
     signOutButton = m.top.findNode("btn_signout")
-    ' signOutButton.observeField("selected", )
     signOutButton.observeField("buttonSelected", "onSignOutClicked")
-    ' signOutButton.setFocus(true)
 
-    ' tokenStore = stores.tokenStore()
-    ' m.top.findNode("address").text = `Address: ${tokenStore.walletAddress}`
-    ' m.top.findNode("userid").text = `User ID: ${tokenStore.userId}`
-    m.top.findNode("address").text = `Address: _pending real auth flow_`
-    m.top.findNode("userid").text = `User ID: _pending real auth flow_`
+    walletAddress = stores.tokenStore().walletAddress
+    m.top.findNode("address").text = `Address: ${walletAddress}`
+
+    userId = walletAddress
+    if userId.startsWith("0x")
+        userId = userId.mid(2)
+    end if
+    userId = base58.encode(userId)
+    m.top.findNode("userid").text = `User ID: iusr${userId}`
 
     config = stores.fabricConfigStore().config
     m.top.findNode("fabricnode").text = `Fabric Node: ${config.network.services.fabric_api[0]}/s/${config.qspace.names[0]}`
-    m.top.findNode("authservice").text = `Authority  Service: ${config.network.services.authority_service[0]}`
+    m.top.findNode("authservice").text = `Authority Service: ${config.network.services.authority_service[0]}`
     m.top.findNode("ethservice").text = `Eth Service: ${config.network.services.ethereum_api[0]}`
 end sub
 
