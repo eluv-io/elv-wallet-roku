@@ -17,9 +17,18 @@ sub init()
     m.top.findNode("userid").text = `User ID: iusr${userId}`
 
     config = stores.fabricConfigStore().config
-    m.top.findNode("fabricnode").text = `Fabric Node: ${config.network.services.fabric_api[0]}/s/${config.qspace.names[0]}`
+    networkName = config.qspace.names[0]
+    m.top.findNode("fabricnode").text = `Fabric Node: ${config.network.services.fabric_api[0]}/s/${networkName}`
     m.top.findNode("authservice").text = `Authority Service: ${config.network.services.authority_service[0]}`
     m.top.findNode("ethservice").text = `Eth Service: ${config.network.services.ethereum_api[0]}`
+
+    prettyNetworkName = networkName
+    if networkName = "main"
+        prettyNetworkName = "Main"
+    else if networkName = "demov3"
+        prettyNetworkName = "Demo"
+    end if
+    m.top.findNode("networkName").text = `Network: ${prettyNetworkName}`
 end sub
 
 sub onSignOutClicked()

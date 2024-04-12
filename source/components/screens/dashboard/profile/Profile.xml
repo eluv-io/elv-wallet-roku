@@ -33,7 +33,7 @@
                 />
             </Rectangle>
             <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel text="Network: Main" fontStyle="header_30" translation="[20,24]" />
+                <TvLabel id="networkName" fontStyle="header_30" translation="[20,24]" />
             </Rectangle>
             <Rectangle color="#232323" width="1036" height="82">
                 <TvLabel id="fabricnode" fontStyle="header_30" translation="[20,24]" />
