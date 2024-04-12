@@ -1,3 +1,4 @@
+import "pkg:/components/utils/Time.bs"
 ' Simulates a shimmering effect.
 ' Tries to fill the parent size, but only at creation. Does not observe changes to size.
 sub init()
@@ -8,9 +9,8 @@ sub init()
     anim.easeInPercent = rnd(0)
     anim.easeOutPercent = rnd(0)
 
-    timer = m.top.findNode("timer")
-    timer.observeFieldScoped("fire", "matchParentBoundingRect")
-    timer.control = "start"
+    'Queue a timer for 1ms just to skip the first render pass and wait for parent to be attached
+    time.setTimer(matchParentBoundingRect, 0.001)
 end sub
 
 sub onControlChanged()

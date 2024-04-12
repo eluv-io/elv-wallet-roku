@@ -25,7 +25,7 @@ sub onActiveStackChange()
     if router().activeStack = "default"
         print `detected "default" viewstack. Queueing "app" stack init..`
         ' Wait 1ms before setting up the app stack. This allows the previous stack to be completely removed.
-        time.setTimer(0.001, "initAppStack")
+        time.setTimer(initAppStack, 0.001)
     end if
 end sub
 

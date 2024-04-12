@@ -1,16 +1,15 @@
+import "pkg:/components/utils/Time.bs"
 import "pkg:/components/http/http.bs"
 sub init()
     m.registry = createObject("roRegistrySection", "config")
     m.top.observeFieldScoped("config", "onConfigChange")
 
-    m.refreshTimer = m.top.findNode("config_refresh_timer")
-    m.refreshTimer.observeFieldScoped("fire", "refreshConfig")
-    m.refreshTimer.control = "start"
+    ' Neverending loop that fetches config.
+    time.setTimer(refreshConfig, 180, true)
 
     ' Get pre-loaded config
     m.top.config = m.global.tempConfig
     m.global.tempConfig = invalid
-
 end sub
 
 sub refreshConfig(_ = invalid)

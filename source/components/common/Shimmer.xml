@@ -12,9 +12,6 @@
         <field id="height" type="integer" alias="rect.height" />
     </interface>
     <children>
-        <!-- Queue a timer for 1ms just to skip the first render pass and wait for parent to be
-        attached -->
-        <Timer id="timer" duration="0.001" />
         <Rectangle id="rect">
             <Animation id="shimmerAnimation"
                 duration="2.0"

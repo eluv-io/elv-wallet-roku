@@ -6,12 +6,47 @@ namespace time
         return dateTime.asSeconds() * 1000
     end function
 
-    sub setTimer(delay, funcName)
+    ' Creates and starts a [Timer].
+    ' [callback] can be either a string function name or direct reference to a function.
+    ' Returns: the created Timer object, which can be stopped/restarted if you need more control over it.
+    function setTimer(callback as dynamic, duration as float, repeat = false as boolean)
         timer = createObject("roSGNode", "Timer")
-        timer.duration = delay
-        timer.repeat = false
-        timer.observeFieldScoped("fire", funcName)
+        timer.id = createObject("roDeviceInfo").getRandomUUID()
+        timer.duration = duration
+        timer.repeat = repeat
+        ' Save a reference to the callback to trigger later
+        if type(callback) = "roFunction" or type(callback) = "Function" then
+            callback = callback.toStr().tokenize(" ").peek()
+        end if
+        timer.addFields({ actualCallback: callback })
+        timer.observeFieldScoped("fire", "time__timer_internal_timer_proxy_trigger")
         timer.control = "start"
-        m._tempttimer = timer
-    end sub
+        timer.observeFieldScoped("control", "time__timer_internal_timer_control_change")
+        ' Temporarily put Timer in m so it doesn't get GC before triggering
+        m[`_timer_${timer.id}`] = timer
+        return timer
+    end function
+
+    namespace _timer_internal
+        sub timer_control_change(message)
+            timer = message.getRoSGNode()
+            if timer.control = "stop"
+                ' Once the timer is stopped once, it's no longer our concern.
+                ' Whoever called [setTimer] might still be using it, but it's their job to keep it from GC now.
+                timer.unobserveFieldScoped("control")
+                ' Clean up timer from m
+                m.delete(`_timer_${timer.id}`)
+            end if
+        end sub
+
+        ' For internal use. Will be called when any timer is triggered and forward to relevant callback
+        sub timer_proxy_trigger(message)
+            timer = message.getRoSGNode()
+            ' Do some magic to trigger the function stored in "actualCallback"
+            timer.addField("dummytrigger", "integer", true)
+            timer.observeFieldScoped("dummytrigger", timer.actualCallback)
+            timer.dummytrigger = 1
+            timer.unobserveFieldScoped("dummytrigger")
+        end sub
+    end namespace
 end namespace
