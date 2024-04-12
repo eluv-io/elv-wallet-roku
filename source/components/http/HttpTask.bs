@@ -1,5 +1,5 @@
 import "pkg:/components/stores/stores.bs"
-import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/SignOutHelper.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
@@ -121,7 +121,6 @@ end sub
 sub signOutOnError(responseCode)
     ' TODO: retry if refreshToken is available
     if responseCode = 401 or responseCode = 403
-        stores.tokenStore()@.wipe()
-        router().removeStack = "app"
+        signOutApp()
     end if
 end sub

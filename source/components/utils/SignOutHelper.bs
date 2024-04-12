@@ -1,0 +1,7 @@
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+
+sub signOutApp()
+    stores.tokenStore()@.wipe()
+    router().removeStack = "app"
+end sub

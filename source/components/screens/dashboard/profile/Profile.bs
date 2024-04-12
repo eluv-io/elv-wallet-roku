@@ -1,5 +1,5 @@
-import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/Base58.bs"
+import "pkg:/components/utils/SignOutHelper.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -32,6 +32,5 @@ sub init()
 end sub
 
 sub onSignOutClicked()
-    stores.tokenStore()@.wipe()
-    router().removeStack = "app"
+    signOutApp()
 end sub
