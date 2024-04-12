@@ -97,15 +97,19 @@ sub handleHttpResponse(response as roUrlEvent)
         print `[HTTP] Got an unexpected response. Discarding. (Request ID: ${key})`
         return
     end if
+    url = request.request.getUrl()
     data = response.getString()
     result = createObject("roSGNode", "HttpResponse")
     result.json = parseJson(data)
     responseCode = response.getResponseCode()
-    signOutOnError(responseCode)
+    if url.inStr("auth0") < 0
+        ' auth0 will give 403 regularly while activation is pending
+        signOutOnError(responseCode)
+    end if
     result.code = responseCode
     result.headers = response.getResponseHeaders()
     print `
-[HTTP] Response ${result.code} ${request.request.getUrl()} (Request ID: ${key})
+[HTTP] Response ${result.code} ${url} (Request ID: ${key})
        Headers: ${formatJson(result.headers)}
        Payload: ${request.promise.request.printResponseBody ? data : "TRIMMED"}
     `
