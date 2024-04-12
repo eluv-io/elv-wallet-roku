@@ -1,4 +1,5 @@
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
@@ -99,7 +100,9 @@ sub handleHttpResponse(response as roUrlEvent)
     data = response.getString()
     result = createObject("roSGNode", "HttpResponse")
     result.json = parseJson(data)
-    result.code = response.getResponseCode()
+    responseCode = response.getResponseCode()
+    signOutOnError(responseCode)
+    result.code = responseCode
     result.headers = response.getResponseHeaders()
     print `
 [HTTP] Response ${result.code} ${request.request.getUrl()} (Request ID: ${key})
@@ -108,4 +111,13 @@ sub handleHttpResponse(response as roUrlEvent)
     `
     m.pendingRequests.Delete(key)
     promises.resolve(result, request.promise)
+end sub
+
+' Assumes 401/403 happen because of an expired token and signs out
+sub signOutOnError(responseCode)
+    ' TODO: retry if refreshToken is available
+    if responseCode = 401 or responseCode = 403
+        stores.tokenStore()@.wipe()
+        router().removeStack = "app"
+    end if
 end sub
