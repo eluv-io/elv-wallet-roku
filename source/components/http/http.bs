@@ -1,8 +1,13 @@
 import "pkg:/components/utils/promise.bs"
 
 namespace http
+    ' Main
     const BASE_URL = "https://main.net955305.contentfabric.io/s/main/"
     const CONFIG_URL = "https://main.net955305.contentfabric.io/config"
+
+    ' Demo
+    ' const BASE_URL = "https://demov3.net955210.contentfabric.io/s/demov3"
+    ' const CONFIG_URL = "https://demov3.net955210.contentfabric.io/config"
     sub init()
         task = CreateObject("roSGNode", "HttpTask")
         m.global.addFields({ httpTask: task })
