@@ -17,7 +17,7 @@ sub onShowView()
     end if
 
     dialog = m.top
-    dialogParent = dialog.getParent()
+    dialogParent = dialog.getScene()
 
     ' Store parent's current focus
     m.originalParentFocus = findFocusedNode(dialogParent.focusedChild)
