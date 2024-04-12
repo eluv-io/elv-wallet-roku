@@ -1,0 +1,55 @@
+import "pkg:/components/utils/animate.bs"
+import "pkg:/components/utils/Time.bs"
+
+sub init()
+    m.label = m.top.findNode("label")
+    m.labelBg = m.top.findNode("label_bg")
+    'Queue a timer for 10ms just to skip the first render pass and wait for parent to be attached
+    time.setTimer(updateLabelBgSize, 0.01)
+end sub
+
+sub updateLabelBgSize()
+    rect = m.label.boundingRect()
+    if rect <> invalid
+        ' Add horiz/vert padding
+        width = rect.width + 60
+        height = rect.height + 12
+        m.label.width = width
+        m.label.height = height
+        m.labelBg.width = width
+        m.labelBg.height = height
+
+        m.labelBg.translation = [(1920 - width) / 2, 972]
+        m.top.show = true
+    end if
+end sub
+
+' Will show toast for [duration] when set to [true]
+sub onShowHide()
+    opacity = m.top.show ? 1.0 : 0.0
+    animationDuration = 0.5
+    m.animation = animate.create({
+        target: "label_bg",
+        duration: animationDuration,
+        opacity: opacity,
+        autoPlay: true
+    })
+
+    ' Cancel existing timers. Could be either a timer to start hiding animation,
+    ' or a timer for hiding animation to complete and remove the node from parent.
+    if m.timer <> invalid
+        m.timer.control = "stop"
+    end if
+
+    if m.top.show
+        ' Queue a timer to initiate fading out after show duration
+        m.timer = time.setTimer(sub()
+            m.top.show = false
+        end sub, m.top.duration)
+    else
+        ' Remove from parent after done hiding animation
+        m.timer = time.setTimer(sub()
+            m.top.getParent().removeChild(m.top)
+        end sub, animationDuration)
+    end if
+end sub

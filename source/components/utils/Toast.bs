@@ -1,0 +1,21 @@
+import "pkg:/components/utils/Time.bs"
+
+namespace Toast
+    sub show(text)
+        ' Try to take over existing toast
+        label = m.top.findNode("_toast_message")
+        if label = invalid
+            print "Creating a new toast view: "; text
+            label = createObject("roSGNode", "ToastView")
+            label.id = "_toast_message"
+            label.text = text
+            ' No need to call [show], the view shows automatically.
+            ' This helps simplify the setup process of figuring out the size/location of the view.
+            m.top.getScene().appendChild(label)
+        else
+            print "Reusing toast view to show: "; text
+            label.text = text
+            label.show = true
+        end if
+    end sub
+end namespace

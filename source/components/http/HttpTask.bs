@@ -121,6 +121,6 @@ end sub
 sub signOutOnError(responseCode)
     ' TODO: retry if refreshToken is available
     if responseCode = 401 or responseCode = 403
-        signOutApp()
+        signOutApp("Token expired. Please sign in again.")
     end if
 end sub

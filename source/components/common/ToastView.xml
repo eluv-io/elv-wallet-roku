@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ToastView" extends="Group">
+    <interface>
+        <field id="text" type="string" alias="label.text" />
+        <field id="fontStyle" type="string" alias="label.fontStyle" />
+        <field id="show" type="boolean" onChange="onShowHide" alwaysNotify="true" />
+        <field id="duration" type="float" value="2.0" />
+    </interface>
+    <children>
+        <Rectangle id="label_bg" color="#232323" opacity="0">
+            <TvLabel id="label" horizAlign="center" vertAlign="center" />
+        </Rectangle>
+    </children>
+</component>
