@@ -18,35 +18,22 @@ namespace time
         if type(callback) = "roFunction" or type(callback) = "Function" then
             callback = callback.toStr().tokenize(" ").peek()
         end if
-        timer.addFields({ actualCallback: callback })
-        timer.observeFieldScoped("fire", "time__timer_internal_timer_proxy_trigger")
+        timer.observeFieldScoped("fire", callback)
         timer.control = "start"
-        timer.observeFieldScoped("control", "time__timer_internal_timer_control_change")
+        timer.observeFieldScoped("control", "time__internal_timer_control_change")
         ' Temporarily put Timer in m so it doesn't get GC before triggering
         m[`_timer_${timer.id}`] = timer
         return timer
     end function
 
-    namespace _timer_internal
-        sub timer_control_change(message)
-            timer = message.getRoSGNode()
-            if timer.control = "stop"
-                ' Once the timer is stopped once, it's no longer our concern.
-                ' Whoever called [setTimer] might still be using it, but it's their job to keep it from GC now.
-                timer.unobserveFieldScoped("control")
-                ' Clean up timer from m
-                m.delete(`_timer_${timer.id}`)
-            end if
-        end sub
-
-        ' For internal use. Will be called when any timer is triggered and forward to relevant callback
-        sub timer_proxy_trigger(message)
-            timer = message.getRoSGNode()
-            ' Do some magic to trigger the function stored in "actualCallback"
-            timer.addField("dummytrigger", "integer", true)
-            timer.observeFieldScoped("dummytrigger", timer.actualCallback)
-            timer.dummytrigger = 1
-            timer.unobserveFieldScoped("dummytrigger")
-        end sub
-    end namespace
+    sub _internal_timer_control_change(message)
+        timer = message.getRoSGNode()
+        if timer.control = "stop"
+            ' Once the timer is stopped once, it's no longer our concern.
+            ' Whoever called [setTimer] might still be using it, but it's their job to keep it from GC now.
+            timer.unobserveFieldScoped("control")
+            ' Clean up timer from m
+            m.delete(`_timer_${timer.id}`)
+        end if
+    end sub
 end namespace
