@@ -17,8 +17,8 @@ end sub
 sub onLinkChanged()
     width = PixelUtil.convertToRealPixels(m.qr.width)
     height = PixelUtil.convertToRealPixels(m.qr.height)
-    data = UrlUtil.appendQuery(m.top.link, "authorization", stores.tokenStore().fabricToken).EncodeUriComponent()
-    m.qr.uri = `https://api.qrserver.com/v1/create-qr-code/?size=${width}x${height}&margin=10&data=${data}`
+    data = UrlUtil.appendQuery(m.top.link, "authorization", stores.tokenStore().fabricToken)
+    m.qr.uri = UrlUtil.qrUrlForData(data, width, height)
 end sub
 
 sub centerSpinner()

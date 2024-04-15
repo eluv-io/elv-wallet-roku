@@ -2,6 +2,7 @@ import "pkg:/components/utils/promise.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -31,10 +32,9 @@ end sub
 sub getNewCode()
     promises.chain(stores.tokenStore()@.GetActivationData()).then(
     sub(response)
-        url = response.json.verification_uri_complete
-        data = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=${url}`
+        size = m.qrImage.boundingRect().width
         m.qrCode.text = response.json.user_code
-        m.qrImage.uri = data
+        m.qrImage.uri = UrlUtil.qrUrlForData(response.json.verification_uri_complete, size)
 
         m.deviceCode = response.json.device_code
         m.statusTimer.duration = response.json.interval

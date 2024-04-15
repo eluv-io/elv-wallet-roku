@@ -3,7 +3,7 @@ namespace time
     function now()
         dateTime = createObject("roDateTime")
         dateTime.mark()
-        return dateTime.asSeconds() * 1000
+        return dateTime.asSeconds()
     end function
 
     ' Creates and starts a [Timer].

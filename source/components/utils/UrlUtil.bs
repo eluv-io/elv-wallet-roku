@@ -8,4 +8,9 @@ namespace UrlUtil
         end if
         return `${url}${separator}${`${key}=${value}`}`
     end function
+
+    function qrUrlForData(data, width as integer, height = width as integer) as string
+        encodedData = data.EncodeUriComponent()
+        return `https://api.qrserver.com/v1/create-qr-code/?size=${width}x${height}&margin=10&data=${encodedData}`
+    end function
 end namespace
