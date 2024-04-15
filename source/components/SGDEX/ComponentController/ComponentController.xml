@@ -73,6 +73,9 @@
             Function that has to be called when you want to add view to view stack, and set focus to view
          -->
         <function name="show" />
+        
+        <!-- Exposed by Stav: support closing the current view -->
+        <function name="closeView" />
 
         <!-- @Public -->
         <!-- 
