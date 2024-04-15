@@ -28,12 +28,25 @@ sub init()
     m.top.observeField("id", "onRootIdChange")
     m.top.observeField("buttonSelected", "onClick")
     m.top.observeField("focusedChild", "onFocus")
+    m.top.observeFieldScoped("text", "updateVerticalPadding")
 end sub
 
 sub onFontStyleChanged()
     font = FontStyles.getFontForStyle(m.top.fontStyle)
     m.top.textFont = font
     m.top.focusedTextFont = font
+    updateVerticalPadding()
+end sub
+
+sub updateVerticalPadding()
+    for i = 0 to m.top.getChildCount() - 1
+        child = m.top.getChild(i)
+        if child.subtype() = "Label"
+            labelRect = child.boundingRect()
+            m.top.height = labelRect.height + 15
+            exit for
+        end if
+    end for
 end sub
 
 sub onHorizAlignChanged(msg as object)
