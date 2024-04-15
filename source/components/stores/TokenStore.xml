@@ -11,6 +11,7 @@
         <function name="wipe" />
         <function name="GetActivationData" />
         <function name="checkDeviceAuthorization" />
+        <function name="checkMetamaskAuthorization" />
         <function name="fetchFabricToken" />
     </interface>
 </component>

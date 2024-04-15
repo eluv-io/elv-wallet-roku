@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="MetamaskLogin" extends="BaseView" initialFocus="btn_new_code">
+    <children>
+        <Timer id="code_expiration_timer" repeat="false" />
+        <Timer id="status_poll_timer" repeat="true" />
+        <Poster
+            uri="pkg:/images/elv_logo.png"
+            inheritParentTransform="false"
+            width="100"
+            height="100"
+            translation="[96,54]"
+        />
+        <TvLabel
+            text="Media Wallet"
+            fontStyle="label_40"
+            inheritParentTransform="false"
+            translation="[236,80]"
+        />
+        <LayoutGroup
+            translation="[960,156]"
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="top"
+        >
+            <TvLabel text="Sign On With MetaMask" fontStyle="title_62" />
+            <Poster
+                height="150"
+                loadDisplayMode="scaleToFit"
+                uri="pkg:/images/metamask_logo.png"
+            />
+            <Spacer height="3" />
+            <TvLabel id="qr_code" fontStyle="title_62" />
+            <Spacer height="18" />
+            <Group>
+                <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
+                <Poster id="qr_image" width="408" height="408" />
+            </Group>
+            <Spacer height="66" />
+            <TvButton id="btn_new_code" text="Request New Code" />
+        </LayoutGroup>
+    </children>
+</component>

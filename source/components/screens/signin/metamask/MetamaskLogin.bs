@@ -1,0 +1,64 @@
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/promise.bs"
+
+' Mostly a copy of [SignIn], but it was easier to copy/paste than do good software design :D
+sub init()
+    m.qrCode = m.top.findNode("qr_code")
+    m.qrImage = m.top.findNode("qr_image")
+
+    m.expirationTimer = m.top.findNode("code_expiration_timer")
+    m.expirationTimer.ObserveField("fire", "getNewCode")
+
+    m.statusTimer = m.top.findNode("status_poll_timer")
+    m.statusTimer.ObserveField("fire", "checkStatus")
+
+    m.top.findNode("btn_new_code").ObserveField("buttonSelected", "getNewCode")
+
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+    centerSpinner()
+
+    getNewCode()
+end sub
+
+sub getNewCode()
+    promises.chain(stores.tokenStore()@.GetActivationData(true)).then(
+    sub(response)
+        size = m.qrImage.boundingRect().width
+        m.qrCode.text = response.json.id
+        m.qrImage.uri = UrlUtil.qrUrlForData(response.json.metamask_url, size)
+
+        m.code = response.json.id
+        m.passcode = response.json.passcode
+        m.statusTimer.duration = 5
+        m.statusTimer.control = "start"
+
+        m.expirationTimer.duration = response.json.expiration - time.now()
+        m.expirationTimer.control = "start"
+    end sub
+    )
+end sub
+
+sub checkStatus()
+    promises.chain(stores.tokenStore()@.checkMetamaskAuthorization(m.code, m.passcode)).then(
+    sub(response)
+        if response.code = 200
+            m.expirationTimer.control = "stop"
+            m.statusTimer.control = "stop"
+            ' Auth0 gave us an IdToken, move own to obtain client-signed-access-token
+            router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
+        end if
+    end sub
+    )
+end sub
+
+sub centerSpinner()
+    if(m.spinner.poster.loadStatus = "ready")
+        centerx = (m.qrImage.width - m.spinner.poster.bitmapWidth) / 2
+        centery = (m.qrImage.height - m.spinner.poster.bitmapHeight) / 2
+        m.spinner.translation = [centerx, centery]
+    end if
+end sub

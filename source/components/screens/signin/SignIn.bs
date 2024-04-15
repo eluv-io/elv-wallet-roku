@@ -1,7 +1,6 @@
 import "pkg:/components/utils/promise.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/http/http.bs"
-import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
@@ -25,6 +24,7 @@ sub init()
 
     m.spinner = m.top.findNode("spinner")
     m.spinner.poster.observeField("loadStatus", "centerSpinner")
+    centerSpinner()
 
     getNewCode()
 end sub
@@ -51,7 +51,7 @@ sub onBackClicked()
 end sub
 
 sub onMetamaskClicked()
-    Toast.show("Not impl yet")
+    router()@.show({ view: CreateObject("roSGNode", "MetamaskLogin") })
 end sub
 
 sub checkStatus()
