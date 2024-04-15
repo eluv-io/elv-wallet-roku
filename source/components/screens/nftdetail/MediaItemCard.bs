@@ -27,6 +27,7 @@ sub onSizeChanged()
 
     ' Assume icon is 1x1 ratio
     iconSize = height * 0.3
+    iconSize = iconSize > 66 ? 66 : iconSize ' Max size of 66
     m.video_icon.height = iconSize
     m.video_icon.width = iconSize
     m.video_icon.translation = [(width - iconsize) / 2, (height - iconSize) / 2]
