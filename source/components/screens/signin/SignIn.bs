@@ -1,6 +1,7 @@
 import "pkg:/components/utils/promise.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/http/http.bs"
+import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -13,7 +14,13 @@ sub init()
     m.statusTimer = m.top.findNode("status_poll_timer")
     m.statusTimer.ObserveField("fire", "checkStatus")
 
-    m.top.findNode("btn_new_code").ObserveField("buttonSelected", "getNewCode")
+    m.newCodeButton = m.top.findNode("btn_new_code")
+    m.newCodeButton.ObserveField("buttonSelected", "getNewCode")
+
+    m.metamaskButton = m.top.findNode("btn_metamask")
+    m.metamaskButton.observeFieldScoped("buttonSelected", "onMetamaskClicked")
+    m.backButton = m.top.findNode("btn_back")
+    m.backButton.observeFieldScoped("buttonSelected", "onBackClicked")
 
     m.spinner = m.top.findNode("spinner")
     m.spinner.poster.observeField("loadStatus", "centerSpinner")
@@ -37,6 +44,14 @@ sub getNewCode()
         m.expirationTimer.control = "start"
     end sub
     )
+end sub
+
+sub onBackClicked()
+    router()@.closeView()
+end sub
+
+sub onMetamaskClicked()
+    Toast.show("Not impl yet")
 end sub
 
 sub checkStatus()
@@ -65,3 +80,18 @@ sub centerSpinner()
         m.spinner.translation = [centerx, centery]
     end if
 end sub
+
+function OnKeyEvent(key as string, press as boolean) as boolean
+    if press
+    end if
+    if key = "down" and (m.newCodeButton.hasFocus() or m.backButton.hasFocus())
+        return m.metamaskButton.setFocus(true)
+    else if key = "up" and m.metamaskButton.hasFocus()
+        return m.newCodeButton.setFocus(true)
+    else if key = "right" and m.newCodeButton.hasFocus()
+        return m.backButton.setFocus(true)
+    else if key = "left" and m.backButton.hasFocus()
+        return m.newCodeButton.setFocus(true)
+    end if
+    return false
+end function

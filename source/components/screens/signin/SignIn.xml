@@ -39,8 +39,25 @@
                 <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
                 <Poster id="qr_image" width="330" height="330" />
             </Group>
-            <Spacer height="45" />
-            <TvButton id="btn_new_code" text="Request New Code" />
+            <Spacer height="66" />
+            <LayoutGroup layoutDirection="horiz" itemSpacings="9">
+                <TvButton
+                    minWidth="528"
+                    id="btn_new_code"
+                    text="Request New Code"
+                />
+                <TvButton
+                    minWidth="174"
+                    id="btn_back"
+                    text="Back"
+                />
+            </LayoutGroup>
+            <Spacer height="9" />
+            <TvButton
+                id="btn_metamask"
+                text="-Or- Sign On With MetaMask"
+                minWidth="726"
+            />
         </LayoutGroup>
     </children>
 </component>
