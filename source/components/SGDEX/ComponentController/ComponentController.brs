@@ -14,14 +14,14 @@ sub Init()
     m.top.observeField("selectStack", "OnSelectStackChanged")
     m.top.addStack = "default"
 
-    m.top.observeField("allowCloseChannelOnLastView","OnAllowCloseChannel")
+    m.top.observeField("allowCloseChannelOnLastView", "OnAllowCloseChannel")
     m.top.allowCloseChannelOnLastView = true
 
     m.preloadMediaView = invalid
 end sub
 
 ' A callback for handing button bar change
-sub OnButtonBarChanged(event as Object)
+sub OnButtonBarChanged(event as object)
     newButtonBar = event.GetData()
     if newButtonBar = invalid
         ' don't allow to invalidate m.top.buttonBar, fall back to the existing
@@ -31,11 +31,11 @@ sub OnButtonBarChanged(event as Object)
         ' got a new button bar, need to replace the value cached in m.buttonBar
         m.buttonBar = newButtonBar
         SetButtonBarOptionalFields(newButtonBar)
-        
+
         ' put it to the bbContainer
         m.bbContainer.RemoveChildIndex(0)
         m.bbContainer.AppendChild(newButtonBar)
-        
+
         ' assign content manager and initiate content loading
         m.bbContentManager = CreateObject("roSGNode", "ContentManagerDetails")
         m.bbContentManager.configFieldName = "handlerConfigButtonBar"
@@ -46,12 +46,12 @@ sub OnButtonBarChanged(event as Object)
 end sub
 
 ' A helper function to initialize button bar optional fields
-sub SetButtonBarOptionalFields(buttonBar as Object)
+sub SetButtonBarOptionalFields(buttonBar as object)
     fieldsMap = {
-        alignment: {default: "top", type: "string" }
-        overlay: {default: false, type: "boolean" }
-        renderOverContent: {default: false, type: "boolean" }
-        autoHide: {default: false, type: "boolean" }
+        alignment: { default: "top", type: "string" }
+        overlay: { default: false, type: "boolean" }
+        renderOverContent: { default: false, type: "boolean" }
+        autoHide: { default: false, type: "boolean" }
     }
 
     for each item in fieldsMap.Items()
@@ -79,7 +79,7 @@ sub FocusButtonBar()
     end if
 end sub
 
-function Setup(config as Object)
+function Setup(config as object)
     if m.preloadMediaView <> invalid and m.preloadMediaView.contentManager <> invalid
         m.preloadMediaView.contentManager = invalid
         m.preloadMediaView.RemoveField("contentManager")
@@ -92,7 +92,7 @@ function Setup(config as Object)
         if contentManager <> invalid
             contentManager.Parent = m.top.getparent()
             contentManager.callfunc("setView", view)
-            view.Update({contentManager: contentManager}, true)
+            view.Update({ contentManager: contentManager }, true)
             if contentManager.subtype() = "ContentManagerMedia"
                 m.preloadMediaView = view
             end if
@@ -101,7 +101,7 @@ function Setup(config as Object)
     end if
 end function
 
-function Show(config as Object)
+function Show(config as object)
     if GetInterface(config, "ifAssociativeArray") = invalid or config.view = invalid then
         ? "Error: Component controller, received wrong config"
         return invalid
@@ -149,7 +149,7 @@ function Show(config as Object)
     'do other stuff for proper registering and unregistering events
 end function
 
-function InitContentManagerHelper(config) as Object
+function InitContentManagerHelper(config) as object
     View = config.view
     contentManager = config.contentManager
 
@@ -189,7 +189,7 @@ function InitContentManagerHelper(config) as Object
         if subtype = "SearchView"
             contentManager.configFieldName = "HandlerConfigSearch"
         end if
-    ' else create content manager for custom view if it' supported
+        ' else create content manager for custom view if it' supported
     else if cmType <> invalid and GetInterface(cmType, "ifString") <> invalid and cmTypesSupported[cmType] <> invalid
         contentManager = CreateObject("roSgNode", cmTypesSupported[cmType]["nodeType"])
         contentManager.configFieldName = cmTypesSupported[cmType]["configName"]
@@ -212,13 +212,13 @@ sub OnCurrentViewChange()
     end if
 end sub
 
-sub OnAllowCloseChannel(event as Object)
+sub OnAllowCloseChannel(event as object)
     allowCloseChannel = event.getData()
     ' need to pass this flag to View stack; it will set scene.exitChannel to true if no Views left
     m.top.ViewManager.allowCloseChannelWhenNoViews = allowCloseChannel
 end sub
 
-function onkeyEvent(key as String, press as Boolean) as Boolean
+function onkeyEvent(key as string, press as boolean) as boolean
     handled = false
     if press
         buttonBar = m.buttonBar
@@ -232,7 +232,7 @@ function onkeyEvent(key as String, press as Boolean) as Boolean
     return handled
 end function
 
-function handleButtonBarKeyEvents(buttonBar as Object, key as String) as Boolean
+function handleButtonBarKeyEvents(buttonBar as object, key as string) as boolean
     ' handle switch focus between the ButtonBar and a showed view
     currentView = m.top.currentView
     if currentView <> invalid
@@ -268,7 +268,7 @@ function handleButtonBarKeyEvents(buttonBar as Object, key as String) as Boolean
     return false
 end function
 
-function handleMediaViewBBKeyEvents(mediaView as Object, buttonBar as Object, key as String) as Boolean
+function handleMediaViewBBKeyEvents(mediaView as object, buttonBar as object, key as string) as boolean
     isAbleToFocusBB = mediaView.state = "paused" or mediaView.state = "buffering" or buttonBar.renderOverContent
     if buttonBar.visible and mediaView.isInFocusChain() and isAbleToFocusBB then
         FocusButtonBar()
@@ -280,7 +280,7 @@ end function
 
 ' handles closing View in View stack
 ' if no View left, closes scene and exits channel
-function closeView() as Boolean
+function closeView() as boolean
     ' developer should receive back button when all Views are closed
 
     ' save flags locally because developer can change it in wasClosed callback
@@ -311,7 +311,7 @@ function closeView() as Boolean
     return not allowCloseChannelOnLastView
 end function
 
-sub OnAddStackChanged(event as Object)
+sub OnAddStackChanged(event as object)
     stack_id = event.getData()
     if stack_id <> ""
         index = FindElementIndexInArray(m.stacks, stack_id)
@@ -330,7 +330,7 @@ sub OnAddStackChanged(event as Object)
     end if
 end sub
 
-sub OnRemoveStackChanged(event as Object)
+sub OnRemoveStackChanged(event as object)
     stack_id = event.getData()
     if stack_id <> ""
         index = FindElementIndexInArray(m.stacks, stack_id)
@@ -352,7 +352,7 @@ sub OnRemoveStackChanged(event as Object)
     end if
 end sub
 
-sub OnSelectStackChanged(event as Object)
+sub OnSelectStackChanged(event as object)
     stack_id = event.getData()
     if stack_id <> ""
         index = FindElementIndexInArray(m.stacks, stack_id)
@@ -366,7 +366,7 @@ sub OnSelectStackChanged(event as Object)
     end if
 end sub
 
-sub ReplaceCurrentViewManager(viewManager as Object)
+sub ReplaceCurrentViewManager(viewManager as object)
     if viewManager <> invalid
         m.top.activeStack = viewManager.id
         m.top.ViewManager = viewManager
@@ -379,7 +379,7 @@ sub ReplaceCurrentViewManager(viewManager as Object)
         ' if buttonBar is focused and active stack is changed
         ' keep focus on BB
         if not isButtonBarFocused
-            if  m.top.ViewManager.currentView <> invalid
+            if m.top.ViewManager.currentView <> invalid
                 m.top.ViewManager.currentView.setFocus(true)
             else
                 m.top.ViewManager.setFocus(true)
@@ -388,7 +388,7 @@ sub ReplaceCurrentViewManager(viewManager as Object)
     end if
 end sub
 
-sub MoveElementToTail(array As Object, index as Integer)
+sub MoveElementToTail(array as object, index as integer)
     item = array[index]
     if item <> invalid
         array.Delete(index)
@@ -396,7 +396,7 @@ sub MoveElementToTail(array As Object, index as Integer)
     end if
 end sub
 
-function FindElementIndexInArray(array As Object, value As Object) As Integer
+function FindElementIndexInArray(array as object, value as object) as integer
     for i = 0 to (array.Count() - 1)
         compareValue = array[i]
         if compareValue <> invalid
