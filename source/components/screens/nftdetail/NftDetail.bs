@@ -15,7 +15,6 @@ sub init()
 
     m.rowList.observeFieldScoped("currFocusRow", "onFocusedRowChanged")
     m.rowList.observeFieldScoped("rowItemSelected", "onItemSelected")
-    m.rowList.setfocus(true)
 end sub
 
 sub onItemSelected()
