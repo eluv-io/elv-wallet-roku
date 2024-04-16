@@ -46,7 +46,7 @@ sub onNftItemChanged()
     ' And also, Roku sucks and it's annoying and painful to do it, so I'll pass for now.
     nft = m.top.nft.sourceNft
     m.title.text = nft._name
-    m.subtitle.text = RichText.stripFormatting(nft.nft_template.description_rich_text)
+    m.subtitle.text = RichText.stripFormatting(nft.nft_template.description_rich_text ?? nft.nft_template.description)
 
     m.bgImage.uri = findBgImage(nft)
     updateRowList(nft)
