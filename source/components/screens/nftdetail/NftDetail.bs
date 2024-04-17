@@ -1,6 +1,7 @@
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/RichText.bs"
 
 const ITEM_HEIGHT = 270
@@ -20,7 +21,7 @@ end sub
 sub onItemSelected()
     itemIndex = m.rowList.rowItemSelected
     mediaItem = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
-    NftOps.launchMedia(mediaItem)
+    NftOps.launchMediaOrOffer(mediaItem)
 end sub
 
 sub onFocusedRowChanged()
@@ -49,6 +50,8 @@ sub onNftItemChanged()
 
     m.bgImage.uri = findBgImage(nft)
     updateRowList(nft)
+
+    fetchRedeemableOffers(nft)
 end sub
 
 function findBgImage(nft) as dynamic
@@ -111,3 +114,28 @@ sub populateCollectionRow(collection, row)
     end if
     NftOps.mediaItemsToNodes(collection.media, row, ITEM_HEIGHT)
 end sub
+
+' Assumption: this is called after m.rowList is already populated.
+' Currently, cache isn't being used, every time we land here, we fetch offers from the BE.
+' Caching occurs in the store to support subsequent screens in the flow.
+sub fetchRedeemableOffers(nft)
+    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(nft)).then(sub (offers)
+        row = getOrMakeFeaturedMediaRow()
+        NftOps.offersToNodes(offers.offers, row, ITEM_HEIGHT)
+    end sub)
+end sub
+
+' Returns the existing ContentNode for the featured media row, or creates
+function getOrMakeFeaturedMediaRow()
+    root = m.rowList.content
+    if root = invalid
+        root = createObject("roSGNode", "ContentNode")
+        m.rowList.content = root
+    end if
+    row = root.getChild(0)
+    if row = invalid
+        row = root.createChild("ContentNode")
+        m.rowList.numRows = 1
+    end if
+    return row
+end function

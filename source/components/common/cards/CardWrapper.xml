@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- A wrapper that allows for multiple component types to appear in the same List/Grid -->
-<component name="MyMediaItemWrapper" extends="Group">
+<component name="CardWrapper" extends="Group">
     <interface>
         <field id="itemContent" type="node" onChange="onContentChanged" />
         <field id="focusPercent" type="float" onChange="delegatedPropertyChanged" />

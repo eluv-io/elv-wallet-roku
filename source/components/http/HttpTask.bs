@@ -100,7 +100,12 @@ sub handleHttpResponse(response as roUrlEvent)
     url = request.request.getUrl()
     data = response.getString()
     result = createObject("roSGNode", "HttpResponse")
-    result.json = parseJson(data)
+    json = parseJson(data)
+    if type(json) = "roArray"
+        ' HttpResponse.json can't handle raw arrays, so we have to wrap the response in an AA
+        json = { "arr": json }
+    end if
+    result.json = json
     responseCode = response.getResponseCode()
     if url.inStr("auth0") < 0
         ' auth0 will give 403 regularly while activation is pending

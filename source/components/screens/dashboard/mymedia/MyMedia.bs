@@ -75,7 +75,7 @@ sub onRowItemSelected()
         nftDetail.nft = item
         router()@.show({ view: nftDetail })
     else if item.contentType = "media"
-        NftOps.launchMedia(item.aa)
+        NftOps.launchMediaOrOffer(item.aa)
     end if
 end sub
 

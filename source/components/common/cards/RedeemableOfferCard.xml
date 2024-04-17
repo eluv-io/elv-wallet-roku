@@ -1,0 +1,33 @@
+<component name="RedeemableOfferCard" extends="Group">
+    <interface>
+        <field id="itemContent" type="node" onChange="onItemContentChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="focusPercent" type="float" onChange="onFocusChanged" />
+        <field id="rowFocusPercent" type="float" onChange="onFocusChanged" />
+        <field id="rowListHasFocus" type="boolean" onChange="onFocusChanged" />
+    </interface>
+    <children>
+        <Poster id="image" loadDisplayMode="scaleToZoom" />
+        <!-- Overlay that shows while the item is focused -->
+        <Rectangle id="overlay" color="#000000CC" visible="false" />
+        <TvLabel
+            id="title"
+            visible="false"
+            fontStyle="body_32"
+            horizAlign="center"
+            vertAlign="center"
+        />
+        <Rectangle id="tag_bg" color="#FFD541">
+            <TvLabel
+                id="tag"
+                color="#000000"
+                fontStyle="label_24"
+                horizAlign="center"
+                vertAlign="center"
+            />
+        </Rectangle>
+        <!-- Dim expired offers, even while no focused -->
+        <Rectangle id="expired_overlay" color="#00000099" visible="false" />
+    </children>
+</component>

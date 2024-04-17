@@ -12,8 +12,11 @@ sub onItemContentChanged()
 
     m.title.text = content.name
 
-    m.image.uri = UrlUtil.appendQuery(content.image, "height", m.top.height)
-
+    if content.image <> invalid
+        m.image.uri = UrlUtil.appendQuery(content.image, "height", m.top.height)
+    else
+        m.image.uri = ""
+    end if
     m.video_icon.visible = isVideo(content)
 end sub
 

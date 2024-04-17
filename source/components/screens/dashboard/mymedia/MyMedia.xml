@@ -3,7 +3,7 @@
     <children>
         <RowList
             id="my_items_list"
-            itemComponentName="MyMediaItemWrapper"
+            itemComponentName="CardWrapper"
             rowTitleComponentName="TvLabel"
             showRowLabel="[false, true]"
             rowLabelOffset="[[96,12]]"

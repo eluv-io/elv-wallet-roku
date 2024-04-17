@@ -1,0 +1,116 @@
+import "pkg:/components/http/http.bs"
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/stores/RedeemStatusEnum.bs"
+import "pkg:/components/stores/stores.bs"
+
+const REDEEM_OPERATION = "nft-offer-redeem"
+
+sub init()
+    m.top.offers = {}
+end sub
+
+' Returns a Promise that will include offers for the [nft] with their "true" RedeemStatuses.
+function refreshRedeemedOffers(nft) as object
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    context = {
+        baseUrl: baseUrl
+        nft: nft
+    }
+    return promises.chain(http.get(`${baseUrl}/nft/info/${nft.contract_addr}/${nft.token_id_str}`), context).then(function(response, context)
+        context.nftInfo = response.json
+        tenant = context.nftInfo.tenant
+        return http.get(`${context.baseUrl}/wlt/status/act/${tenant}`)
+    end function).then(function(response, context)
+        parseRedeemStates(response.json.arr, context.nftInfo)
+        offers = m.top.offers
+        offers[context.nft._uid] = {
+            tenant: context.nftInfo.tenant
+            offers: combineNftAndInfoOffers(context.nft, context.nftInfo)
+        }
+        m.top.offers = offers
+        return offers[context.nft._uid]
+    end function).toPromise()
+end function
+
+sub parseRedeemStates(redemptionStatuses, nftInfo)
+    contract = nftInfo.contract_addr
+    if contract.startsWith("0x")
+        contract = contract.mid(2)
+    end if
+    relevantStatuses = {}
+    for each status in redemptionStatuses
+        'TODO: Come back to this once we actually have things in-flights
+        op = status.op.split(":")
+        status.operation = op[0]
+        status.contract = op[1]
+        status.tokenId = op[2]
+        status.offerId = op[3]
+        if status.op = REDEEM_OPERATION and status.contract = contract and status.tokenId = nftInfo.token_id_str
+            relevantStatuses[`${status.offerId}`] = status.status
+        end if
+    end for
+
+    for each offer in nftInfo.offers
+        status = relevantStatuses[`${offer.offer_idx}`]
+        if offer.redeemer <> invalid
+            if isOwnedByAnotherUser(offer.redeemer)
+                offer.status = RedeemStatus.REDEEMED_BY_ANOTHER_USER
+            else
+                offer.status = RedeemStatus.REDEEMED_BY_CURRENT_USER
+            end if
+        else if status = invalid
+            offer.status = RedeemStatus.UNREDEEMED
+        else if status = "complete"
+            offer.status = RedeemStatus.REDEEMED_BY_CURRENT_USER
+        else if status = "failed"
+            offer.status = RedeemStatus.REDEEM_FAILED
+        else if status = ""
+            offer.status = RedeemStatus.REDEEMING
+        end if
+    end for
+end sub
+
+' Takes data from both nft_template and nft/info to create a complete RedeemableOffer object.
+' Note, nftInfo must already include RedeemStatus after passing thru [parseRedeemStates]
+function combineNftAndInfoOffers(nft, nftInfo)
+    offers = []
+    for each infoOffer in nftInfo.offers
+        for each templateOffer in nft.nft_template.redeemable_offers
+            if templateOffer.offer_id = infoOffer.id
+                offers.push({
+                    name: templateOffer.name
+                    description: templateOffer.description_text
+                    offerId: templateOffer.offer_id
+                    imagePath: templateOffer.image
+                    posterImagePath: templateOffer.poster_image
+                    availableAt: templateOffer.available_at
+                    expiresAt: templateOffer.expires_at
+                    visibility: templateOffer.visibility
+                    status: infoOffer.status
+                })
+                continue for
+            end if
+        end for
+    end for
+    return offers
+end function
+
+function isOwnedByAnotherUser(redeemer as dynamic)
+    currentUser = stores.tokenStore().walletAddress
+
+    if currentUser = invalid or redeemer = invalid
+        return false
+    end if
+
+    redeemer = lcase(redeemer)
+    if redeemer.startsWith("0x")
+        redeemer = redeemer.mid(2)
+    end if
+
+    currentUser = lcase(currentUser)
+    if currentUser.startsWith("0x")
+        currentUser = currentUser.mid(2)
+    end if
+
+    return redeemer <> "" and redeemer <> currentUser
+end function

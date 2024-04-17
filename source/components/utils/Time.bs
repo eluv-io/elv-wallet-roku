@@ -1,9 +1,16 @@
 namespace time
     ' Return the current Epoch time in milliseconds
     function now()
-        dateTime = createObject("roDateTime")
-        dateTime.mark()
-        return dateTime.asSeconds()
+        return createObject("roDateTime").asSeconds()
+    end function
+
+    function fromISO8601String(iso8601String)
+        if iso8601String = invalid
+            return invalid
+        end if
+        date = createObject("roDateTime")
+        date.FromISO8601String(iso8601String)
+        return date
     end function
 
     ' Creates and starts a [Timer].

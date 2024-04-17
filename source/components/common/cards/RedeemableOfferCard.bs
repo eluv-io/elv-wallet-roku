@@ -1,0 +1,77 @@
+import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/stores/RedeemStatusEnum.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+
+sub init()
+    m.image = m.top.findNode("image")
+    m.title = m.top.findNode("title")
+    m.overlay = m.top.findNode("overlay")
+    m.expiredOverlay = m.top.findNode("expired_overlay")
+    m.tag = m.top.findNode("tag")
+    m.tagBg = m.top.findNode("tag_bg")
+
+    m.tag.observeFieldScoped("text", "onTagTextChanged")
+end sub
+
+sub onItemContentChanged()
+    offer = m.top.itemContent.aa
+    m.title.text = offer.name
+
+    url = NftOps.assetLinkToUrl(offer.imagePath)
+    m.image.uri = UrlUtil.appendQuery(url, "height", m.top.height)
+
+    state = getRewardState(offer)
+    m.tag.text = state
+    m.expiredOverlay.visible = state <> RewardState.AVAILABLE
+end sub
+
+sub onSizeChanged()
+    width = m.top.width
+    height = m.top.height
+    m.image.width = width
+    m.image.height = height
+    m.overlay.width = width
+    m.overlay.height = height
+    m.expiredOverlay.width = width
+    m.expiredOverlay.height = height
+
+    padding = 20
+    m.title.width = width - (padding * 2)
+    m.title.height = height - (padding * 2)
+    m.title.translation = [padding, padding]
+end sub
+
+sub onFocusChanged()
+    hasFocus = m.top.rowListHasFocus and m.top.rowFocusPercent > 0.8 and m.top.focusPercent > 0.8
+    m.title.visible = hasFocus
+    m.overlay.visible = hasFocus
+end sub
+
+' Resize bg to fit behind tag label
+sub onTagTextChanged()
+    rect = m.tag.boundingRect()
+    hPadding = 12
+    vPadding = 6
+    bottomSpacing = 12
+    m.tagBg.width = rect.width + hPadding
+    m.tagBg.height = rect.height + vPadding
+    m.tag.width = m.tagBg.width
+    m.tag.height = m.tagBg.height
+    m.tagBg.translation = [(m.top.width - m.tagBg.width) / 2, m.top.height - m.tagBg.height - bottomSpacing]
+end sub
+
+function getRewardState(offer) as string
+    if offer.status = RedeemStatus.REDEEMED_BY_ANOTHER_USER
+        return RewardState.CLAIMED_REWARD
+    else if OfferOps.isExpired(offer)
+        return RewardState.EXPIRED
+    else
+        return RewardState.AVAILABLE
+    end if
+end function
+
+enum RewardState
+    CLAIMED_REWARD = "CLAIMED REWARD"
+    EXPIRED = "EXPIRED REWARD"
+    AVAILABLE = "REWARD"
+end enum

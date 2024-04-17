@@ -32,7 +32,7 @@
             </TvLabel>
             <RowList id="rowlist"
                 rowTitleComponentName="NftDetailRowTitle"
-                itemComponentName="MediaItemCard"
+                itemComponentName="CardWrapper"
                 rowFocusAnimationStyle="fixedFocusWrap"
                 showRowLabel="[true]"
                 rowLabelOffset="[[0,20]]"

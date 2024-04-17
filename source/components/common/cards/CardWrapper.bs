@@ -37,6 +37,8 @@ function getOrMakeChild(contentType) as roSGNode
             child = m.top.createChild("NftCard")
         else if contentType = "media"
             child = m.top.createChild("MediaItemCard")
+        else if contentType = "offer"
+            child = m.top.createChild("RedeemableOfferCard")
         end if
     end if
     return child

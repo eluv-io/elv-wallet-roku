@@ -1,0 +1,20 @@
+namespace OfferOps
+    function isExpired(offer, now = createObject("roDateTime").ToISOString()) as boolean
+        return time.fromISO8601String(offer.expiresAt ?? now).asSeconds() < time.fromISO8601String(now).asSeconds()
+    end function
+
+    function isUnreleased(offer, now = createObject("roDateTime").ToISOString()) as boolean
+        return time.fromISO8601String(offer.availableAt ?? now).asSeconds() > time.fromISO8601String(now).asSeconds()
+    end function
+
+    function shouldHideOffer(offer) as boolean
+        visibility = offer.visibility
+        if visibility = invalid
+            return false
+        end if
+        now = createObject("roDateTime").ToISOString()
+        expired = isExpired(offer, now)
+        unreleased = isUnreleased(offer, now)
+        return visibility.hide or (visibility.hide_if_expired and expired) or (visibility.hide_if_unreleased and unreleased)
+    end function
+end namespace

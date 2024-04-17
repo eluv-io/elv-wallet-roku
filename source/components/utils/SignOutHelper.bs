@@ -3,7 +3,7 @@ import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
 sub signOutApp(message = invalid as string)
-    stores.tokenStore()@.wipe()
+    stores.wipe()
     router().removeStack = "app"
     if message <> invalid
         Toast.show(message)
