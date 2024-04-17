@@ -280,7 +280,7 @@ end function
 
 ' handles closing View in View stack
 ' if no View left, closes scene and exits channel
-function closeView(_ = invalid) as boolean
+function closeView() as boolean
     ' developer should receive back button when all Views are closed
 
     ' save flags locally because developer can change it in wasClosed callback

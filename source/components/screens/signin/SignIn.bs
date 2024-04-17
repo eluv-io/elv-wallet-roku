@@ -47,7 +47,7 @@ sub getNewCode()
 end sub
 
 sub onBackClicked()
-    router()@.closeView()
+    m.top.close = true
 end sub
 
 sub onMetamaskClicked()
