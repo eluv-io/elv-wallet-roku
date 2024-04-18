@@ -1,0 +1,58 @@
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/utils/RichText.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    m.image = m.top.findNode("image")
+    m.name = m.top.findNode("name")
+    m.description = m.top.findNode("description")
+    m.fulfillmentStateLabel = m.top.findNode("fulfillmentState")
+    m.dateRange = m.top.findNode("dateRange")
+end sub
+
+sub onOfferChanged()
+    offer_uid = m.top.offer_uid
+    offers = stores.redeemableOffers().offers[offer_uid.nftUid]?.offers ?? []
+    offer = invalid
+    for each o in offers
+        if o.offerId = offer_uid.offerId
+            offer = o
+            exit for
+        end if
+    end for
+
+    if offer = invalid
+        ' Shouldn't really happen, but protect against bad values anyway
+        Toast.show("Offer not found.")
+        ' the "close" property might not be observed yet by ViewManager.
+        ' Queue this action to make sure the View is already added to stack before trying to close it.
+        time.setTimer(sub()
+            m.top.close = true
+        end sub, 0.001)
+    else
+        updateState(offer)
+    end if
+end sub
+
+sub updateState(offer)
+    m.name.text = offer.name
+    m.description.text = RichText.stripFormatting(offer.description)
+    m.image.uri = UrlUtil.appendQuery(NftOps.assetLinkToUrl(offer.posterImagePath ?? offer.imagePath), "height", m.image.height)
+
+    fulfillmentState = OfferOps.getFulfillmentState(offer)
+    if fulfillmentState = OfferOps.FulfillmentState.EXPIRED
+        m.fulfillmentStateLabel.text = "OFFER EXPIRED"
+        m.fulfillmentStateLabel.color = "#F34242"
+    else if fulfillmentState = OfferOps.FulfillmentState.AVAILABLE or fulfillmentState = OfferOps.FulfillmentState.UNRELEASED
+        m.fulfillmentStateLabel.text = "OFFER VALID"
+        m.fulfillmentStateLabel.color = "#FFD541"
+    else if fulfillmentState = OfferOps.FulfillmentState.CLAIMED_BY_PREVIOUS_OWNER
+        m.fulfillmentStateLabel.text = "CLAIMED BY PREVIOUS OWNER"
+        m.fulfillmentStateLabel.color = "#F34242"
+    end if
+
+    m.dateRange.text = OfferOps.getDateRangeString(offer)
+end sub

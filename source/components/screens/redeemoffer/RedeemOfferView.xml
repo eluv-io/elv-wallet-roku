@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="RedeemOfferView" extends="BaseView">
+    <interface>
+        <!-- an AA that holds nft_uid/offerid  -->
+        <field id="offer_uid" type="assocArray" onChange="onOfferChanged" />
+    </interface>
+    <children>
+        <LayoutGroup
+            layoutDirection="horiz"
+            horizAlignment="center"
+            vertAlignment="center"
+            translation="[960,540]"
+        >
+            <Poster id="image" width="540" height="540" loadDisplayMode="scaleToFit" />
+            <Spacer width="80" />
+            <LayoutGroup layoutDirection="vert">
+                <!-- 
+                    Give the title label a width that will cause the parent to take up 80% of the screen.
+                    The total width we want to fill is 1920*0.8=1536:
+                        label_width = 1536 - poster_width(540) - spacer(80) = 916
+                -->
+                <TvLabel
+                    id="name"
+                    width="916"
+                    fontStyle="title_62"
+                    wrap="true"
+                    lineSpacing="0"
+                />
+                <Spacer height="24" />
+                <LayoutGroup
+                    layoutDirection="horiz"
+                >
+                    <!-- Assume these won't grow in width enough to mess up the parent view -->
+                    <TvLabel id="fulfillmentState" fontStyle="label_24" />
+                    <Spacer width="12" />
+                    <TvLabel id="dateRange" fontStyle="label_24" />
+                </LayoutGroup>
+                <Spacer height="24" />
+                <TvLabel id="description" fontStyle="body_32" width="916" wrap="true" />
+            </LayoutGroup>
+        </LayoutGroup>
+    </children>
+</component>

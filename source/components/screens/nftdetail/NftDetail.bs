@@ -20,8 +20,8 @@ end sub
 
 sub onItemSelected()
     itemIndex = m.rowList.rowItemSelected
-    mediaItem = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
-    NftOps.launchMediaOrOffer(mediaItem)
+    item = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
+    NftOps.launchMediaOrOffer(item)
 end sub
 
 sub onFocusedRowChanged()

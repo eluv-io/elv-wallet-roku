@@ -8,7 +8,7 @@ namespace FontStyles
             font.size = 62
             font.uri = "pkg:/fonts/inter_SemiBold.ttf"
         else if fontStyle = "body_32"
-            font.size = 32
+            font.size = 33
             font.uri = "pkg:/fonts/inter_regular.ttf"
         else if fontStyle = "carousel_48"
             font.size = 48

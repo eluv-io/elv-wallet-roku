@@ -78,8 +78,10 @@ function combineNftAndInfoOffers(nft, nftInfo)
         for each templateOffer in nft.nft_template.redeemable_offers
             if templateOffer.offer_id = infoOffer.id
                 offers.push({
+                    nftUid: nft._uid
                     name: templateOffer.name
-                    description: templateOffer.description_text
+                    ' On demov3 some offers use [description_text], but I think Main uses [description]
+                    description: templateOffer.description ?? templateOffer.description_text
                     offerId: templateOffer.offer_id
                     imagePath: templateOffer.image
                     posterImagePath: templateOffer.poster_image

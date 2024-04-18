@@ -1,10 +1,23 @@
+import "pkg:/components/stores/RedeemStatusEnum.bs"
+
 namespace OfferOps
+    enum FulfillmentState
+        AVAILABLE
+        CLAIMED_BY_PREVIOUS_OWNER
+        EXPIRED
+        UNRELEASED
+    end enum
+
     function isExpired(offer, now = createObject("roDateTime").ToISOString()) as boolean
         return time.fromISO8601String(offer.expiresAt ?? now).asSeconds() < time.fromISO8601String(now).asSeconds()
     end function
 
     function isUnreleased(offer, now = createObject("roDateTime").ToISOString()) as boolean
         return time.fromISO8601String(offer.availableAt ?? now).asSeconds() > time.fromISO8601String(now).asSeconds()
+    end function
+
+    function isAvailableNow(offer) as boolean
+        return not isUnreleased(offer) and not isExpired(offer)
     end function
 
     function shouldHideOffer(offer) as boolean
@@ -16,5 +29,39 @@ namespace OfferOps
         expired = isExpired(offer, now)
         unreleased = isUnreleased(offer, now)
         return visibility.hide or (visibility.hide_if_expired and expired) or (visibility.hide_if_unreleased and unreleased)
+    end function
+
+    function getFulfillmentState(offer)
+        if offer.status = RedeemStatus.REDEEMED_BY_ANOTHER_USER
+            return FulfillmentState.CLAIMED_BY_PREVIOUS_OWNER
+        else if isUnreleased(offer)
+            return FulfillmentState.UNRELEASED
+        else if isExpired(offer)
+            return FulfillmentState.EXPIRED
+        else
+            return FulfillmentState.AVAILABLE
+        end if
+    end function
+
+    function getDateRangeString(offer)
+        availableDate = time.fromISO8601String(offer.availableAt)
+        if availableDate <> invalid
+            availableDate = availableDate.asDateStringLoc("long")
+        end if
+        expiresDate = time.fromISO8601String(offer.expiresAt)
+        if expiresDate <> invalid
+            expiresDate = expiresDate.asDateStringLoc("long")
+        end if
+        if availableDate <> invalid and expiresDate <> invalid
+            return `${availableDate} - ${expiresDate}`
+        else if isUnreleased(offer) and availableDate <> invalid
+            return `Available Starting On ${availableDate}`
+        else if isExpired(offer) and availableDate = invalid and expiresDate <> invalid
+            return `Ended on ${expiresDate}`
+        else if isAvailableNow(offer) and expiresDate <> invalid
+            return `Available Now - ${expiresDate}`
+        else
+            return ""
+        end if
     end function
 end namespace

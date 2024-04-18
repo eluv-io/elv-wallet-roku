@@ -20,9 +20,16 @@ sub onItemContentChanged()
     url = NftOps.assetLinkToUrl(offer.imagePath)
     m.image.uri = UrlUtil.appendQuery(url, "height", m.top.height)
 
-    state = getRewardState(offer)
-    m.tag.text = state
-    m.expiredOverlay.visible = state <> RewardState.AVAILABLE
+    fulfillmentState = OfferOps.getFulfillmentState(offer)
+    if fulfillmentState = OfferOps.FulfillmentState.AVAILABLE or fulfillmentState = OfferOps.FulfillmentState.UNRELEASED
+        m.tag.text = "REWARD"
+    else if fulfillmentState = OfferOps.FulfillmentState.EXPIRED
+        m.tag.text = "EXPIRED REWARD"
+    else if fulfillmentState = OfferOps.FulfillmentState.CLAIMED_BY_PREVIOUS_OWNER
+        m.tag.text = "CLAIMED REWARD"
+    end if
+
+    m.expiredOverlay.visible = fulfillmentState = OfferOps.FulfillmentState.CLAIMED_BY_PREVIOUS_OWNER or fulfillmentState = OfferOps.FulfillmentState.EXPIRED
 end sub
 
 sub onSizeChanged()
@@ -59,19 +66,3 @@ sub onTagTextChanged()
     m.tag.height = m.tagBg.height
     m.tagBg.translation = [(m.top.width - m.tagBg.width) / 2, m.top.height - m.tagBg.height - bottomSpacing]
 end sub
-
-function getRewardState(offer) as string
-    if offer.status = RedeemStatus.REDEEMED_BY_ANOTHER_USER
-        return RewardState.CLAIMED_REWARD
-    else if OfferOps.isExpired(offer)
-        return RewardState.EXPIRED
-    else
-        return RewardState.AVAILABLE
-    end if
-end function
-
-enum RewardState
-    CLAIMED_REWARD = "CLAIMED REWARD"
-    EXPIRED = "EXPIRED REWARD"
-    AVAILABLE = "REWARD"
-end enum

@@ -102,7 +102,13 @@ namespace NftOps
             qrView.link = NftOps.assetLinkToUrl(mediaItem.media_file)
             createObject("roSGNode", "FullscreenDialog").showView = qrView
         else if mediaItem.offerid <> invalid
-            Toast.show("Offer clicked. Not yet implemented.")
+            ' Toast.show("Offer clicked. Not yet implemented.")
+            redeemOfferView = CreateObject("roSGNode", "RedeemOfferView")
+            redeemOfferView.offer_uid = {
+                nftUid: mediaItem.nftUid
+                offerId: mediaItem.offerId
+            }
+            router()@.show({ view: redeemOfferView })
         else
             Toast.show("Unknown media type")
         end if
