@@ -69,7 +69,11 @@ namespace NftOps
 
     ' Works for both MediaItems and RedeemableOffers
     sub _nodeForItem(item, rootNode, itemHeight, contentType)
-        node = rootNode.createChild("AAContentNode")
+        ' First create the node with no relation to [rootNode],
+        ' give it all the values it needs and only then attach it to [rootNode].
+        ' Otherwise, if we're adding to a node that's already attached to a grid/list,
+        ' the component will get the callback before any of the data is set.
+        node = createObject("roSGNode", "AAContentNode")
         node.aa = item
 
         node.addField("contentType", "string", false)
@@ -79,6 +83,9 @@ namespace NftOps
         aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
         node.addField("FHDItemWidth", "float", false)
         node.FHDItemWidth = itemHeight * aspectRatio
+
+        ' Now it's safe to reparent the node
+        node.reparent(rootNode, false)
     end sub
 
     sub launchMediaOrOffer(mediaItem)
