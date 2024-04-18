@@ -11,7 +11,9 @@
             vertAlignment="center"
             translation="[960,540]"
         >
-            <Poster id="image" width="540" height="540" loadDisplayMode="scaleToFit" />
+            <Poster id="image" width="540" height="540" loadDisplayMode="scaleToFit">
+                <Shimmer id="image_shimmer" control="start" />
+            </Poster>
             <Spacer width="80" />
             <LayoutGroup layoutDirection="vert">
                 <!-- 

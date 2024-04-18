@@ -11,6 +11,9 @@ sub init()
     m.description = m.top.findNode("description")
     m.fulfillmentStateLabel = m.top.findNode("fulfillmentState")
     m.dateRange = m.top.findNode("dateRange")
+
+    m.imageShimmer = m.top.findNode("image_shimmer")
+    m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
 end sub
 
 sub onOfferChanged()
@@ -55,4 +58,10 @@ sub updateState(offer)
     end if
 
     m.dateRange.text = OfferOps.getDateRangeString(offer)
+end sub
+
+sub onImageLoadStatusChanged()
+    if m.image.loadStatus = "ready"
+        m.imageShimmer.control = "stop"
+    end if
 end sub
