@@ -11,6 +11,8 @@ sub init()
     m.description = m.top.findNode("description")
     m.fulfillmentStateLabel = m.top.findNode("fulfillmentState")
     m.dateRange = m.top.findNode("dateRange")
+    m.redeemButton = m.top.findNode("redeem_btn")
+    m.redeemButton.observeFieldScoped("buttonSelected", "onRedeemClicked")
 
     m.imageShimmer = m.top.findNode("image_shimmer")
     m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
@@ -18,7 +20,7 @@ end sub
 
 sub onOfferChanged()
     offer_uid = m.top.offer_uid
-    offers = stores.redeemableOffers().offers[offer_uid.nftUid]?.offers ?? []
+    offers = stores.redeemableOffers().offers[offer_uid.nftUid] ?? []
     offer = invalid
     for each o in offers
         if o.offerId = offer_uid.offerId
@@ -27,6 +29,7 @@ sub onOfferChanged()
         end if
     end for
 
+    m.offer = offer
     if offer = invalid
         ' Shouldn't really happen, but protect against bad values anyway
         Toast.show("Offer not found.")
@@ -36,6 +39,8 @@ sub onOfferChanged()
             m.top.close = true
         end sub, 0.001)
     else
+        stores.redeemableOffers().unobserveFieldScoped("offers")
+        stores.redeemableOffers().observeFieldScoped("offers", "onOfferChanged")
         updateState(offer)
     end if
 end sub
@@ -58,6 +63,54 @@ sub updateState(offer)
     end if
 
     m.dateRange.text = OfferOps.getDateRangeString(offer)
+
+    setupButton(offer, fulfillmentState)
+end sub
+
+sub setupButton(offer, fulfillmentState)
+    m.redeemButton.visible = fulfillmentState = OfferOps.FulfillmentState.AVAILABLE
+
+    if offer.status = RedeemStatus.REDEEMED_BY_CURRENT_USER
+        m.redeemButton.text = "View"
+    else if offer.status = RedeemStatus.REDEEMING
+        m.redeemButton.text = "Redeeming..."
+    else if offer.status = RedeemStatus.REDEEM_FAILED or offer.status = RedeemStatus.UNREDEEMED
+        m.redeemButton.text = "Redeem Now"
+    else if offer.status = RedeemStatus.REDEEMED_BY_ANOTHER_USER
+        m.redeemButton.text = ""
+    end if
+
+    ' TODO: disable button during redemption
+end sub
+
+sub onRedeemClicked()
+    if m.offer.transaction = invalid
+        ' init redemption
+        promises.chain(stores.redeemableOffers()@.initiateRedemption(m.offer)).then(sub (response)
+            if response.code = 200
+                time.setTimer(pollRedemptionStatusUntilComplete, 2)
+            end if
+        end sub).catch(sub (e)
+            Toast.show("Something went wrong. Please try again later.")
+        end sub)
+    else
+        ' TODO: Show fulfillment data
+    end if
+end sub
+
+sub pollRedemptionStatusUntilComplete()
+    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers()).then(sub(offers)
+        print "polled offers", offers
+        for each o in offers
+            if o.offerId = m.offer.offerId
+                print "new offer status ", o.status
+                if o.status = RedeemStatus.REDEEMING
+                    ' Queue another poll if we're still redeeming
+                    time.setTimer(pollRedemptionStatusUntilComplete, 2)
+                end if
+            end if
+        end for
+    end sub)
 end sub
 
 sub onImageLoadStatusChanged()

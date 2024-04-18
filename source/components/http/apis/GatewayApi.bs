@@ -2,9 +2,18 @@ import "pkg:/components/http/http.bs"
 import "pkg:/components/stores/stores.bs"
 
 namespace GatewayApi
+    function baseUrl() as string
+        return stores.fabricConfigStore()@.getAuthdBaseUrl()
+    end function
+
     function getNftsRequest() as object
-        url = stores.fabricConfigStore()@.getAuthdBaseUrl() + "/apigw/nfts"
+        url = `${baseUrl()}/apigw/nfts`
         print "Going to fetch nfts from " + url
         return http.get(url)
+    end function
+
+    function initOfferRedemption(tenant, requestBody, dryRun = false) as object
+        query = dryRun ? "?dry_run=true" : ""
+        return http.post(`${baseUrl()}/wlt/act/${tenant}${query}`, requestBody)
     end function
 end namespace

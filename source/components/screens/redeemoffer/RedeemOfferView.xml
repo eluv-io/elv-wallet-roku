@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="RedeemOfferView" extends="BaseView">
+<component name="RedeemOfferView" extends="BaseView" initialFocus="redeem_btn">
     <interface>
         <!-- an AA that holds nft_uid/offerid  -->
         <field id="offer_uid" type="assocArray" onChange="onOfferChanged" />
@@ -39,6 +39,8 @@
                 </LayoutGroup>
                 <Spacer height="24" />
                 <TvLabel id="description" fontStyle="body_32" width="916" wrap="true" />
+                <Spacer height="24" />
+                <TvButton id="redeem_btn" text="foo" visible="false" />
             </LayoutGroup>
         </LayoutGroup>
     </children>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="RedeemableOfferStore" extends="Node">
     <interface>
-        <field id="offers" type="assocArray" />
+        <field id="offers" type="assocArray" alwaysNotify="true" />
         <function name="refreshRedeemedOffers" />
+        <function name="initiateRedemption" />
     </interface>
 </component>

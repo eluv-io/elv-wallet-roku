@@ -1,6 +1,7 @@
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/Time.bs"
 import "pkg:/components/stores/RedeemStatusEnum.bs"
+import "pkg:/components/http/apis/GatewayApi.bs"
 import "pkg:/components/stores/stores.bs"
 
 const REDEEM_OPERATION = "nft-offer-redeem"
@@ -21,18 +22,55 @@ function refreshRedeemedOffers(nft) as object
         tenant = context.nftInfo.tenant
         return http.get(`${context.baseUrl}/wlt/status/act/${tenant}`)
     end function).then(function(response, context)
-        parseRedeemStates(response.json.arr, context.nftInfo)
+        parseRedeemStatuses(response.json.arr, context.nftInfo)
         offers = m.top.offers
-        offers[context.nft._uid] = {
-            tenant: context.nftInfo.tenant
-            offers: combineNftAndInfoOffers(context.nft, context.nftInfo)
-        }
+        offers[context.nft._uid] = combineNftAndInfoOffers(context.nft, context.nftInfo)
         m.top.offers = offers
         return offers[context.nft._uid]
     end function).toPromise()
 end function
 
-sub parseRedeemStates(redemptionStatuses, nftInfo)
+function initiateRedemption(offer)
+    clientReferenceId = "some random?"
+    body = {
+        client_reference_id: clientReferenceId
+        tok_addr: offer.tokenAddress
+        tok_id: offer.tokenId
+        offer_id: offer.offerId
+        op: REDEEM_OPERATION
+    }
+
+    ' Optimistic update to REDEEMING
+    updateOfferStatus(offer, RedeemStatus.REDEEMING)
+    undo = sub (response, context)
+        ' This will handle exceptions the same as non-200 http responses
+        if response.code <> 200
+            ' Revert optimism
+            print "something went wrong, reverting Offer status to UNREDEEMED"
+            updateOfferStatus(context.offer, RedeemStatus.UNREDEEMED)
+        end if
+    end sub
+    return promises.chain(
+    GatewayApi.initOfferRedemption(offer.tenant, body, true), { offer: offer }
+    ).then(undo).catch(undo).toPromise()
+end function
+
+' Node fields of type "AA" are immutable, so we have to re-assign m.top.offers to get listeners to be notified.
+sub updateOfferStatus(offer, newStatus)
+    nftOffers = m.top.offers[offer.nftUid]
+    newOffers = []
+    for each o in nftOffers
+        if o.offerId = offer.offerId
+            o.status = newStatus
+        end if
+        newOffers.push(o)
+    end for
+    allOffers = m.top.offers
+    allOffers[offer.nftUid] = newOffers
+    m.top.offers = allOffers
+end sub
+
+sub parseRedeemStatuses(redemptionStatuses, nftInfo)
     contract = nftInfo.contract_addr
     if contract.startsWith("0x")
         contract = contract.mid(2)
@@ -72,13 +110,17 @@ end sub
 
 ' Takes data from both nft_template and nft/info to create a complete RedeemableOffer object.
 ' Note, nftInfo must already include RedeemStatus after passing thru [parseRedeemStates]
-function combineNftAndInfoOffers(nft, nftInfo)
+function combineNftAndInfoOffers(nft, nftInfo) as roArray
     offers = []
     for each infoOffer in nftInfo.offers
         for each templateOffer in nft.nft_template.redeemable_offers
             if templateOffer.offer_id = infoOffer.id
                 offers.push({
                     nftUid: nft._uid
+                    tenant: nftInfo.tenant
+                    tokenId: nft.token_id_str
+                    tokenAddress: nft.contract_addr
+                    offerId: infoOffer.id
                     name: templateOffer.name
                     ' On demov3 some offers use [description_text], but I think Main uses [description]
                     description: templateOffer.description ?? templateOffer.description_text
@@ -88,6 +130,7 @@ function combineNftAndInfoOffers(nft, nftInfo)
                     availableAt: templateOffer.available_at
                     expiresAt: templateOffer.expires_at
                     visibility: templateOffer.visibility
+                    transaction: infoOffer.transaction
                     status: infoOffer.status
                 })
                 continue for

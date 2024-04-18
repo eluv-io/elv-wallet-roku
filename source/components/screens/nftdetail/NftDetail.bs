@@ -121,7 +121,7 @@ end sub
 sub fetchRedeemableOffers(nft)
     promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(nft)).then(sub (offers)
         row = getOrMakeFeaturedMediaRow()
-        NftOps.offersToNodes(offers.offers, row, ITEM_HEIGHT)
+        NftOps.offersToNodes(offers, row, ITEM_HEIGHT)
     end sub)
 end sub
 
