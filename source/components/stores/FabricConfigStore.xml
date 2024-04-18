@@ -4,5 +4,6 @@
         <field id="config" type="assocarray" />
         <function name="getAuthdBaseUrl" />
         <function name="getFabricBaseUrl" />
+        <function name="getNetworkName" />
     </interface>
 </component>

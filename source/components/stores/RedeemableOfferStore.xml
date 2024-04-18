@@ -4,5 +4,6 @@
         <field id="offers" type="assocArray" alwaysNotify="true" />
         <function name="refreshRedeemedOffers" />
         <function name="initiateRedemption" />
+        <function name="getFulfillmentData" />
     </interface>
 </component>

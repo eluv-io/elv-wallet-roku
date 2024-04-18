@@ -1,0 +1,48 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/promise.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/PixelUtil.bs"
+
+sub init()
+    m.top.translation = "[960,540]"
+    m.top.layoutDirection = "vert"
+    m.top.horizAlignment = "center"
+    m.top.vertAlignment = "center"
+
+    m.code = m.top.findNode("code")
+    m.qr = m.top.findNode("qr")
+
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+end sub
+
+sub onTransactionHashSet()
+    promises.chain(stores.redeemableOffers()@.getFulfillmentData(m.top.transactionHash)).then(sub (response)
+        parseFulfillmentData(response.json.fulfillment_data)
+    end sub).catch(sub (e)
+        print "Error loading fulfillment data", e
+        Toast.show("Something went wrong. Please try again later.")
+        ' the "close" property might not be observed yet by ViewManager.
+        ' Queue this action to make sure the View is already added to stack before trying to close it.
+        time.setTimer(sub()
+            m.top.close = true
+        end sub, 0.001)
+    end sub)
+end sub
+
+sub parseFulfillmentData(data)
+    width = PixelUtil.convertToRealPixels(m.qr.width)
+    height = PixelUtil.convertToRealPixels(m.qr.height)
+    m.qr.uri = UrlUtil.qrUrlForData(data.url, width, height)
+
+    m.code.text = data.code
+end sub
+
+sub centerSpinner()
+    if(m.spinner.poster.loadStatus = "ready")
+        centerx = (m.qr.width - m.spinner.poster.bitmapWidth) / 2
+        centery = (m.qr.height - m.spinner.poster.bitmapHeight) / 2
+        m.spinner.translation = [centerx, centery]
+    end if
+end sub

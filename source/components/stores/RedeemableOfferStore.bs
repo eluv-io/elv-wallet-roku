@@ -55,6 +55,11 @@ function initiateRedemption(offer)
     ).then(undo).catch(undo).toPromise()
 end function
 
+function getFulfillmentData(transactionHash)
+    network = stores.fabricConfigStore()@.getNetworkName()
+    return http.get(`https://appsvc.svc.eluv.io/code-fulfillment/${network}/fulfill/${transactionHash}`)
+end function
+
 ' Node fields of type "AA" are immutable, so we have to re-assign m.top.offers to get listeners to be notified.
 sub updateOfferStatus(offer, newStatus)
     nftOffers = m.top.offers[offer.nftUid]

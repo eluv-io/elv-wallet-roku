@@ -91,10 +91,13 @@ sub onRedeemClicked()
                 time.setTimer(pollRedemptionStatusUntilComplete, 2)
             end if
         end sub).catch(sub (e)
+            print "Error in redemption/fulfillment", e
             Toast.show("Something went wrong. Please try again later.")
         end sub)
     else
-        ' TODO: Show fulfillment data
+        qrView = createObject("roSGNode", "FulfillmentQrDialog")
+        qrView.transactionHash = m.offer.transaction
+        createObject("roSGNode", "FullscreenDialog").showView = qrView
     end if
 end sub
 

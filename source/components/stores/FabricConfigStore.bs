@@ -32,3 +32,7 @@ function getFabricBaseUrl(_ = invalid) as string
     config = m.top.config
     return `${config.network.services.fabric_api[0]}/s/${config.qspace.names[0]}`
 end function
+
+function getNetworkName(_ = invalid) as string
+    return m.top.config.qspace.names[0]
+end function

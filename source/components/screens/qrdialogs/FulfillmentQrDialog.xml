@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="FulfillmentQrDialog" extends="LayoutGroup">
+    <interface>
+        <field id="transactionHash" type="string" onChange="onTransactionHashSet"/>
+    </interface>
+    <children>
+        <TvLabel
+            text="Success"
+            fontStyle="title_62"
+            maxLines="2"
+            width="960"
+            wrap="true"
+            horizAlign="center"
+        />
+        <Spacer height="48" />
+        <TvLabel
+            width="960"
+            wrap="true"
+            text="Scan the QR Code with your camera app or a QR code reader on your device to claim your reward."
+            fontStyle="label_40"
+        />
+        <Spacer height="48" />
+        <TvLabel id="code" fontStyle="carousel_48" />
+        <Spacer height="24" />
+        <Group>
+            <!-- We never bother to hide the spinner, it'll just be behind the Poster -->
+            <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
+            <Poster id="qr" width="504" height="504" />
+        </Group>
+    </children>
+</component>
