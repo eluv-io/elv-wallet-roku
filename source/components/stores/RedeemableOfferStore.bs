@@ -57,7 +57,7 @@ function initiateRedemption(offer)
         return response
     end function
     return promises.chain(
-    GatewayApi.initOfferRedemption(offer.tenant, body, true), { offer: offer }
+    GatewayApi.initOfferRedemption(offer.tenant, body), { offer: offer }
     ).then(undo).catch(undo).toPromise()
 end function
 
