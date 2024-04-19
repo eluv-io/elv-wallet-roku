@@ -14,6 +14,6 @@ namespace GatewayApi
 
     function initOfferRedemption(tenant, requestBody, dryRun = false) as object
         query = dryRun ? "?dry_run=true" : ""
-        return http.post(`${baseUrl()}/wlt/act/${tenant}${query}`, requestBody)
+        return http.post(`${baseUrl()}/wlt/act/${tenant}${query}`, requestBody, true)
     end function
 end namespace
