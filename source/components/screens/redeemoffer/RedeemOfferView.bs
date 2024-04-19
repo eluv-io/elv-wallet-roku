@@ -13,9 +13,12 @@ sub init()
     m.dateRange = m.top.findNode("dateRange")
     m.redeemButton = m.top.findNode("redeem_btn")
     m.redeemButton.observeFieldScoped("buttonSelected", "onRedeemClicked")
+    m.dummyButton = m.top.findNode("dummy")
 
     m.imageShimmer = m.top.findNode("image_shimmer")
     m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
+
+    m.spinner = m.top.findNode("spinner")
 end sub
 
 sub onOfferChanged()
@@ -70,9 +73,10 @@ end sub
 sub setupButton(offer, fulfillmentState)
     m.redeemButton.visible = fulfillmentState = OfferOps.FulfillmentState.AVAILABLE
 
+    isRedeeming = offer.status = RedeemStatus.REDEEMING
     if offer.status = RedeemStatus.REDEEMED_BY_CURRENT_USER
         m.redeemButton.text = "View"
-    else if offer.status = RedeemStatus.REDEEMING
+    else if isRedeeming
         m.redeemButton.text = "Redeeming..."
     else if offer.status = RedeemStatus.REDEEM_FAILED or offer.status = RedeemStatus.UNREDEEMED
         m.redeemButton.text = "Redeem Now"
@@ -80,7 +84,20 @@ sub setupButton(offer, fulfillmentState)
         m.redeemButton.text = ""
     end if
 
-    ' TODO: disable button during redemption
+    size = m.redeemButton.boundingRect().height
+    m.spinner.poster.width = size
+    m.spinner.poster.height = size
+    m.spinner.visible = isRedeeming
+
+    ' This can completely mess up focus handling if called too early in the lifecycle.
+    ' Queue it off to the next frame
+    time.setTimer(sub ()
+        if m.offer.status = RedeemStatus.REDEEMING
+            m.dummyButton.setFocus(true)
+        else
+            m.redeemButton.setFocus(true)
+        end if
+    end sub, 0.001)
 end sub
 
 sub onRedeemClicked()
@@ -88,6 +105,7 @@ sub onRedeemClicked()
         ' init redemption
         promises.chain(stores.redeemableOffers()@.initiateRedemption(m.offer)).then(sub (response)
             if response.code = 200
+                print "Offer redemption initiated successfully, start polling for status"
                 time.setTimer(pollRedemptionStatusUntilComplete, 2)
             end if
         end sub).catch(sub (e)
@@ -102,12 +120,11 @@ sub onRedeemClicked()
 end sub
 
 sub pollRedemptionStatusUntilComplete()
-    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers()).then(sub(offers)
-        print "polled offers", offers
+    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(m.offer.tokenAddress, m.offer.tokenId)).then(sub(offers)
         for each o in offers
             if o.offerId = m.offer.offerId
-                print "new offer status ", o.status
                 if o.status = RedeemStatus.REDEEMING
+                    print "Offer still redeeming, queue another poll in 2s"
                     ' Queue another poll if we're still redeeming
                     time.setTimer(pollRedemptionStatusUntilComplete, 2)
                 end if
@@ -121,3 +138,10 @@ sub onImageLoadStatusChanged()
         m.imageShimmer.control = "stop"
     end if
 end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press and key = "back" and m.offer?.status = RedeemStatus.REDEEMING
+        Toast.show("Redeeming in progress, please wait.")
+        return true
+    end if
+end function

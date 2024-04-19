@@ -119,7 +119,7 @@ end sub
 ' Currently, cache isn't being used, every time we land here, we fetch offers from the BE.
 ' Caching occurs in the store to support subsequent screens in the flow.
 sub fetchRedeemableOffers(nft)
-    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(nft)).then(sub (offers)
+    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(nft.contract_addr, nft.token_id_str)).then(sub (offers)
         row = getOrMakeFeaturedMediaRow()
         NftOps.offersToNodes(offers, row, ITEM_HEIGHT)
     end sub)

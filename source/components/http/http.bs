@@ -16,19 +16,20 @@ namespace http
         task.control = "run"
     end sub
 
-    function get(url as string) as object
-        return request("GET", url)
+    function get(url as string, printResponseBody = false) as object
+        return request("GET", url, invalid, printResponseBody)
     end function
 
-    function post(url as string, body = invalid) as object
-        return request("POST", url, body)
+    function post(url as string, body = invalid, printResponseBody = false) as object
+        return request("POST", url, body, printResponseBody)
     end function
 
-    function request(method as string, url as string, body = invalid) as object
+    function request(method as string, url as string, body = invalid, printResponseBody = false) as object
         promise = promises.create()
         requestNode = CreateObject("roSGNode", "HttpRequest")
         requestNode.method = method
         requestNode.url = url
+        requestNode.printResponseBody = printResponseBody
         if body <> invalid requestNode.body = FormatJSON(body)
         promise.addFields({ request: requestNode })
         m.global.httpTask.request = promise

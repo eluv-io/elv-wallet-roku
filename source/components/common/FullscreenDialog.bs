@@ -10,7 +10,8 @@ sub init()
 end sub
 
 sub onShowView()
-    if m.top.showView = invalid or m.top.getChildCount() > 0
+    view = m.top.showView
+    if view = invalid or m.top.getChildCount() > 0
         ' This may be called more than once if m.top.showView changes internally,
         ' we only care about the first time it is set.
         return
@@ -23,20 +24,30 @@ sub onShowView()
     m.originalParentFocus = findFocusedNode(dialogParent.focusedChild)
 
     ' Attach content to dialog
-    dialog.appendChild(dialog.showView)
+    dialog.appendChild(view)
 
     ' Finally, attach dialog to parent
     dialogParent.appendChild(dialog)
     dialog.setFocus(true)
+
+    if not view.doesExist("close")
+        view.addField("close", "boolean", true)
+    end if
+    view.unobserveFieldScoped("close")
+    view.observeFieldScoped("close", "dismiss")
+end sub
+
+sub dismiss()
+    ' Remove dialog from parent
+    m.top.getParent().removeChild(m.top)
+    ' Restore parent's original focus
+    m.originalParentFocus.setFocus(true)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     if press
         if key = "back"
-            ' Remove dialog from parent
-            m.top.getParent().removeChild(m.top)
-            ' Restore parent's original focus
-            m.originalParentFocus.setFocus(true)
+            dismiss()
             return true
         end if
     end if

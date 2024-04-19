@@ -3,5 +3,6 @@
     <interface>
         <field id="nfts" type="array" />
         <function name="fetchWalletData" />
+        <function name="findNft" />
     </interface>
 </component>

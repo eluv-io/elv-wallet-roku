@@ -26,6 +26,14 @@ function fetchWalletData(_ = invalid) as void
     end sub)
 end function
 
+function findNft(contract, tokenId)
+    nfts = m.top.nfts ?? []
+    for each nft in nfts
+        if nft.contract_addr = contract and `${nft.token_id}` = `${tokenId}`
+            return nft
+        end if
+    end for
+end function
 
 sub addConvenienceProperties(nfts)
     for each nft in nfts

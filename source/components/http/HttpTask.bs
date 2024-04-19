@@ -86,7 +86,7 @@ sub printRequest(request as roUrlTransfer, body, headers)
     print `
 [HTTP] Request ${request.GetRequest()}: ${request.getUrl()} (Request ID: ${request.getIdentity()})
        Headers: ${formatJson(headers)}
-       Payload: ${body}
+       ${body <> "" ? `Payload: ${body}` : ""}
     `
 end sub
 
@@ -98,12 +98,16 @@ sub handleHttpResponse(response as roUrlEvent)
         return
     end if
     url = request.request.getUrl()
-    data = response.getString()
+    rawResponse = response.getString()
     result = createObject("roSGNode", "HttpResponse")
-    json = parseJson(data)
-    if type(json) = "roArray"
-        ' HttpResponse.json can't handle raw arrays, so we have to wrap the response in an AA
-        json = { "arr": json }
+    if rawResponse = ""
+        json = {}
+    else
+        json = parseJson(rawResponse)
+        if type(json) = "roArray"
+            ' HttpResponse.json can't handle raw arrays, so we have to wrap the response in an AA
+            json = { "arr": json }
+        end if
     end if
     result.json = json
     responseCode = response.getResponseCode()
@@ -116,7 +120,7 @@ sub handleHttpResponse(response as roUrlEvent)
     print `
 [HTTP] Response ${result.code} ${url} (Request ID: ${key})
        Headers: ${formatJson(result.headers)}
-       Payload: ${request.promise.request.printResponseBody ? data : "TRIMMED"}
+       Payload: ${request.promise.request.printResponseBody ? rawResponse : "TRIMMED"}
     `
     m.pendingRequests.Delete(key)
     promises.resolve(result, request.promise)

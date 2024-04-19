@@ -11,7 +11,11 @@ sub init()
 end sub
 
 ' Returns a Promise that will include offers for the [nft] with their "true" RedeemStatuses.
-function refreshRedeemedOffers(nft) as object
+function refreshRedeemedOffers(contract, tokenId) as object
+    nft = stores.contentStore()@.findNft(contract, tokenId)
+    if nft = invalid
+        return promises.reject(`No NFT found for contract=${contract} token=$${tokenId}`)
+    end if
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     context = {
         baseUrl: baseUrl
@@ -20,18 +24,19 @@ function refreshRedeemedOffers(nft) as object
     return promises.chain(http.get(`${baseUrl}/nft/info/${nft.contract_addr}/${nft.token_id_str}`), context).then(function(response, context)
         context.nftInfo = response.json
         tenant = context.nftInfo.tenant
-        return http.get(`${context.baseUrl}/wlt/status/act/${tenant}`)
+        return http.get(`${context.baseUrl}/wlt/status/act/${tenant}`, true)
     end function).then(function(response, context)
         parseRedeemStatuses(response.json.arr, context.nftInfo)
         offers = m.top.offers
-        offers[context.nft._uid] = combineNftAndInfoOffers(context.nft, context.nftInfo)
+        result = combineNftAndInfoOffers(context.nft, context.nftInfo)
+        offers[context.nft._uid] = result
         m.top.offers = offers
-        return offers[context.nft._uid]
+        return result
     end function).toPromise()
 end function
 
 function initiateRedemption(offer)
-    clientReferenceId = "some random?"
+    clientReferenceId = createObject("roDeviceInfo").getRandomUUID()
     body = {
         client_reference_id: clientReferenceId
         tok_addr: offer.tokenAddress
@@ -42,14 +47,15 @@ function initiateRedemption(offer)
 
     ' Optimistic update to REDEEMING
     updateOfferStatus(offer, RedeemStatus.REDEEMING)
-    undo = sub (response, context)
+    undo = function(response, context)
         ' This will handle exceptions the same as non-200 http responses
-        if response.code <> 200
+        if response.code <> 200 or response.json.err <> invalid
             ' Revert optimism
             print "something went wrong, reverting Offer status to UNREDEEMED"
             updateOfferStatus(context.offer, RedeemStatus.UNREDEEMED)
         end if
-    end sub
+        return response
+    end function
     return promises.chain(
     GatewayApi.initOfferRedemption(offer.tenant, body, true), { offer: offer }
     ).then(undo).catch(undo).toPromise()
@@ -57,7 +63,7 @@ end function
 
 function getFulfillmentData(transactionHash)
     network = stores.fabricConfigStore()@.getNetworkName()
-    return http.get(`https://appsvc.svc.eluv.io/code-fulfillment/${network}/fulfill/${transactionHash}`)
+    return http.get(`https://appsvc.svc.eluv.io/code-fulfillment/${network}/fulfill/${transactionHash}`, true)
 end function
 
 ' Node fields of type "AA" are immutable, so we have to re-assign m.top.offers to get listeners to be notified.
@@ -88,7 +94,7 @@ sub parseRedeemStatuses(redemptionStatuses, nftInfo)
         status.contract = op[1]
         status.tokenId = op[2]
         status.offerId = op[3]
-        if status.op = REDEEM_OPERATION and status.contract = contract and status.tokenId = nftInfo.token_id_str
+        if status.operation = REDEEM_OPERATION and status.contract = contract and status.tokenId = nftInfo.token_id_str
             relevantStatuses[`${status.offerId}`] = status.status
         end if
     end for

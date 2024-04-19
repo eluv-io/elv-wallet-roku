@@ -5,6 +5,8 @@
         <field id="offer_uid" type="assocArray" onChange="onOfferChanged" />
     </interface>
     <children>
+        <!-- A dummy button to put focus on as a means to "disable" the actual button -->
+        <Button id="dummy" visible="false" />
         <LayoutGroup
             layoutDirection="horiz"
             horizAlignment="center"
@@ -40,7 +42,15 @@
                 <Spacer height="24" />
                 <TvLabel id="description" fontStyle="body_32" width="916" wrap="true" />
                 <Spacer height="24" />
-                <TvButton id="redeem_btn" text="foo" visible="false" />
+                <LayoutGroup layoutDirection="horiz">
+                    <TvButton id="redeem_btn" visible="false" />
+                    <Spacer width="18" />
+                    <BusySpinner
+                        id="spinner"
+                        uri="pkg:/images/busyspinner_hd.png"
+                        visible="false"
+                    />
+                </LayoutGroup>
             </LayoutGroup>
         </LayoutGroup>
     </children>
