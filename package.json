@@ -1,7 +1,7 @@
 {
-  "name": "roku-hello-world",
-  "version": "1.0.0",
-  "description": "A basic sample channel application for Roku",
+  "name": "Eluvio-Media-Wallet-Roku",
+  "version": "0.0.1",
+  "description": "Eluvio media wallet for Roku",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

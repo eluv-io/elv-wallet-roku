@@ -6,7 +6,7 @@
 
 ##   Channel Details
 title=Eluvio Media Wallet
-major_version=1
+major_version=0
 minor_version=0
 build_version=00001
 
@@ -28,3 +28,6 @@ splash_min_time=0
 
 # Lock UI resolution to FHD (1080p)
 ui_resolutions=FHD
+
+# Required for roku certification process
+supports_input_launch=1
