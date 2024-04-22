@@ -56,6 +56,7 @@ function GetActivationData(metamask = false) as object
     end if
 end function
 
+' Poll Auth0 to see if user completed activation and there's an id/access/refresh token waiting for us
 function checkDeviceAuthorization(deviceCode) as object
     httpPromise = http.post(`${AUTH0_BASE_URL}oauth/token`, {
         client_id: AUTH0_CLIENT_ID,
@@ -73,6 +74,8 @@ function checkDeviceAuthorization(deviceCode) as object
     end sub).toPromise()
 end function
 
+' Same as [checkDeviceAuthorization] but for metamask - skips a step and give FabricToken directly.
+' However - token can never be refreshed
 function checkMetamaskAuthorization(code, passcode) as object
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     return promises.chain(http.get(`${baseUrl}/wlt/login/redirect/metamask/${code}/${passcode}`)).then(function(response)
