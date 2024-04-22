@@ -11,7 +11,7 @@ namespace stores
     ' Clear all cached data.
     sub wipe()
         m.global.tokenStore@.wipe()
-        m.global.contentStore.nfts = []
+        m.global.contentStore.nfts = invalid
         m.global.redeemableOfferStore.offers = {}
     end sub
 
