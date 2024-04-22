@@ -67,8 +67,11 @@ sub checkStatus()
     end function
     ).then(sub (result)
         if result <> "pending"
-            ' Assume success. this is VERY optimistic
-            router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
+            ' Assume success. this is VERY optimistic.
+            ' We don't need to actually navigate to Dashboard, removing the app stack will
+            ' cause [MainRouter] to re-run started logic, realize we're logged in and navigate to Dashboard.
+            ' This is required to make sure none of the login flow screens are in the backstack after login.
+            router().removeStack = "app"
         end if
     end sub)
 end sub
