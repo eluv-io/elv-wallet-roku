@@ -56,6 +56,8 @@
             <TvButton
                 id="btn_metamask"
                 text="-Or- Sign On With MetaMask"
+                focusFootprintBitmapUri=""
+                textColor="#7B7B7B"
                 minWidth="726"
             />
         </LayoutGroup>
