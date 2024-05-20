@@ -6,7 +6,16 @@ sub init()
     m.top.functionName = "EventLoop"
     m.port = createObject("roMessagePort")
     m.pendingRequests = {}
+    saveUserAgent()
     m.top.observeField("request", m.port)
+end sub
+
+sub saveUserAgent()
+    deviceInfo = createObject("roDeviceInfo")
+    osVersion = deviceInfo.getOSVersion()
+    appInfo = createObject("roAppInfo")
+    ' Embed "tvos" to force BE to give us tenant-filtered results
+    m.userAgent = `Roku/${osVersion.major}.${osVersion.minor}.${osVersion.revision} (com.eluvio.wallet:${appInfo.getVersion()} tvos-like)`
 end sub
 
 sub EventLoop()
@@ -63,6 +72,7 @@ end sub
 
 sub getDefaultHeaders(request) as object
     headers = {
+        "User-Agent": m.userAgent,
         "Content-Type": "application/json",
     }
     url = request.getUrl()
