@@ -7,7 +7,7 @@ namespace GatewayApi
     end function
 
     function getNftsRequest() as object
-        url = `${baseUrl()}/apigw/nfts`
+        url = `${baseUrl()}/apigw/nfts?limit=100`
         print "Going to fetch nfts from " + url
         return http.get(url)
     end function
