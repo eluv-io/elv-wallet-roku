@@ -52,9 +52,9 @@ namespace NftOps
     end function
 
     ' Create ContentNodes under [rootNode] for every media item.
-    sub mediaItemsToNodes(mediaItems, rootNode, itemHeight)
+    sub mediaItemsToNodes(mediaItems, rootNode, itemHeight, usePosterImage = false)
         for each item in mediaItems
-            _nodeForItem(item, rootNode, itemHeight, "media")
+            _nodeForItem(item, rootNode, itemHeight, "media", usePosterImage)
         end for
     end sub
 
@@ -62,13 +62,13 @@ namespace NftOps
     sub offersToNodes(offers, rootNode, itemHeight)
         for each item in offers
             if not OfferOps.shouldHideOffer(item)
-                _nodeForItem(item, rootNode, itemHeight, "offer")
+                _nodeForItem(item, rootNode, itemHeight, "offer", false)
             end if
         end for
     end sub
 
     ' Works for both MediaItems and RedeemableOffers
-    sub _nodeForItem(item, rootNode, itemHeight, contentType)
+    sub _nodeForItem(item, rootNode, itemHeight, contentType, usePosterImage)
         ' First create the node with no relation to [rootNode],
         ' give it all the values it needs and only then attach it to [rootNode].
         ' Otherwise, if we're adding to a node that's already attached to a grid/list,
@@ -79,8 +79,15 @@ namespace NftOps
         node.addField("contentType", "string", false)
         node.contentType = contentType
 
-        ' RedeemableOffers won't have this, so they'll default to 1x1 ratio.
-        aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
+        if usePosterImage and item.poster_image <> invalid
+            aspectRatio = 2 / 3
+            node.FHDPosterUrl = NftOps.assetLinkToUrl(item.poster_image)
+        else
+            ' RedeemableOffers won't have this, so they'll default to 1x1 ratio.
+            aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
+            node.FHDPosterUrl = item.image
+        end if
+
         node.addField("FHDItemWidth", "float", false)
         node.FHDItemWidth = itemHeight * aspectRatio
 

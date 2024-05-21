@@ -11,9 +11,9 @@ sub onItemContentChanged()
     content = m.top.itemContent.aa
 
     m.title.text = content.name
-
-    if content.image <> invalid
-        m.image.uri = UrlUtil.appendQuery(content.image, "height", m.top.height)
+    imageUri = m.top.itemContent.FHDPosterUrl
+    if imageUri <> invalid
+        m.image.uri = UrlUtil.appendQuery(imageUri, "height", m.top.height)
     else
         m.image.uri = ""
     end if

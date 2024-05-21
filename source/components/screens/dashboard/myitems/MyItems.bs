@@ -1,6 +1,7 @@
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
+
 sub init()
     m.emptyWalletLabel = m.top.findNode("emptyWallet")
     m.grid = m.top.findNode("grid")

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="MyMedia" extends="BaseView" initialFocus="my_items_list">
+<component name="MyMedia" extends="BaseView" initialFocus="rowList">
     <children>
         <RowList
-            id="my_items_list"
+            id="rowList"
             itemComponentName="CardWrapper"
             rowTitleComponentName="TvLabel"
             showRowLabel="[false, true]"

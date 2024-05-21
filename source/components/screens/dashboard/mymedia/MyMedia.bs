@@ -4,7 +4,7 @@ import "pkg:/components/stores/stores.bs"
 
 sub init()
     m.emptyWalletLabel = m.top.findNode("emptyWallet")
-    m.itemsList = m.top.findNode("my_items_list")
+    m.itemsList = m.top.findNode("rowList")
     m.itemsList.observeFieldScoped("rowItemSelected", "onRowItemSelected")
 
     stores.contentStore().observeField("nfts", "onNftsChanged")
@@ -88,7 +88,7 @@ sub addFeaturedMediaRow(nfts, rootNode)
     if featuredMedia.count() > 1
         featuredMediaRow = rootNode.createChild("ContentNode")
 
-        NftOps.mediaItemsToNodes(featuredMedia, featuredMediaRow, 270)
+        NftOps.mediaItemsToNodes(featuredMedia, featuredMediaRow, 270, true)
     end if
 end sub
 
