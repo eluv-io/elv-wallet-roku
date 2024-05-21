@@ -6,11 +6,11 @@
             itemComponentName="CardWrapper"
             rowTitleComponentName="TvLabel"
             showRowLabel="[false, true]"
-            rowLabelOffset="[[96,12]]"
+            rowLabelOffset="[[96, 18]]"
             itemSize="[1920, 0]"
             drawFocusFeedback="true"
             focusXOffset="[96]"
-            itemSpacing="[0, 30]"
+            itemSpacing="[0, 48]"
             rowItemSpacing="[ [20, 0] ]"
             rowFocusAnimationStyle="fixedFocusWrap"
         />
