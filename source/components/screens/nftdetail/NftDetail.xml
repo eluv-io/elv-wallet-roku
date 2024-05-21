@@ -35,12 +35,13 @@
                 itemComponentName="CardWrapper"
                 rowFocusAnimationStyle="fixedFocusWrap"
                 showRowLabel="[true]"
-                rowLabelOffset="[[0,20]]"
-                rowItemSize="[ [0, 270] ]"
-                itemSize="[1920,300]"
-                itemSpacing="[ 0, 60 ]"
+                rowLabelOffset="[[0,21]]"
+                rowItemSize="[ [0, 300] ]"
+                itemSize="[1920, 300]"
+                itemSpacing="[0, 96]"
+                rowSpacings="[60]"
                 variableWidthItems="[true]"
-                rowItemSpacing="[ [40, 0] ]"
+                rowItemSpacing="[ [51, 0] ]"
             />
         </LayoutGroup>
     </children>
