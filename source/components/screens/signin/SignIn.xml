@@ -6,43 +6,43 @@
         <Poster
             uri="pkg:/images/elv_logo.png"
             inheritParentTransform="false"
-            width="100"
-            height="100"
-            translation="[96,54]"
+            width="60"
+            height="60"
+            translation="[81,51]"
         />
         <TvLabel
             text="Media Wallet"
-            fontStyle="label_40"
+            fontStyle="carousel_36"
             inheritParentTransform="false"
-            translation="[236,80]"
+            translation="[159,60]"
         />
         <LayoutGroup
-            translation="[960,156]"
+            translation="[960,78]"
             layoutDirection="vert"
             horizAlignment="center"
             vertAlignment="top"
         >
-            <TvLabel text="Scan QR Code" fontStyle="title_62" />
-            <Spacer height="21" />
+            <TvLabel text="Scan QR Code" fontStyle="title_51" />
+            <Spacer height="30" />
             <TvLabel
                 text="Scan the QR Code with your camera app or a QR code reader on your device to verify the code."
-                fontStyle="hint_31"
+                fontStyle="hint_30"
                 wrap="true"
                 horizAlign="center"
-                width="564"
+                width="606"
                 lineSpacing="-3"
             />
-            <Spacer height="15" />
-            <TvLabel id="qr_code" fontStyle="title_62" />
+            <Spacer height="30" />
+            <TvLabel id="qr_code" fontStyle="title_51" />
             <Spacer height="18" />
             <Group>
                 <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
-                <Poster id="qr_image" width="330" height="330" />
+                <Poster id="qr_image" width="399" height="399" />
             </Group>
             <Spacer height="66" />
             <LayoutGroup layoutDirection="horiz" itemSpacings="9">
                 <TvButton
-                    minWidth="528"
+                    minWidth="498"
                     id="btn_new_code"
                     text="Request New Code"
                 />
