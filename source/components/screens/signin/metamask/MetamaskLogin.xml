@@ -6,34 +6,35 @@
         <Poster
             uri="pkg:/images/elv_logo.png"
             inheritParentTransform="false"
-            width="100"
-            height="100"
-            translation="[96,54]"
+            width="60"
+            height="60"
+            translation="[81,51]"
         />
         <TvLabel
             text="Media Wallet"
-            fontStyle="label_40"
+            fontStyle="carousel_36"
             inheritParentTransform="false"
-            translation="[236,80]"
+            translation="[159,60]"
         />
         <LayoutGroup
-            translation="[960,156]"
+            translation="[960,108]"
             layoutDirection="vert"
             horizAlignment="center"
             vertAlignment="top"
         >
-            <TvLabel text="Sign On With MetaMask" fontStyle="title_62" />
+            <TvLabel text="Sign On With MetaMask" fontStyle="title_48" />
+            <Spacer height="12" />
             <Poster
                 height="150"
                 loadDisplayMode="scaleToFit"
                 uri="pkg:/images/metamask_logo.png"
             />
-            <Spacer height="3" />
-            <TvLabel id="qr_code" fontStyle="title_62" />
+            <Spacer height="24" />
+            <TvLabel id="qr_code" fontStyle="title_48" />
             <Spacer height="18" />
             <Group>
                 <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
-                <Poster id="qr_image" width="408" height="408" />
+                <Poster id="qr_image" width="405" height="405" />
             </Group>
             <Spacer height="66" />
             <TvButton id="btn_new_code" text="Request New Code" />
