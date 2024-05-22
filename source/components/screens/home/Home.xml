@@ -8,10 +8,12 @@
                 horizAlignment="center"
                 vertAlignment="center"
             >
-                <Poster uri="pkg:/images/elv_logo.png" />
-                <TvLabel text="Welcome to" fontStyle="body_63" color="#ffffff66" />
-                <TvLabel text="Media Wallet" fontStyle="body_111" color="#ffffffff" />
-                <Spacer height="45" />
+                <Poster uri="pkg:/images/elv_logo.png" width="201" height="201" />
+                <Spacer height="15" />
+                <TvLabel text="Welcome to" fontStyle="hint_57" color="#ffffff" />
+                <Spacer height="9" />
+                <TvLabel text="Media Wallet" fontStyle="body_87" color="#ffffff" />
+                <Spacer height="60" />
                 <ButtonGroup id="btngroup">
                     <TvButton
                         id="btn_signin"

@@ -41,15 +41,15 @@ namespace FontStyles
             font.size = 24
             font.uri = "pkg:/fonts/inter_Medium.ttf"
             ' From here on, these are "custom" styles we made for Roku and they don't correlate to anything on Figma
-        else if fontStyle = "body_111"
-            font.size = 111
+        else if fontStyle = "body_87"
+            font.size = 87
             font.uri = "pkg:/fonts/inter_regular.ttf"
-        else if fontStyle = "body_63"
-            font.size = 63
-            font.uri = "pkg:/fonts/inter_regular.ttf"
+        else if fontStyle = "hint_57"
+            font.size = 57
         else if fontStyle = "hint_31"
             font.size = 31
             font.uri = "pkg:/fonts/inter_thin.ttf"
+            font.uri = "pkg:/fonts/inter_extralight.ttf"
         else
             print `Unkown fontStyle [${fontStyle}], defaulting to label_40`
             font.size = 40
