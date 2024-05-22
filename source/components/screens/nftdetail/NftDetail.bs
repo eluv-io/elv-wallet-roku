@@ -5,6 +5,8 @@ import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/RichText.bs"
 
 const ITEM_HEIGHT = 270
+' The space between rows if the rows don't have any titles.
+const DEFAULT_ROW_SPACING = 60
 
 sub init()
     m.title = m.top.findNode("title")
@@ -67,38 +69,55 @@ end function
 
 sub updateRowList(nft)
     root = createObject("roSGNode", "ContentNode")
-    createFeaturedMediaRow(nft, root)
-    createSectionRows(nft, root)
+    ' rowSpacings defines the vertical padding between row items, but doesn't consider the title height.
+    ' We need to keep track of the title height per row ourselves and add it to the rowSpacing value.
+    rowSpacings = []
+    createFeaturedMediaRow(nft, root, rowSpacings)
+    createSectionRows(nft, root, rowSpacings)
     m.rowList.content = root
     m.rowList.numrows = root.getChildCount()
+    m.rowList.rowSpacings = rowSpacings
 end sub
 
-sub createFeaturedMediaRow(nft, root)
+sub createFeaturedMediaRow(nft, root, rowSpacings)
     if nft._featured_media.count() = 0
+        rowSpacings.push(0)
         return
     end if
 
     row = root.createChild("ContentNode")
     NftOps.mediaItemsToNodes(nft._featured_media, row, ITEM_HEIGHT)
+    rowSpacings.push(DEFAULT_ROW_SPACING)
 end sub
 
-sub createSectionRows(nft, root)
+sub createSectionRows(nft, root, rowSpacings)
     if nft._sections.count() = 0
         return
     end if
 
     for each section in nft._sections
-        createSectionRow(section, root)
+        createSectionRow(section, root, rowSpacings)
     end for
 end sub
 
-sub createSectionRow(section, root)
+sub createSectionRow(section, root, rowSpacings)
     row = root.createChild("ContentNode")
     row.title = section.name
     for each collection in section.collections
         ' The first collection adds its items to the Section row itself. Subsequent collections add a new row to the root.
         collectionRow = row.getChildCount() = 0 ? row : root.createChild("ContentNode")
         populateCollectionRow(collection, collectionRow)
+        ' Assume title is 0-2 lines
+        if collectionRow.title = ""
+            titleLines = 0
+        else if collectionRow.title.inStr(`${chr(10)}`) = -1
+            titleLines = 1
+        else
+            titleLines = 2
+        end if
+        ' This is an arbitrary value. Looks ok with the current title font.
+        lineHeight = 36
+        rowSpacings.push(DEFAULT_ROW_SPACING + (titleLines * lineHeight))
     end for
 end sub
 

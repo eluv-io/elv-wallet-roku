@@ -38,8 +38,6 @@
                 rowLabelOffset="[[0,21]]"
                 rowItemSize="[ [0, 300] ]"
                 itemSize="[1920, 300]"
-                itemSpacing="[0, 96]"
-                rowSpacings="[60]"
                 variableWidthItems="[true]"
                 rowItemSpacing="[ [51, 0] ]"
             />
