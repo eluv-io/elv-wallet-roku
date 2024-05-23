@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="TabRow" extends="BaseView" initialFocus="grid">
     <interface>
-        <field id="focusedTabName" type="string" onChange="onFocusedTabNameChanged"/>
+        <field id="focusedTabName" type="string" onChange="onFocusedTabNameChanged" />
     </interface>
     <children>
         <Poster
-            id="logo"
-            uri="pkg:/images/elv_logo.png"
+            uri="pkg:/images/elv_logo_bw.png"
             inheritParentTransform="false"
-            width="100"
-            height="100"
-            translation="[96,54]"
+            width="60"
+            height="60"
+            translation="[81,51]"
         />
         <TvLabel
             text="Media Wallet"
-            fontStyle="label_40"
+            fontStyle="carousel_36"
             inheritParentTransform="false"
-            translation="[236,80]"
+            translation="[159,60]"
         />
         <Poster
             id="tabs_bg"
