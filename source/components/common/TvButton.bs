@@ -43,7 +43,7 @@ sub updateVerticalPadding()
         child = m.top.getChild(i)
         if child.subtype() = "Label"
             labelRect = child.boundingRect()
-            m.top.height = labelRect.height + 15
+            m.top.height = labelRect.height + 27
             exit for
         end if
     end for
