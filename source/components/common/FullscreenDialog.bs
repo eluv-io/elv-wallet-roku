@@ -28,7 +28,7 @@ sub onShowView()
 
     ' Finally, attach dialog to parent
     dialogParent.appendChild(dialog)
-    dialog.setFocus(true)
+    view.setFocus(true)
 
     if not view.doesExist("close")
         view.addField("close", "boolean", true)
