@@ -5,8 +5,7 @@ import "pkg:/components/utils/Time.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 
 sub Init()
-    m.top.backgroundColor = "#000000"
-    m.top.backgroundUri = ""
+    m.top.backgroundUri = "pkg:/images/main_bg.jpg"
 
     http.init()
     stores.init()

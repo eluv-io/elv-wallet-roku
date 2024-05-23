@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Home" extends="BaseView" initialFocus="btn_signin">
     <children>
-        <Rectangle color="#000000" width="1920" height="1080">
-            <LayoutGroup
-                translation="[960,540]"
-                layoutDirection="vert"
-                horizAlignment="center"
-                vertAlignment="center"
-            >
-                <Poster uri="pkg:/images/elv_logo.png" width="201" height="201" />
-                <Spacer height="12" />
-                <TvLabel text="Welcome to" fontStyle="hint_57" color="#ffffff" />
-                <Spacer height="6" />
-                <TvLabel text="Media Wallet" fontStyle="body_87" color="#ffffff" />
-                <Spacer height="60" />
-                <ButtonGroup id="btngroup">
-                    <TvButton
-                        id="btn_signin"
-                        text="Sign In"
-                        showFocusFootprint="true"
-                    />
-                </ButtonGroup>
-            </LayoutGroup>
-        </Rectangle>
+        <LayoutGroup
+            translation="[960,540]"
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center"
+        >
+            <Poster uri="pkg:/images/elv_logo.png" width="201" height="201" />
+            <Spacer height="12" />
+            <TvLabel text="Welcome to" fontStyle="hint_57" color="#ffffff" />
+            <Spacer height="6" />
+            <TvLabel text="Media Wallet" fontStyle="body_87" color="#ffffff" />
+            <Spacer height="60" />
+            <ButtonGroup id="btngroup">
+                <TvButton
+                    id="btn_signin"
+                    text="Sign In"
+                    showFocusFootprint="true"
+                />
+            </ButtonGroup>
+        </LayoutGroup>
     </children>
 </component>
