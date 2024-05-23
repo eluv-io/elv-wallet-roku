@@ -5,16 +5,17 @@ import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/utils/PixelUtil.bs"
 
 sub init()
-    m.top.translation = "[960,540]"
-    m.top.layoutDirection = "vert"
-    m.top.horizAlignment = "center"
-    m.top.vertAlignment = "center"
+    m.top.width = 1920
+    m.top.height = 1080
+    m.top.color = "#000000"
 
     m.code = m.top.findNode("code")
     m.qr = m.top.findNode("qr")
 
     m.spinner = m.top.findNode("spinner")
     m.spinner.poster.observeField("loadStatus", "centerSpinner")
+
+    m.top.findNode("back_button").observeFieldScoped("buttonSelected", "onBackClicked")
 end sub
 
 sub onTransactionHashSet()
@@ -45,4 +46,8 @@ sub centerSpinner()
         centery = (m.qr.height - m.spinner.poster.bitmapHeight) / 2
         m.spinner.translation = [centerx, centery]
     end if
+end sub
+
+sub onBackClicked()
+    m.top.close = true
 end sub

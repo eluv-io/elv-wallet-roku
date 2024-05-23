@@ -16,6 +16,9 @@ namespace FontStyles
         else if fontStyle = "title_48"
             font.size = 48
             font.uri = "pkg:/fonts/inter_SemiBold.ttf"
+        else if fontStyle = "title_45"
+            font.size = 45
+            font.uri = "pkg:/fonts/inter_SemiBold.ttf"
         else if fontStyle = "body_32"
             font.size = 33
             font.uri = "pkg:/fonts/inter_regular.ttf"
@@ -45,7 +48,7 @@ namespace FontStyles
             font.uri = "pkg:/fonts/inter_Medium.ttf"
         else if fontStyle = "label_37"
             font.size = 37
-            font.uri = "pkg:/fonts/inter_Bold.ttf"
+            font.uri = "pkg:/fonts/inter_Medium.ttf"
         else if fontStyle = "label_24"
             font.size = 24
             font.uri = "pkg:/fonts/inter_Medium.ttf"

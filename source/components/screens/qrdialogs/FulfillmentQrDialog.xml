@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="FulfillmentQrDialog" extends="LayoutGroup">
+<component name="FulfillmentQrDialog" extends="Rectangle" initialFocus="back_button">
     <interface>
-        <field id="transactionHash" type="string" onChange="onTransactionHashSet"/>
+        <field id="transactionHash" type="string" onChange="onTransactionHashSet" />
     </interface>
     <children>
-        <TvLabel
-            text="Success"
-            fontStyle="title_62"
-            maxLines="2"
-            width="960"
-            wrap="true"
-            horizAlign="center"
-        />
-        <Spacer height="48" />
-        <TvLabel
-            width="960"
-            wrap="true"
-            text="Scan the QR Code with your camera app or a QR code reader on your device to claim your reward."
-            fontStyle="label_40"
-        />
-        <Spacer height="48" />
-        <TvLabel id="code" fontStyle="carousel_48" />
-        <Spacer height="24" />
-        <Group>
-            <!-- We never bother to hide the spinner, it'll just be behind the Poster -->
-            <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
-            <Poster id="qr" width="504" height="504" />
-        </Group>
+        <LayoutGroup
+            translation="[960,540]"
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center">
+            <TvLabel
+                text="Success"
+                fontStyle="title_69"
+            />
+            <Spacer height="54" />
+            <TvLabel
+                width="960"
+                wrap="true"
+                text="Scan the QR Code with your camera app or a QR code reader on your device to claim your reward."
+                fontStyle="label_37"
+                lineSpacing="6"
+                horizAlign="center"
+            />
+            <Spacer height="42" />
+            <TvLabel id="code" fontStyle="title_45" />
+            <Spacer height="21" />
+            <Group>
+                <!-- We never bother to hide the spinner, it'll just be behind the Poster -->
+                <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
+                <Poster id="qr" width="399" height="399" />
+            </Group>
+            <Spacer height="54" />
+            <TvButton id="back_button" text="Back" minWidth="0" />
+        </LayoutGroup>
     </children>
 </component>
