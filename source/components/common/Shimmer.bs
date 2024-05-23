@@ -1,6 +1,7 @@
 import "pkg:/components/utils/Time.bs"
 ' Simulates a shimmering effect.
-' Tries to fill the parent size, but only at creation. Does not observe changes to size.
+' Tries to fill the parent size upon creation.
+' If parent has "width" / "height" fields, they will be observed for changed.
 sub init()
     m.top.visible = false
 
@@ -22,9 +23,16 @@ sub onControlChanged()
 end sub
 
 sub matchParentBoundingRect()
-    rect = m.top.getParent()?.boundingRect()
+    parent = m.top.getParent()
+    rect = parent?.boundingRect()
     if rect <> invalid
         m.top.width = rect.width
         m.top.height = rect.height
     end if
+    _ = parent?.observeFieldScoped("width", "onParentSizeChanged")
+    _ = parent?.observeFieldScoped("height", "onParentSizeChanged")
+end sub
+
+sub onParentSizeChanged(event)
+    m.top[event.getField()] = event.getData()
 end sub

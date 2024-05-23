@@ -8,29 +8,23 @@
         <!-- A dummy button to put focus on as a means to "disable" the actual button -->
         <Button id="dummy" visible="false" />
         <LayoutGroup
+            id="horizLayout"
             layoutDirection="horiz"
-            horizAlignment="center"
             vertAlignment="center"
-            translation="[960,540]"
+            translation="[255,540]"
         >
-            <Poster id="image" width="540" height="540" loadDisplayMode="scaleToFit">
+            <Poster id="image" width="600" height="600" loadDisplayMode="scaleToFit">
                 <Shimmer id="image_shimmer" control="start" />
             </Poster>
-            <Spacer width="80" />
+            <Spacer width="102" id="imageSpacer"/>
             <LayoutGroup layoutDirection="vert">
-                <!-- 
-                    Give the title label a width that will cause the parent to take up 80% of the screen.
-                    The total width we want to fill is 1920*0.8=1536:
-                        label_width = 1536 - poster_width(540) - spacer(80) = 916
-                -->
                 <TvLabel
                     id="name"
-                    width="916"
-                    fontStyle="title_62"
+                    fontStyle="title_69"
                     wrap="true"
                     lineSpacing="0"
                 />
-                <Spacer height="24" />
+                <Spacer height="30" />
                 <LayoutGroup
                     layoutDirection="horiz"
                 >
@@ -39,11 +33,11 @@
                     <Spacer width="12" />
                     <TvLabel id="dateRange" fontStyle="label_24" />
                 </LayoutGroup>
-                <Spacer height="24" />
-                <TvLabel id="description" fontStyle="body_32" width="916" wrap="true" />
-                <Spacer height="24" />
+                <Spacer height="33" />
+                <TvLabel id="description" fontStyle="carousel_36" wrap="true" lineSpacing="6" />
+                <Spacer height="36" />
                 <LayoutGroup layoutDirection="horiz">
-                    <TvButton id="redeem_btn" visible="false" />
+                    <TvButton id="redeem_btn" visible="false" minWidth="0" />
                     <Spacer width="18" />
                     <BusySpinner
                         id="spinner"

@@ -4,7 +4,10 @@ namespace FontStyles
             fontStyle = "label_40"
         end if
         font = CreateObject("roSGNode", "Font")
-        if fontStyle = "title_62"
+        if fontStyle = "title_69"
+            font.size = 69
+            font.uri = "pkg:/fonts/inter_SemiBold.ttf"
+        else if fontStyle = "title_62"
             font.size = 62
             font.uri = "pkg:/fonts/inter_SemiBold.ttf"
         else if fontStyle = "title_51"

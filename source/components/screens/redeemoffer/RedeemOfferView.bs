@@ -14,6 +14,8 @@ sub init()
     m.redeemButton = m.top.findNode("redeem_btn")
     m.redeemButton.observeFieldScoped("buttonSelected", "onRedeemClicked")
     m.dummyButton = m.top.findNode("dummy")
+    m.horizLayout = m.top.findNode("horizLayout")
+    m.imageSpacer = m.top.findNode("imageSpacer")
 
     m.imageShimmer = m.top.findNode("image_shimmer")
     m.image.observeFieldScoped("loadStatus", "onImageLoadStatusChanged")
@@ -135,6 +137,12 @@ end sub
 
 sub onImageLoadStatusChanged()
     if m.image.loadStatus = "ready"
+        m.image.width = m.image.bitmapWidth
+        m.imageShimmer.width = m.image.width
+        padding = m.horizLayout.translation[0]
+        rightSideWidth = 1920 - padding * 2 - m.image.width - m.imageSpacer.width
+        m.name.width = rightSideWidth
+        m.description.width = rightSideWidth
         m.imageShimmer.control = "stop"
     end if
 end sub
