@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Discover" extends="BaseView">
+    <children>
+        <!-- Roku is dumb so if we don't give it the correct aspect ratio, we're gonna have a
+            bad time -->
+        <!-- raw size of the current bitmap is 1569x376 -->
+        <Poster
+            uri="pkg:/images/discover_logo.png"
+            height="188"
+            width="784"
+            loadSync="true"
+            translation="[100, 146]"
+            loadDisplayMode="scaleToFit"
+        />
+    </children>
+</component>

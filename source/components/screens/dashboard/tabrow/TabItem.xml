@@ -3,9 +3,10 @@
 
     <interface>
         <field id="itemContent" type="node" onChange="onItemContentChanged" />
-        <field id="itemHasFocus" type="boolean" onChange="onItemFocusChanged" />
         <field id="focusPercent" type="float" onChange="onFocusChanged" />
         <field id="gridHasFocus" type="boolean" onChange="onFocusChanged" />
+        <!-- Manually set the label, mainly to help with measuring the size a node would reach with a given label -->
+        <field id="label" type="string" onChange="onLabelChanged" />
     </interface>
 
     <children>

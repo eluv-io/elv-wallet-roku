@@ -6,8 +6,8 @@ sub onItemContentChanged()
     m.label.text = m.top.itemContent.title
 end sub
 
-sub onItemFocusChanged()
-
+sub onLabelChanged()
+    m.label.text = m.top.label
 end sub
 
 ' Called for both focusPercent and gridHasFocus changes

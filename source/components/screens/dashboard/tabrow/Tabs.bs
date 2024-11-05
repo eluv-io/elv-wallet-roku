@@ -1,5 +1,5 @@
 enum Tabs
+    Discover = "Home"
     MyItems = "My Items"
-    MyMedia = "My Media"
     Profile = "Profile"
 end enum

@@ -11,16 +11,13 @@ sub init()
 end sub
 
 sub onTabFocused()
-    ' Re-fetch data on tab changes
-    stores.contentStore()@.fetchWalletData()
-
     ' Maybe cache nodes for re-use? I'm not sure what the memory implcations will be..
     currentTab = m.tabrow.focusedTabName
     m.tabContainer.removeChildIndex(0)
-    if currentTab = Tabs.MyItems
+    if currentTab = Tabs.Discover
+        m.tabContainer.createChild("Discover")
+    else if currentTab = Tabs.MyItems
         m.tabContainer.createChild("MyItems")
-    else if currentTab = Tabs.MyMedia
-        m.tabContainer.createChild("MyMedia")
     else if currentTab = Tabs.Profile
         m.tabContainer.createChild("Profile")
     end if

@@ -4,43 +4,38 @@
         <field id="focusedTabName" type="string" onChange="onFocusedTabNameChanged" />
     </interface>
     <children>
-        <Poster
-            uri="pkg:/images/elv_logo_bw.png"
-            inheritParentTransform="false"
-            width="60"
-            height="60"
-            translation="[81,51]"
-        />
-        <TvLabel
-            text="Media Wallet"
-            fontStyle="carousel_36"
-            inheritParentTransform="false"
-            translation="[159,60]"
-        />
-        <Poster
-            id="tabs_bg"
-            uri="pkg:/images/tabs_bg.9.png"
-            width="634"
-            height="80"
-            loadDisplayMode="scaleToFit"
-            inheritParentTransform="false"
-            translation="[644,64]"
-            loadSync="true">
-        </Poster>
-        <MarkupGrid
-            id="grid"
-            translation="[ 52, 42 ]"
-            itemComponentName="TabItem"
-            numColumns="3"
-            numRows="1"
-            itemSize="[0,46]"
-            columnWidths="[178,188,140]"
-            itemSpacing="[ 40, 0 ]"
-            focusBitmapUri="pkg:/images/tab_pill_indicator.9.png"
-            focusFootprintBitmapUri="pkg:/images/tab_pill_indicator.9.png"
-            focusBitmapBlendColor="#BFBFBFFF"
-            focusFootprintBlendColor="#888888FF"
-            drawFocusFeedbackOnTop="false"
-            drawFocusFeedback="true" />
+        <LayoutGroup
+            id="root"
+            translation="[960,0]"
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="top"
+        >
+            <Spacer height="40" />
+            <Group>
+                <Poster
+                    id="tabs_bg"
+                    uri="pkg:/images/tabs_bg.9.png"
+                    height="80"
+                    loadDisplayMode="scaleToFit"
+                    inheritParentTransform="false"
+                    loadSync="true" />
+
+                <MarkupGrid
+                    id="grid"
+                    translation="[ 0, 42 ]"
+                    itemComponentName="TabItem"
+                    numColumns="3"
+                    numRows="1"
+                    itemSize="[0,46]"
+                    focusBitmapUri="pkg:/images/tab_pill_indicator.9.png"
+                    focusFootprintBitmapUri="pkg:/images/tab_pill_indicator.9.png"
+                    focusBitmapBlendColor="#BFBFBFFF"
+                    focusFootprintBlendColor="#888888FF"
+                    drawFocusFeedbackOnTop="false"
+                    drawFocusFeedback="true" />
+            </Group>
+            <Spacer height="40" />
+        </LayoutGroup>
     </children>
 </component>
