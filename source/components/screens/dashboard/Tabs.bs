@@ -1,0 +1,5 @@
+namespace Tabs
+    const Discover = { title: "Home", icon: "pkg:/images/tab_icons/discover.png", screenName: "Discover" }
+    const MyItems = { title: "My Items", icon: "pkg:/images/tab_icons/myitems.png", screenName: "MyItems" }
+    const Profile = { title: "Profile", icon: "pkg:/images/tab_icons/profile.png", screenName: "Profile" }
+end namespace

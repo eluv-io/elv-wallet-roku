@@ -1,0 +1,18 @@
+import "pkg:/components/http/apis/PropertyApi.bs"
+import "pkg:/components/utils/promise.bs"
+
+sub init()
+    m.top.properties = []
+end sub
+
+function fetchDiscoverableProperties(_ = invalid) as void
+    print "[PropertyStore] Starting Discover Property fetch"
+    promises.onThen(
+    PropertyApi.discoverableProperties(),
+    sub (result)
+        properties = result.json.contents
+        ' TODO: resolve permissions
+        m.top.properties = properties ?? []
+        print "Properties fetched and saved"
+    end sub)
+end function

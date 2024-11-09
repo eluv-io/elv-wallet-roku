@@ -1,5 +1,0 @@
-enum Tabs
-    Discover = "Home"
-    MyItems = "My Items"
-    Profile = "Profile"
-end enum

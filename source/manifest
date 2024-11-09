@@ -28,6 +28,8 @@ splash_min_time=0
 
 # Lock UI resolution to FHD (1080p)
 ui_resolutions=FHD
+# find $$RES$$ in URIs and replace them with current ui resolution to find the right asset
+uri_resolution_autosub=$$RES$$,SD,HD,FHD
 
 # Required for roku certification process
 supports_input_launch=1

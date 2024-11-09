@@ -1,3 +1,46 @@
+import "pkg:/components/stores/stores.bs"
 
 sub init()
+    stores.propertyStore()@.fetchDiscoverableProperties()
+
+    m.root = m.top.findNode("root")
+    m.logo = m.top.findNode("logo")
+    m.logoAnim = m.top.findNode("logoAnimation")
+    m.logoInterp = m.top.findNode("logoInterpolator")
+
+    grid = m.top.findNode("grid")
+    m.grid = grid
+
+    ' init with dummy cards that shimmer while we load real data
+    content = CreateObject("roSGNode", "ContentNode")
+
+    for i = 0 to 11
+        content.createChild("ContentNode").title = `foo ${i}`
+    end for
+    grid.content = content
+
+    grid.ObserveFieldScoped("currFocusRow", "onFocusRowChanged")
+
+    stores.propertyStore().ObserveFieldScoped("properties", "onPropertiesChanged")
+end sub
+
+sub onFocusRowChanged()
+    ' Offset the entire Discover screen to move the logo up when scrolling the Property list
+    rowHeight = m.grid.itemSize[1]
+    offset = rowHeight * m.grid.currFocusRow
+    maxOffset = m.logo.height + m.logo.translation[1]
+    if offset > (maxOffset)
+        offset = maxOffset
+    end if
+    m.top.translation = [m.top.translation[0], -offset]
+end sub
+
+sub onPropertiesChanged()
+    properties = stores.propertyStore().properties
+    ' print `stav: got some props ${properties.count()}`
+    if properties <> invalid and properties.count() > 0
+        ' p = properties[0]
+        ' card = CreateObject("roSGNode", "PropertyCard")
+        ' m.top.appendChild(card)
+    end if
 end sub

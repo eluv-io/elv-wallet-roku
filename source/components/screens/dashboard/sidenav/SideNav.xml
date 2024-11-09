@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="SideNav" extends="Group">
+    <interface>
+        <field id="drawerOpen" type="boolean" value="false" onChange="onDrawerStateChanged" />
+        <field id="collapsedSize" type="integer" onChange="onCollapsedSizeChanged" />
+        <field id="selectedTab" type="string" alwaysNotify="true" />
+    </interface>
+    <children>
+        <Rectangle id="scrim" height="1080" color="#000000DD" />
+        <FocusableLayoutGroup id="buttonContainer" layoutDirection="vert" />
+    </children>
+</component>

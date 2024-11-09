@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PropertyStore" extends="Node">
+    <interface>
+        <field id="properties" type="array" />
+        <function name="fetchDiscoverableProperties" />
+    </interface>
+</component>

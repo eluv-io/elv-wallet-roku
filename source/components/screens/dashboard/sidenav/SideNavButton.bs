@@ -1,0 +1,82 @@
+sub init()
+    m.icon = m.top.findNode("icon")
+    m.label = m.top.findNode("label")
+    m.content = m.top.findNode("content")
+    m.bg = m.top.findNode("bg")
+    m.contentStartPadding = m.top.findNode("contentStartPadding")
+
+    m.top.observeFieldScoped("focusedChild", "onFocusChange")
+    onFocusChange()
+    adjustLayout()
+end sub
+
+sub onCheckedChange()
+    updateColors()
+end sub
+
+sub onFocusChange()
+    updateColors()
+end sub
+
+sub updateColors()
+    if m.top.isInFocusChain()
+        fgTint = "#2a2a2a"
+        bgTint = "#d4d4d4"
+    else
+        if m.top.checked
+            fgTint = "#d4d4d4"
+            bgTint = "#2a2a2a66" ' 40% alpha
+        else
+            fgTint = "#2a2a2a"
+            bgTint = "#00000000" ' Transparent
+        endif
+    end if
+    m.bg.blendColor = bgTint
+    m.icon.blendColor = fgTint
+    m.label.color = fgTint
+end sub
+
+sub adjustLayout()
+    ' Add some padding on top and bottom to fully contain the content
+    vertPadding = 24
+
+    width = m.top.width
+
+    ' Just assume that <300 means drawer is closed and >300 means open
+    if width < 300 ' collapsed drawer
+        m.label.visible = false
+        contentRect = m.content.boundingRect()
+        m.bg.translation = [0, contentRect.y - vertPadding]
+        m.bg.width = m.top.width - 42
+        m.contentStartPadding.width = (m.bg.width - m.icon.boundingRect().width) / 2
+        m.bg.height = contentRect.height + (vertPadding * 2)
+    else ' expanded drawer
+        m.label.visible = true
+        m.contentStartPadding.width = 51
+        contentRect = m.content.boundingRect()
+        m.bg.translation = [0, contentRect.y - vertPadding]
+        m.bg.width = m.top.width - 42
+        m.bg.height = contentRect.height + (vertPadding * 2)
+    end if
+
+    updateColors()
+end sub
+
+sub onModeChanged()
+    ' mode = m.top.mode
+    ' if mode = "collapsed"
+    '     m.bg.visible = false
+    ' else
+    ' end if
+end sub
+
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press
+        if key = "OK"
+            m.top.buttonSelected = 1
+            return true
+        end if
+    end if
+    return false
+end function

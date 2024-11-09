@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="Dashboard" extends="BaseView" initialFocus="tab_row">
+<component name="Dashboard" extends="BaseView" initialFocus="tab_container">
     <children>
-        <LayoutGroup
-            translation="[960,0]"
-            layoutDirection="vert"
-            horizAlignment="center"
-            vertAlignment="top"
-        >
-            <TabRow id="tab_row" />
-            <Rectangle id="tab_container" width="1920" />
-        </LayoutGroup>
+        <Rectangle id="tab_container" width="1920" translation="[180,0]" />
+        <SideNav id="sideNav" collapsedSize="156" />
     </children>
 </component>

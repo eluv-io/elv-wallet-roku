@@ -1,39 +1,36 @@
-import "pkg:/components/screens/dashboard/tabrow/Tabs.bs"
+import "pkg:/components/screens/dashboard/Tabs.bs"
+import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
+    m.root = m.top.findNode("root")
     m.tabContainer = m.top.findNode("tab_container")
-    tabRow = m.top.findNode("tab_row")
-    m.tabrow = tabrow
+    sideNav = m.top.findNode("sideNav")
+    m.sideNav = sideNav
 
-    tabRow.ObserveField("focusedTabName", "onTabFocused")
-    onTabFocused()
+    sideNav.ObserveField("selectedTab", "onTabSelected")
+    onTabSelected()
 end sub
 
-sub onTabFocused()
+sub onTabSelected()
     ' Maybe cache nodes for re-use? I'm not sure what the memory implcations will be..
-    currentTab = m.tabrow.focusedTabName
-    m.tabContainer.removeChildIndex(0)
-    if currentTab = Tabs.Discover
-        m.tabContainer.createChild("Discover")
-    else if currentTab = Tabs.MyItems
-        m.tabContainer.createChild("MyItems")
-    else if currentTab = Tabs.Profile
-        m.tabContainer.createChild("Profile")
+    currentTab = m.sideNav.selectedTab
+    if m.lastSelectedTab <> currentTab
+        m.lastSelectedTab = currentTab
+        m.tabContainer.removeChildIndex(0)
+        m.tabContainer.createChild(currentTab)
     end if
+    m.tabContainer.getChild(0).setFocus(true)
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     handled = false
     if press
-        if key = "down" and m.tabRow.IsInFocusChain()
+        if key = "right" and m.sideNav.IsInFocusChain()
             m.tabContainer.getChild(0).setFocus(true)
             handled = true
-        else if (key = "up" or key = "back") and m.tabContainer.IsInFocusChain()
-            m.tabRow.setFocus(true)
-            handled = true
-        else if key = "back" and m.tabRow.IsInFocusChain() and m.tabRow.focusedTabName <> Tabs.MyItems
-            m.tabRow.focusedTabName = Tabs.MyItems
+        else if (key = "left" or key = "back") and m.tabContainer.IsInFocusChain()
+            m.sideNav.setFocus(true)
             handled = true
         end if
     end if

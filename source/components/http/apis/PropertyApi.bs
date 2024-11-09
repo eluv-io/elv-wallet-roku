@@ -1,0 +1,18 @@
+import "pkg:/components/http/http.bs"
+import "pkg:/components/stores/stores.bs"
+
+namespace PropertyApi
+    function baseUrl() as string
+        return stores.fabricConfigStore()@.getAuthdBaseUrl()
+    end function
+
+    function discoverableProperties() as object
+        url = `${baseUrl()}/mw/properties?include_public=true`
+        return http.get(url)
+    end function
+
+    function ownedProperties() as object
+        url = `${baseUrl()}/mw/properties?include_public=false`
+        return http.get(url)
+    end function
+end namespace

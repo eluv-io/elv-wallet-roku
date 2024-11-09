@@ -5,6 +5,7 @@ namespace stores
             fabricConfigStore: CreateObject("roSGNode", "FabricConfigStore")
             contentStore: CreateObject("roSGNode", "ContentStore")
             redeemableOfferStore: CreateObject("roSGNode", "RedeemableOfferStore")
+            propertyStore: CreateObject("roSGNode", "PropertyStore")
         })
     end sub
 
@@ -13,6 +14,7 @@ namespace stores
         m.global.tokenStore@.wipe()
         m.global.contentStore.nfts = invalid
         m.global.redeemableOfferStore.offers = {}
+        m.global.propertyStore.properties = invalid
     end sub
 
     function tokenStore() as roSGNode
@@ -29,5 +31,9 @@ namespace stores
 
     function redeemableOffers() as roSGNode
         return m.global.redeemableOfferStore
+    end function
+
+    function propertyStore() as roSGNode
+        return m.global.propertyStore
     end function
 end namespace

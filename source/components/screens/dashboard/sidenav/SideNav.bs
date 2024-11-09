@@ -1,0 +1,89 @@
+import "pkg:/components/screens/dashboard/Tabs.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    m.scrim = m.top.findNode("scrim")
+    m.buttonContainer = m.top.findNode("buttonContainer")
+
+    ' m.buttonContainer.observeFieldScoped("buttonSelected", "onTabClicked")
+    m.top.observeFieldScoped("focusedChild", "onFocusChange")
+
+    stores.tokenStore().observeFieldScoped("fabricToken", "onFabricTokenChanged")
+    onFabricTokenChanged()
+end sub
+
+const NoAuthTabs = [Tabs.Discover]
+const AuthTabs = [Tabs.Discover, Tabs.MyItems, Tabs.Profile]
+
+sub onFabricTokenChanged()
+    ' Decide on visible items
+    loggedIn = stores.tokenStore().fabricToken <> ""
+    ' Only update tabs if login state actually changed
+    if loggedIn <> m.lastLoginState
+        m.lastLoginState = loggedIn
+
+        while m.buttonContainer.removeChildIndex(0): end while
+
+        if loggedIn
+            
+        else
+            ' TEMP!! This is the reverse logic. No tabs should be avail in this state
+            availableTabs = AuthTabs
+            for i = 0 to availableTabs.count() - 1
+                item = availableTabs[i]
+                btn = m.buttonContainer.CreateChild("SideNavButton")
+                btn.update({
+                    text: item.title
+                    iconUri: item.icon
+                    focusedIconUri: item.icon
+                    tabScreenName: item.screenName
+                }, true)
+                btn.observeFieldScoped("buttonSelected", "onTabClicked")
+                if i = 0
+                    m.top.selectedTab = item.screenName
+                    btn.checked = true
+                end if
+            end for
+            m.buttonContainer.translation = [21, (1080 - m.buttonContainer.boundingRect().width) / 2]
+        end if
+    end if
+end sub
+
+sub onFocusChange()
+    m.top.drawerOpen = m.top.isInFocusChain()
+end sub
+
+sub onCollapsedSizeChanged()
+    if not m.top.drawerOpen
+        updateScrimWidth(m.top.collapsedSize)
+    end if
+end sub
+
+sub onTabClicked(event)
+    clickedButton = event.getRoSGNode()
+    if clickedButton = invalid return
+    m.top.selectedTab = clickedButton.tabScreenName
+    for i = 0 to m.buttonContainer.getChildCount() - 1
+        m.buttonContainer.getChild(i).checked = false
+    end for
+    clickedButton.checked = true
+end sub
+
+sub onDrawerStateChanged()
+    ' TODO: add animations
+    if m.top.drawerOpen
+        width = 558
+        m.buttonContainer.setFocus(true)
+    else
+        width = m.top.collapsedSize
+    end if
+
+    updateScrimWidth(width)
+end sub
+
+sub updateScrimWidth(width)
+    m.scrim.width = width
+    for i = 0 to m.buttonContainer.getChildCount() - 1
+        m.buttonContainer.getChild(i).width = width
+    end for
+end sub

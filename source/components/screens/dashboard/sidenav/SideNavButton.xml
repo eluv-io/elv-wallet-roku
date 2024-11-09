@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="SideNavButton" extends="Group">
+    <interface>
+        <!-- Events -->
+        <field id="buttonSelected" type="integer" alwaysNotify="true" />
+
+        <!-- Whether or not the button should appear in the "checked state" -->
+        <field id="checked" type="boolean" value="false" onChange="onCheckedChange"/>
+
+        <field id="width" type="integer" onChange="adjustLayout" />
+
+        <field id="text" type="string" alias="label.text" />
+        <field id="iconUri" type="string" alias="icon.uri" />
+
+        <!-- collpased|expanded -->
+        <field id="mode" type="string" value="collapsed" onChange="onModeChanged" />
+    </interface>
+    <children>
+        <Poster id="bg" uri="pkg:/images/rounded/$$RES$$.9.png" />
+        <LayoutGroup
+            id="content"
+            layoutDirection="horiz"
+            vertAlignment="center"
+        >
+            <Spacer id="contentStartPadding" width="51" />
+            <Poster id="icon" width="34" height="34" blendColor="#FFFFFF" />
+            <Spacer width="32" />
+            <TvLabel id="label" fontStyle="body_32" />
+        </LayoutGroup>
+    </children>
+</component>
