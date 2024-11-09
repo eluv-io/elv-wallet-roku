@@ -1,3 +1,10 @@
 {
-    "brightscript.bsdk": "embedded"
+    "brightscript.bsdk": "embedded",
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#472970",
+        "activityBar.background": "#5b3490",
+        "titleBar.activeBackground": "#472970",
+        "titleBar.inactiveBackground": "#160d1f",
+        "titleBar.activeForeground": "#FAFBFE"
+      },
 }
