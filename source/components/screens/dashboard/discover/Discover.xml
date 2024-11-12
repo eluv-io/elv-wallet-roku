@@ -6,9 +6,9 @@
         <Poster
             uri="pkg:/images/discover_logo.png"
             id="logo"
-            height="204"
-            width="876"
-            translation="[31, 58]"
+            height="210"
+            width="879"
+            translation="[31, 55]"
             loadSync="true"
             loadDisplayMode="scaleToFit"
         />
@@ -16,10 +16,10 @@
             id="grid"
             itemComponentName="PropertyCard"
             numColumns="5"
-            translation="[18,270]"
+            translation="[30,288]"
             numRows="5"
-            itemSize="[330,468]"
-            itemSpacing="[36,36]"
+            itemSize="[306, 456]"
+            itemSpacing="[24,30]"
             vertFocusAnimationStyle="fixedFocus"
             drawFocusFeedback="true"
         />
