@@ -1,4 +1,5 @@
 import "pkg:/components/screens/dashboard/Tabs.bs"
+import "pkg:/components/utils/animate.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -25,7 +26,7 @@ sub onFabricTokenChanged()
         while m.buttonContainer.removeChildIndex(0): end while
 
         if loggedIn
-            
+
         else
             ' TEMP!! This is the reverse logic. No tabs should be avail in this state
             availableTabs = AuthTabs
@@ -82,7 +83,22 @@ sub onDrawerStateChanged()
 end sub
 
 sub updateScrimWidth(width)
-    m.scrim.width = width
+    scrim = m.scrim
+    if scrim.width = 0
+        ' First time getting any size, skip animation and just set inital width
+        scrim.width = width
+    else
+        ' Animate size change. Save in `m` to not lose a reference and drop animation
+        m.anim = animate.create({
+            target: scrim,
+            width: width,
+            duration: 0.3,
+            repeat: false,
+            easeFunction: "outExpo",
+            optional: true,
+            autoPlay: true
+        })
+    end if
     for i = 0 to m.buttonContainer.getChildCount() - 1
         m.buttonContainer.getChild(i).width = width
     end for
