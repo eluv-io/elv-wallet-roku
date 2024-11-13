@@ -8,17 +8,25 @@ sub init()
     sideNav = m.top.findNode("sideNav")
     m.sideNav = sideNav
 
+    ' Store created tab nodes so they don't need to be re-created when visiting a tab we've been to before
+    m.tabCache = {}
+
     sideNav.ObserveField("selectedTab", "onTabSelected")
     onTabSelected()
 end sub
 
 sub onTabSelected()
-    ' Maybe cache nodes for re-use? I'm not sure what the memory implcations will be..
-    currentTab = m.sideNav.selectedTab
-    if m.lastSelectedTab <> currentTab
-        m.lastSelectedTab = currentTab
+    nextTabName = m.sideNav.selectedTab
+    if m.lastSelectedTab <> nextTabName
+        m.lastSelectedTab = nextTabName
         m.tabContainer.removeChildIndex(0)
-        m.tabContainer.createChild(currentTab)
+
+        cachedTab = m.tabCache[nextTabName]
+        if cachedTab = invalid
+            m.tabCache[nextTabName] = m.tabContainer.createChild(nextTabName)
+        else
+            m.tabContainer.appendChild(cachedTab)
+        end if
     end if
     m.tabContainer.getChild(0).setFocus(true)
 end sub
