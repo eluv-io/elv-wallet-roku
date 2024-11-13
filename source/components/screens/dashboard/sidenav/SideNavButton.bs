@@ -27,7 +27,7 @@ sub updateColors()
             fgTint = "#d4d4d4"
             bgTint = "#2a2a2a66" ' 40% alpha
         else
-            fgTint = "#2a2a2a"
+            fgTint = "#525252"
             bgTint = "#00000000" ' Transparent
         endif
     end if
