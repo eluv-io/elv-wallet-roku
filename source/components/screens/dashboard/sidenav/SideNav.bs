@@ -7,7 +7,6 @@ sub init()
     m.scrim = m.top.findNode("scrim")
     m.buttonContainer = m.top.findNode("buttonContainer")
 
-    ' m.buttonContainer.observeFieldScoped("buttonSelected", "onTabClicked")
     m.top.observeFieldScoped("focusedChild", "onFocusChange")
 
     stores.tokenStore().observeFieldScoped("fabricToken", "onFabricTokenChanged")
