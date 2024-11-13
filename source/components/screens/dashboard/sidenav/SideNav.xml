@@ -6,7 +6,10 @@
         <field id="selectedTab" type="string" alwaysNotify="true" />
     </interface>
     <children>
-        <Rectangle id="scrim" height="1080" color="#000000DD" />
+        <!-- Fullscreen shade to draw behind side nav when drawer is open -->
+        <Rectangle id="shade" width="1920" height="1080" color="#000000AA" opacity="0" />
+        <!-- Background for the side nav content -->
+        <Rectangle id="scrim" height="1080" color="#00000088" />
         <FocusableLayoutGroup id="buttonContainer" layoutDirection="vert" />
     </children>
 </component>

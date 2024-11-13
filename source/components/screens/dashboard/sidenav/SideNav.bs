@@ -3,6 +3,7 @@ import "pkg:/components/utils/animate.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
+    m.shade = m.top.findNode("shade")
     m.scrim = m.top.findNode("scrim")
     m.buttonContainer = m.top.findNode("buttonContainer")
 
@@ -78,6 +79,15 @@ sub onDrawerStateChanged()
     else
         width = m.top.collapsedSize
     end if
+    m.shadeAnim = animate.create({
+        target: m.shade,
+        opacity: m.top.drawerOpen ? 1 : 0,
+        duration: 0.1,
+        repeat: false,
+        easeFunction: "linear"
+        optional: true
+        autoPlay: true
+    })
 
     updateScrimWidth(width)
 end sub
@@ -89,7 +99,7 @@ sub updateScrimWidth(width)
         scrim.width = width
     else
         ' Animate size change. Save in `m` to not lose a reference and drop animation
-        m.anim = animate.create({
+        m.scrimAnim = animate.create({
             target: scrim,
             width: width,
             duration: 0.3,
