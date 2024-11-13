@@ -1,10 +1,11 @@
-import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/http/http.bs"
+
 sub init()
     m.videoPlayer = m.top.findNode("VideoPlayer")
     m.videoPlayer.content = createobject("roSGNode", "ContentNode")
-    
+
     stores.tokenStore().observeFieldScoped("fabricToken", "onFabricTokenChanged")
     onFabricTokenChanged()
 end sub
@@ -27,7 +28,7 @@ sub onVideoItemChanged()
 
     ' Don't use "main.net955305" as baseUrl, but the specific node pointed by the config
     baseUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
-    optionsJsonUrl = NftOps.assetLinkToUrl(media.sources.default, `${baseUrl}/`)
+    optionsJsonUrl = UrlUtil.assetLinkToUrl(media.sources.default, `${baseUrl}/`)
     context = { requestUrl: optionsJsonUrl }
     promises.chain(http.get(optionsJsonUrl), context).then(sub (result, context)
         ' Sorted by priority

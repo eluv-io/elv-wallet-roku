@@ -17,8 +17,7 @@ sub onItemContentChanged()
     offer = m.top.itemContent.aa
     m.title.text = offer.name
 
-    url = NftOps.assetLinkToUrl(offer.imagePath)
-    m.image.uri = UrlUtil.appendQuery(url, "height", m.top.height)
+    m.image.uri = UrlUtil.imageLinkToUrl(offer.imagePath, m.top.height)
 
     fulfillmentState = OfferOps.getFulfillmentState(offer)
     if fulfillmentState = OfferOps.FulfillmentState.AVAILABLE or fulfillmentState = OfferOps.FulfillmentState.UNRELEASED

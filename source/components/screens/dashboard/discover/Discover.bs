@@ -1,4 +1,5 @@
 import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -42,7 +43,7 @@ sub onPropertyFocused()
     if property = invalid
         return
     end if
-    m.bgImage@.changeImage(NftOps.assetLinkToUrl(property.image_tv))
+    m.bgImage@.changeImage(UrlUtil.imageLinkToUrl(property.image_tv, m.bgImage.height))
 end sub
 
 sub onFocusRowChanged()

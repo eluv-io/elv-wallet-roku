@@ -1,7 +1,7 @@
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/OfferOps.bs"
-import "pkg:/components/http/http.bs"
 
 namespace NftOps
 
@@ -15,24 +15,6 @@ namespace NftOps
         LIVE = "Live Video"
         VIDEO = "Video"
     end enum
-
-    ' Turns an asset container object to a ready-to-use url
-    function assetLinkToUrl(assetLinkJson as dynamic, baseUrl = http.BASE_URL) as string
-        if assetLinkJson = invalid
-            return ""
-        end if
-        if (assetLinkJson["/"].startsWith("/qfab/"))
-            ' When the link contains "qfab", it also has a different "container" value,
-            ' in that case we ignore [assetLinkJson["."].container]
-            ' remove "/qfab/" prefix (6 chars)
-            return `${baseUrl}q/${assetLinkJson["/"].mid(6)}`.EncodeUri()
-        else
-            hash = assetLinkJson["."].container
-            ' remove "./" prefix (2 chars)
-            filePath = assetLinkJson["/"].mid(2)
-            return `${baseUrl}q/${hash}/${filePath}`.EncodeUri()
-        end if
-    end function
 
     function nftsToContentNode(nfts, rootNode = createObject("roSGNode", "ContentNode"), contentType = "nft") as roSGNode
         for each nft in nfts
@@ -81,7 +63,7 @@ namespace NftOps
 
         if usePosterImage and item.poster_image <> invalid
             aspectRatio = 2 / 3
-            node.FHDPosterUrl = NftOps.assetLinkToUrl(item.poster_image)
+            node.FHDPosterUrl = UrlUtil.assetLinkToUrl(item.poster_image)
         else
             ' RedeemableOffers won't have this, so they'll default to 1x1 ratio.
             aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
@@ -106,7 +88,7 @@ namespace NftOps
             router()@.show({ view: galleryView })
         else if mediaItem.media_file <> invalid
             qrView = createObject("roSGNode", "ExternalContentQrDialog")
-            qrView.link = NftOps.assetLinkToUrl(mediaItem.media_file)
+            qrView.link = UrlUtil.assetLinkToUrl(mediaItem.media_file)
             createObject("roSGNode", "FullscreenDialog").showView = qrView
         else if mediaItem.offerid <> invalid
             ' Toast.show("Offer clicked. Not yet implemented.")

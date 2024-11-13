@@ -53,7 +53,7 @@ end sub
 sub updateState(offer)
     m.name.text = offer.name
     m.description.text = RichText.stripFormatting(offer.description)
-    m.image.uri = UrlUtil.appendQuery(NftOps.assetLinkToUrl(offer.posterImagePath ?? offer.imagePath), "height", m.image.height)
+    m.image.uri = UrlUtil.imageLinkToUrl(offer.posterImagePath ?? offer.imagePath, m.image.height)
 
     fulfillmentState = OfferOps.getFulfillmentState(offer)
     if fulfillmentState = OfferOps.FulfillmentState.EXPIRED

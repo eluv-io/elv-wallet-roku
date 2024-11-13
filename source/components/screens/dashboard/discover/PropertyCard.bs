@@ -2,16 +2,12 @@ import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
-    m.image = m.top.findNode("image")
+    m.image = m.top
+    m.image.loadDisplayMode = "scaleToZoom"
 end sub
 
 sub onContentChanged()
     property = m.top.itemContent.aa
-    uri = NftOps.assetLinkToUrl(property?.image)
+    uri = UrlUtil.imageLinkToUrl(property?.image, m.image.height)
     m.image.uri = uri
-end sub
-
-sub onSizeChanged()
-    m.image.width = m.top.width
-    m.image.height = m.top.height
 end sub

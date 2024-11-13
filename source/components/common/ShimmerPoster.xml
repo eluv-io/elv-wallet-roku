@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Automatically play shimmer until uri loaded -->
 <component name="ShimmerPoster" extends="Poster">
+    <interface>
+        <field id="enableShimmer" type="boolean" value="true" />
+    </interface>
     <children>
-        <Shimmer id="shimmer"  />
+        <Shimmer id="shimmer" />
     </children>
 </component>

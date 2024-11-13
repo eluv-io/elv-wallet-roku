@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="PropertyCard" extends="Group">
+<component name="PropertyCard" extends="ShimmerPoster">
     <interface>
         <field id="itemContent" type="node" onChange="onContentChanged" />
-        <field id="width" type="float" onChange="onSizeChanged" />
-        <field id="height" type="float" onChange="onSizeChanged" />
     </interface>
     <children>
-        <ShimmerPoster id="image" loadDisplayMode="scaleToZoom" width="330" height="468" />
     </children>
 </component>

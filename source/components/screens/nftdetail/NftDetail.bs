@@ -2,6 +2,7 @@ import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/RichText.bs"
 
 const ITEM_HEIGHT = 270
@@ -60,7 +61,7 @@ function findBgImage(nft) as dynamic
     for each item in nft._featured_media
         bgImage = item.background_image_tv
         if bgImage <> invalid
-            return NftOps.assetLinkToUrl(bgImage)
+            return UrlUtil.imageLinkToUrl(bgImage, "1080")
         end if
     end for
     return ""

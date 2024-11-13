@@ -53,7 +53,7 @@ function onUriChange()
 end function
 
 function changeImage(uri, isAnimated = invalid)
-    oldUrl = m.currentUri
+    oldUrl = m.currentUri ?? ""
     if uri <> invalid and uri <> ""
         m.currentUri = uri
     else

@@ -1,4 +1,38 @@
+import "pkg:/components/utils/PixelUtil.bs"
+import "pkg:/components/http/http.bs"
+
 namespace UrlUtil
+
+    ' Turns and image asset link to a fully qualified URL.
+    ' @param heightParam - if provided, appends a "height" query param to the URL.
+    '                      Pass roku's autoscaled values, they will be converted to real pixels.
+    sub imageLinkToUrl(linkJson as dynamic, heightParam = invalid) as string
+        uri = assetLinkToUrl(linkJson)
+        if uri <> invalid and heightParam <> invalid
+            trueHeight = PixelUtil.convertToRealPixels(heightParam)
+            uri = appendQuery(uri, "height", trueHeight)
+        end if
+        return uri
+    end sub
+
+    ' Turns an asset container object to a ready-to-use url
+    function assetLinkToUrl(assetLinkJson as dynamic, baseUrl = http.BASE_URL) as string
+        if assetLinkJson = invalid
+            return ""
+        end if
+        if (assetLinkJson["/"].startsWith("/qfab/"))
+            ' When the link contains "qfab", it also has a different "container" value,
+            ' in that case we ignore [assetLinkJson["."].container]
+            ' remove "/qfab/" prefix (6 chars)
+            return `${baseUrl}q/${assetLinkJson["/"].mid(6)}`.EncodeUri()
+        else
+            hash = assetLinkJson["."].container
+            ' remove "./" prefix (2 chars)
+            filePath = assetLinkJson["/"].mid(2)
+            return `${baseUrl}q/${hash}/${filePath}`.EncodeUri()
+        end if
+    end function
+
     ' [url] is assumed to be a valid url. Query parameter will be added at the end of the url.
     function appendQuery(url as string, key as string, value as dynamic) as string
         if url.inStr("?") <> -1
