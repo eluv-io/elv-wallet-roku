@@ -8,10 +8,9 @@
             "name": "BrightScript Debug: Launch",
             "type": "brightscript",
             "request": "launch",
-            // "host": "192.168.90.112", // new office roku
-            "host": "192.168.0.31", // home
-            // "host": "192.168.90.126", // tv corner
-            "password": "roku",
+            "envFile": "${workspaceFolder}/.vscode/.env",
+            "host": "${env:ROKU_IP}",
+            "password": "${env:ROKU_PW}",
             "rootDir": "${workspaceFolder}/dist",
             "preLaunchTask": "build",
             "enableDebugProtocol": true,
