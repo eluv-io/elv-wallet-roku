@@ -1,22 +1,17 @@
+import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/stores/stores.bs"
+
 sub init()
     m.image = m.top.findNode("image")
-    m.image_shimmer = m.top.findNode("image_shimmer")
 end sub
 
 sub onContentChanged()
-    ' print `stav: content title ${m.top.itemContent.title}`
+    property = m.top.itemContent.aa
+    uri = NftOps.assetLinkToUrl(property?.image)
+    m.image.uri = uri
 end sub
 
-sub onWidthChanged()
-    width = m.top.width
-    print "prop card width change", width
-    m.image.width = width
-    m.image_shimmer.width = width
-end sub
-
-sub onHeightChanged()
-    height = m.top.height
-    print "prop card height change", height
-    m.image.height = height
-    m.image_shimmer.height = height
+sub onSizeChanged()
+    m.image.width = m.top.width
+    m.image.height = m.top.height
 end sub

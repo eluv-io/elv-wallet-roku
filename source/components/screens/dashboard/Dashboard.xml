@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Dashboard" extends="BaseView" initialFocus="tab_container">
     <children>
-        <Rectangle id="tab_container" width="1920" translation="[180,0]" />
+        <Rectangle id="tab_container" width="1920" />
         <SideNav id="sideNav" collapsedSize="156" />
     </children>
 </component>

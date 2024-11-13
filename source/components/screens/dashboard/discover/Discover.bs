@@ -1,3 +1,4 @@
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -5,23 +6,43 @@ sub init()
 
     m.root = m.top.findNode("root")
     m.logo = m.top.findNode("logo")
-    m.logoAnim = m.top.findNode("logoAnimation")
-    m.logoInterp = m.top.findNode("logoInterpolator")
-
+    m.bgImage = m.top.findNode("bgImage")
     grid = m.top.findNode("grid")
     m.grid = grid
 
     ' init with dummy cards that shimmer while we load real data
     content = CreateObject("roSGNode", "ContentNode")
-
-    for i = 0 to 11
-        content.createChild("ContentNode").title = `foo ${i}`
+    for i = 1 to 10
+        content.createChild("ContentNode")
     end for
     grid.content = content
 
     grid.ObserveFieldScoped("currFocusRow", "onFocusRowChanged")
+    grid.ObserveFieldScoped("itemSelected", "onPropertySelected")
+    grid.ObserveFieldScoped("itemFocused", "onPropertyFocused")
+    ' When the logo gains focus it means the grid is no longer focused
+    m.logo.ObserveFieldScoped("focusedChild", "onLogoFocused")
 
     stores.propertyStore().ObserveFieldScoped("properties", "onPropertiesChanged")
+end sub
+
+sub onPropertySelected()
+    Toast.show(`"click on ${m.grid.content.getchild(m.grid.itemfocused)?.aa?.name}"`)
+end sub
+
+' The logo is our "focus placeholder" for when we want to have nothing selected in the grid
+sub onLogoFocused()
+    if m.logo.IsInFocusChain()
+        m.bgImage@.changeImage("")
+    end if
+end sub
+
+sub onPropertyFocused()
+    property = m.grid.content?.getchild(m.grid.itemfocused)?.aa
+    if property = invalid
+        return
+    end if
+    m.bgImage@.changeImage(NftOps.assetLinkToUrl(property.image_tv))
 end sub
 
 sub onFocusRowChanged()
@@ -32,15 +53,30 @@ sub onFocusRowChanged()
     if offset > (maxOffset)
         offset = maxOffset
     end if
-    m.top.translation = [m.top.translation[0], -offset]
+    m.root.translation = [m.root.translation[0], -offset]
 end sub
 
-sub onPropertiesChanged()
-    properties = stores.propertyStore().properties
-    ' print `stav: got some props ${properties.count()}`
+sub onPropertiesChanged(event)
+    properties = event.getData()
+    content = CreateObject("roSGNode", "ContentNode")
     if properties <> invalid and properties.count() > 0
-        ' p = properties[0]
-        ' card = CreateObject("roSGNode", "PropertyCard")
-        ' m.top.appendChild(card)
+        for each property in properties
+            content.createChild("AAContentNode").aa = property
+        end for
     end if
+    m.grid.content = content
 end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press
+        if key = "up" and m.grid.IsInFocusChain()
+            ' only gets called when grid didn't already handle the "up" event
+            m.logo.setFocus(true)
+            return true
+        else if key = "down" and m.logo.IsInFocusChain()
+            m.grid.setFocus(true)
+            return true
+        end if
+    end if
+    return false
+end function

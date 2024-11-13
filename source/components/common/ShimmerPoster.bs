@@ -1,0 +1,14 @@
+' Automatically play shimmer until uri loaded
+sub init()
+    m.shimmer = m.top.findNode("shimmer")
+    m.top.observeFieldScoped("loadStatus", "onLoadStatusChanged")
+    onLoadStatusChanged()
+end sub
+
+sub onLoadStatusChanged()
+    if m.top.loadStatus = "ready"
+        m.shimmer.control = "stop"
+    else
+        m.shimmer.control = "start"
+    end if
+end sub

@@ -2,12 +2,10 @@
 <component name="PropertyCard" extends="Group">
     <interface>
         <field id="itemContent" type="node" onChange="onContentChanged" />
-        <field id="width" type="float" onChange="onWidthChanged" />
-        <field id="height" type="float" onChange="onHeightChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
     </interface>
     <children>
-        <Poster id="image" loadDisplayMode="scaleToZoom" width="330" height="468">
-            <Shimmer id="image_shimmer" control="start" />
-        </Poster>
+        <ShimmerPoster id="image" loadDisplayMode="scaleToZoom" width="330" height="468" />
     </children>
 </component>
