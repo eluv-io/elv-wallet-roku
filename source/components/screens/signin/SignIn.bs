@@ -5,6 +5,8 @@ import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
+    m.bgImage = m.top.findNode("bgImage")
+
     m.qrCode = m.top.findNode("qr_code")
     m.qrImage = m.top.findNode("qr_image")
 
@@ -27,6 +29,13 @@ sub init()
     centerSpinner()
 
     getNewCode()
+end sub
+
+sub onPropertyChanged()
+    property = m.top.property
+    loginStyle = property?.login?.styling
+    uri = loginStyle?.background_image_tv ?? loginStyle?.background_image_desktop
+    m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
 end sub
 
 sub getNewCode()

@@ -1,39 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
+    <interface>
+        <field id="property" type="assocArray" onChange="onPropertyChanged" />
+    </interface>
     <children>
         <Timer id="code_expiration_timer" repeat="false" />
         <Timer id="status_poll_timer" repeat="true" />
-        <Poster
-            uri="pkg:/images/elv_logo_bw.png"
-            inheritParentTransform="false"
-            width="60"
-            height="60"
-            translation="[81,51]"
-        />
-        <TvLabel
-            text="Media Wallet"
-            fontStyle="carousel_36"
-            inheritParentTransform="false"
-            translation="[159,60]"
-        />
+        <Poster id="bgImage" width="1920" height="1080" opacity="0.7" />
         <LayoutGroup
-            translation="[960,78]"
+            translation="[960,174]"
             layoutDirection="vert"
             horizAlignment="center"
             vertAlignment="top"
         >
-            <TvLabel text="Scan QR Code" fontStyle="title_51" />
+            <TvLabel text="Sign In" fontStyle="title_62" />
             <Spacer height="30" />
-            <TvLabel
-                text="Scan the QR Code with your camera app or a QR code reader on your device to verify the code."
-                fontStyle="hint_30"
-                wrap="true"
-                horizAlign="center"
-                width="606"
-                lineSpacing="-3"
-            />
-            <Spacer height="30" />
-            <TvLabel id="qr_code" fontStyle="title_51" />
+            <TvLabel id="qr_code" fontStyle="title_62" />
             <Spacer height="18" />
             <Group>
                 <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
