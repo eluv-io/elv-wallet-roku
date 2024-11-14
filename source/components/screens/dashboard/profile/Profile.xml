@@ -4,7 +4,7 @@
         <LayoutGroup
             layoutDirection="vert"
             itemSpacings="[20]"
-            translation="[442,0]"
+            translation="[442,114]"
         >
             <!-- Wrapping elements in a Rectangle is the easiest way I found to make
                 "translation" work inside a LayoutGroup -->
