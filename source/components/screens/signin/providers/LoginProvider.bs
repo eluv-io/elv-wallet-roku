@@ -17,16 +17,22 @@ interface LoginProvider
 end interface
 
 class Auth0Provider
+    sub new(property)
+        m.property = property
+    end sub
+
     sub getActivationData() as object
         return stores.tokenStore()@.GetActivationData(false)
     end sub
 
     sub checkToken(activationData) as object
-        return promises.chain(stores.tokenStore()@.checkDeviceAuthorization(activationData.device_code)).then(
-        function(response)
+        context = { tenantId: m.property.tenant.tenant_id }
+        return promises.chain(stores.tokenStore()@.checkDeviceAuthorization(activationData.device_code), context).then(
+        function(response, context)
             if response.code = 200
                 ' Auth0 gave us an IdToken, move own to obtain client-signed-access-token
-                return stores.tokenStore()@.fetchFabricToken()
+                tid = context.tenantId
+                return stores.tokenStore()@.fetchFabricToken(tid)
             end if
             return "pending"
         end function
@@ -51,8 +57,8 @@ class Auth0Provider
 end class
 
 class OryProvider
-    sub new(propertyId)
-        m.propertyId = propertyId
+    sub new(property)
+        m.propertyId = property.id
     end sub
 
     sub getActivationData() as object
@@ -92,6 +98,10 @@ class OryProvider
 end class
 
 class MetaMaskProvider extends OryProvider
+    sub new(property)
+        super(property)
+    end sub
+
     override sub getQrUrl(activationData) as string
         return activationData.metamask_url
     end sub

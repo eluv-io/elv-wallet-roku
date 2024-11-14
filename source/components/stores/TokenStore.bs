@@ -89,9 +89,9 @@ function checkMetamaskAuthorization(code, passcode) as object
 end function
 
 ' Called after id token is set
-function fetchFabricToken(_ = invalid)
+function fetchFabricToken(tenantId as string)
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-    context = { baseUrl: baseUrl }
+    context = { baseUrl: baseUrl, tid: tenantId }
     return promises.chain(http.post(`${baseUrl}/wlt/login/jwt`, { ext: { share_email: true } }), context).then(
     function(response, context)
         m.top.clusterToken = response.json.token
@@ -100,7 +100,8 @@ function fetchFabricToken(_ = invalid)
         print "saved wallet address", m.top.walletAddress
 
         ' Get fabricToken from server. "clusterToken" will be embedded in the headers by HttpTask.
-        return http.get(`${context.baseUrl}/wlt/sign/csat`)
+        channelId = createObject("roDeviceInfo").GetChannelClientId()
+        return http.post(`${context.baseUrl}/wlt/sign/csat`, { tid: context.tid, nonce: channelId })
     end function).then(function(response, context)
         m.top.fabricToken = response.json.token
         return "success"

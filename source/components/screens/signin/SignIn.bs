@@ -42,11 +42,11 @@ sub onPropertyChanged()
     providerName = login?.settings?.provider ?? "UNKNOWN"
     if providerName = "ory"
         m.metamaskButton.visible = false
-        provider = new OryProvider(property.id)
+        provider = new OryProvider(property)
     else if providerName = "auth0"
-        provider = new Auth0Provider()
+        provider = new Auth0Provider(property)
     else if providerName = "metamask"
-        provider = new MetaMaskProvider()
+        provider = new MetaMaskProvider(property)
     end if
 
     if provider = invalid
