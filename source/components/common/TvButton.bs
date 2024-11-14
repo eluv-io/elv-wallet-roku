@@ -64,7 +64,8 @@ sub onRootIdChange()
 end sub
 
 sub onClick()
-    m.selectedScaleAnim.control = "start"
+    ' Disable for now. Causes font scaling artifacts
+    ' m.selectedScaleAnim.control = "start"
 end sub
 
 sub onFocus()
