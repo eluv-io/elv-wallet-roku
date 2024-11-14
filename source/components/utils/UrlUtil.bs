@@ -40,7 +40,16 @@ namespace UrlUtil
         else
             separator = "?"
         end if
-        return `${url}${separator}${`${key}=${value}`}`
+
+        ' Make sure anchors (#) come after query
+        anchor = ""
+        anchorPosition = url.inStr("#")
+        if anchorPosition <> -1
+            anchor = url.mid(anchorPosition)
+            url = url.left(anchorPosition)
+        end if
+
+        return `${url}${separator}${`${key}=${value}`}${anchor}`
     end function
 
     function qrUrlForData(data, width as integer, height = width as integer) as string
