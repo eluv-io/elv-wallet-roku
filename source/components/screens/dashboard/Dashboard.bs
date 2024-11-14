@@ -13,6 +13,8 @@ sub init()
 
     sideNav.ObserveField("selectedTab", "onTabSelected")
     onTabSelected()
+    sideNav.ObserveField("visible", "onSideNavVisChange")
+    onSideNavVisChange()
 end sub
 
 sub onTabSelected()
@@ -31,9 +33,19 @@ sub onTabSelected()
     m.tabContainer.getChild(0).setFocus(true)
 end sub
 
+sub onSideNavVisChange()
+    ' Change left indent according to sidenav visibility
+    if m.sideNav.visible
+        m.tabContainer.translation = [m.sideNav.collapsedSize, 0]
+    else
+        m.tabContainer.translation = [30, 0]
+        if m.sideNav.IsInFocusChain() then m.tabContainer.getChild(0).setFocus(true)
+    end if
+end sub
+
 function onKeyEvent(key as string, press as boolean) as boolean
     handled = false
-    if press
+    if press and m.sideNav.visible
         if key = "right" and m.sideNav.IsInFocusChain()
             m.tabContainer.getChild(0).setFocus(true)
             handled = true

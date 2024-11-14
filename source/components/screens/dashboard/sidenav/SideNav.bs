@@ -13,9 +13,6 @@ sub init()
     onFabricTokenChanged()
 end sub
 
-const NoAuthTabs = [Tabs.Discover]
-const AuthTabs = [Tabs.Discover, Tabs.MyItems, Tabs.Profile]
-
 sub onFabricTokenChanged()
     ' Decide on visible items
     loggedIn = stores.tokenStore().fabricToken <> ""
@@ -26,10 +23,8 @@ sub onFabricTokenChanged()
         while m.buttonContainer.removeChildIndex(0): end while
 
         if loggedIn
-
-        else
-            ' TEMP!! This is the reverse logic. No tabs should be avail in this state
-            availableTabs = AuthTabs
+            m.top.visible = true
+            availableTabs = [Tabs.Discover, Tabs.MyItems, Tabs.Profile]
             for i = 0 to availableTabs.count() - 1
                 item = availableTabs[i]
                 btn = m.buttonContainer.CreateChild("SideNavButton")
@@ -41,12 +36,18 @@ sub onFabricTokenChanged()
                 }, true)
                 btn.observeFieldScoped("buttonSelected", "onTabClicked")
                 if i = 0
-                    m.top.selectedTab = item.screenName
+                    ' Automatically select the first tab
                     btn.checked = true
                 end if
             end for
             m.buttonContainer.translation = [21, (1080 - m.buttonContainer.boundingRect().width) / 2]
+        else
+            m.top.visible = false
+            availableTabs = [Tabs.Discover]
         end if
+
+        ' Automatically select the first tab
+        m.top.selectedTab = availableTabs[0].screenName
     end if
 end sub
 
@@ -71,7 +72,6 @@ sub onTabClicked(event)
 end sub
 
 sub onDrawerStateChanged()
-    ' TODO: add animations
     if m.top.drawerOpen
         width = 558
         m.buttonContainer.setFocus(true)

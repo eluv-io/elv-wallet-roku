@@ -11,13 +11,6 @@ sub init()
     grid = m.top.findNode("grid")
     m.grid = grid
 
-    ' init with dummy cards that shimmer while we load real data
-    content = CreateObject("roSGNode", "ContentNode")
-    for i = 1 to 10
-        content.createChild("ContentNode")
-    end for
-    grid.content = content
-
     grid.ObserveFieldScoped("currFocusRow", "onFocusRowChanged")
     grid.ObserveFieldScoped("itemSelected", "onPropertySelected")
     grid.ObserveFieldScoped("itemFocused", "onPropertyFocused")
@@ -25,10 +18,50 @@ sub init()
     m.logo.ObserveFieldScoped("focusedChild", "onLogoFocused")
 
     stores.propertyStore().ObserveFieldScoped("properties", "onPropertiesChanged")
+
+    'Queue a timer for 10ms just to skip the first render pass and wait for parent to be attached
+    time.setTimer(initAfterParenting, 0.01)
+end sub
+
+sub initAfterParenting()
+    m.top.getParent().observeFieldScoped("translation", "onParentTranslationChanged")
+    onParentTranslationChanged()
+
+    ' init with dummy cards that shimmer while we load real data
+    if m.grid.content = invalid
+        content = CreateObject("roSGNode", "ContentNode")
+        for i = 1 to 10
+            content.createChild("ContentNode")
+        end for
+        m.grid.content = content
+    end if
+end sub
+
+sub onParentTranslationChanged()
+    offset = m.top.getParent?()?.translation?[0] ?? 0
+    padding = m.root.translation[0]
+
+    ' Calc grid itemSize so it fits [numColumns] with equal padding on left/right
+    cols = m.grid.numColumns
+    itemWidth = (1920 - offset - (padding * 2)) / cols
+    itemWidth -= m.grid.itemSpacing[0]
+    itemHeight = itemWidth * 3 / 2
+    m.grid.itemSize = [itemWidth, itemHeight]
+
+    ' Give bgImage negative translation to make sure it starts at the global x=0,
+    ' even if parent is translated to have an offset.
+    m.bgImage.translation = [-offset, 0]
 end sub
 
 sub onPropertySelected()
-    Toast.show(`"click on ${m.grid.content.getchild(m.grid.itemfocused)?.aa?.name}"`)
+    property = m.grid.content.getchild(m.grid.itemfocused)?.aa
+    if property = invalid
+        Toast.show("Error loading property")
+        return
+    end if
+    signIn = CreateObject("roSGNode", "SignIn")
+    signIn.property = property
+    router()@.show({ view: signIn })
 end sub
 
 ' The logo is our "focus placeholder" for when we want to have nothing selected in the grid
@@ -39,7 +72,7 @@ sub onLogoFocused()
 end sub
 
 sub onPropertyFocused()
-    property = m.grid.content?.getchild(m.grid.itemfocused)?.aa
+    property = m.grid.content?.getchild?(m.grid.itemfocused)?.aa
     if property = invalid
         return
     end if

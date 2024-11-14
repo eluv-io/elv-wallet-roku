@@ -2,7 +2,7 @@
 <component name="Discover" extends="BaseView" initialFocus="grid">
     <children>
         <ImageFader id="bgImage" width="1920" height="1080" />
-        <Group id="root">
+        <Group id="root" translation="[69,0]">
             <!-- Roku is dumb so if we don't give it the correct aspect ratio, we're gonna have a
             bad
             time raw size of the current bitmap is 1569x376 -->
@@ -12,7 +12,7 @@
                 height="210"
                 focusable="true"
                 width="879"
-                translation="[210, 55]"
+                translation="[0, 55]"
                 loadSync="true"
                 loadDisplayMode="scaleToFit"
             />
@@ -20,7 +20,7 @@
                 id="grid"
                 itemComponentName="PropertyCard"
                 numColumns="5"
-                translation="[210,288]"
+                translation="[0, 288]"
                 numRows="5"
                 itemSize="[306, 456]"
                 itemSpacing="[24,30]"
