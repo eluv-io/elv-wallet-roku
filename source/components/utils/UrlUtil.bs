@@ -8,8 +8,8 @@ namespace UrlUtil
     '                      Pass roku's autoscaled values, they will be converted to real pixels.
     sub imageLinkToUrl(linkJson as dynamic, heightParam = invalid) as string
         uri = assetLinkToUrl(linkJson)
-        if uri <> invalid and heightParam <> invalid
-            realHeight = PixelUtil.convertToRealPixels(heightParam)
+        if uri <> "" and heightParam <> invalid
+            realHeight = CINT(PixelUtil.convertToRealPixels(heightParam))
             uri = appendQuery(uri, "height", realHeight)
         end if
         return uri
