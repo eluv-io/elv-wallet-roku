@@ -30,7 +30,10 @@ namespace http
         requestNode.method = method
         requestNode.url = url
         requestNode.printResponseBody = printResponseBody
-        if body <> invalid requestNode.body = FormatJSON(body)
+        if body <> invalid
+            if type(body) = "roAssociativeArray" body = formatJson(body)
+            requestNode.body = body
+        end if
         promise.addFields({ request: requestNode })
         m.global.httpTask.request = promise
         return promise
