@@ -1,0 +1,20 @@
+' Returns a promise with either the shortened URL, or the original URL in case of a failure
+function shortenUrl(url) as object
+    return promises.chain(http.post("https://elv.lv/tiny/create", url), url).then(
+    function(response, url)
+        shortUrl = response.json.url_mapping?.shortened_url
+        if shortUrl = invalid
+            print `URL Shortener FAIL(${url})`
+            return url
+        else
+            print `URL Shortener SUCCESS(${shortUrl})`
+            return shortUrl
+        end if
+    end function
+    ).catch(
+    function(e, url)
+        print `URL Shortener FAIL(${url})`
+        return url
+    end function
+    ).toPromise()
+end function

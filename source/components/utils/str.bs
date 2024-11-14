@@ -1,0 +1,4 @@
+' Checks if [s] is a string and is not empty
+function strNotEmpty(s) as boolean
+    return getInterface(s, "ifString") <> invalid and s <> ""
+end function

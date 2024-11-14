@@ -1,5 +1,6 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/SignOutHelper.bs"
+import "pkg:/components/utils/str.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
@@ -77,14 +78,14 @@ sub getDefaultHeaders(request) as object
     }
     url = request.getUrl()
     if url.inStr("wlt/login/jwt") <> -1
-        if stores.tokenStore().idToken <> invalid
+        if strNotEmpty(stores.tokenStore().idToken)
             headers["Authorization"] = `Bearer ${stores.tokenStore().idToken}`
         end if
     else if url.inStr("wlt/sign/") <> -1 ' this captures both wlt/sign/eth and wlt/sign/csat. currently there are no other /sign endpoints that we use, but this check is still brittle
-        if stores.tokenStore().clusterToken <> invalid
+        if strNotEmpty(stores.tokenStore().clusterToken)
             headers["Authorization"] = `Bearer ${stores.tokenStore().clusterToken}`
         end if
-    else if stores.tokenStore().fabricToken <> invalid
+    else if strNotEmpty(stores.tokenStore().fabricToken)
         headers["Authorization"] = `Bearer ${stores.tokenStore().fabricToken}`
     end if
 

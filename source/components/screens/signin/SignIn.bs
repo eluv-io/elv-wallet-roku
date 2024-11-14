@@ -2,6 +2,9 @@ import "pkg:/components/utils/promise.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/screens/signin/providers/LoginProvider.bs"
+import "pkg:/components/screens/signin/UrlShortener.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -27,30 +30,56 @@ sub init()
     m.spinner = m.top.findNode("spinner")
     m.spinner.poster.observeField("loadStatus", "centerSpinner")
     centerSpinner()
-
-    getNewCode()
 end sub
 
 sub onPropertyChanged()
     property = m.top.property
-    loginStyle = property?.login?.styling
+    login = property?.login
+    loginStyle = login?.styling
     uri = loginStyle?.background_image_tv ?? loginStyle?.background_image_desktop
     m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
+
+    providerName = login?.settings?.provider ?? "UNKNOWN"
+    if providerName = "ory"
+        m.metamaskButton.visible = false
+        provider = new OryProvider(property.id)
+    else if providerName = "auth0"
+        provider = new Auth0Provider()
+    else if providerName = "metamask"
+        provider = new MetaMaskProvider()
+    end if
+
+    if provider = invalid
+        ' TBD, explode or something
+    end if
+
+    m.loginProvider = provider
+    getNewCode()
 end sub
 
 sub getNewCode()
-    promises.chain(stores.tokenStore()@.GetActivationData()).then(
-    sub(response)
-        size = m.qrImage.boundingRect().width
-        m.qrCode.text = response.json.user_code
-        m.qrImage.uri = UrlUtil.qrUrlForData(response.json.verification_uri_complete, size)
+    m.expirationTimer.control = "stop"
+    m.statusTimer.control = "stop"
 
-        m.deviceCode = response.json.device_code
-        m.statusTimer.duration = response.json.interval
+    promises.chain(m.loginProvider.getActivationData()).then(
+    function(response)
+        activationData = response.json
+        provider = m.loginProvider
+        m.activationData = activationData
+        m.qrCode.text = provider.getCode(activationData)
+
+        m.statusTimer.duration = provider.getPollingInterval(activationData)
         m.statusTimer.control = "start"
 
-        m.expirationTimer.duration = response.json.expires_in
+        m.expirationTimer.duration = provider.getExpiresIn(activationData)
         m.expirationTimer.control = "start"
+
+        qrUrl = provider.getQrUrl(activationData)
+        return shortenUrl(qrUrl)
+    end function).then(
+    sub(qrUrl)
+        size = m.qrImage.boundingRect().width
+        m.qrImage.uri = UrlUtil.qrUrlForData(qrUrl, size)
     end sub
     )
 end sub
@@ -64,22 +93,15 @@ sub onMetamaskClicked()
 end sub
 
 sub checkStatus()
-    promises.chain(stores.tokenStore()@.checkDeviceAuthorization(m.deviceCode)).then(
-    function(response)
-        if response.code = 200
-            m.expirationTimer.control = "stop"
-            m.statusTimer.control = "stop"
-            ' Auth0 gave us an IdToken, move own to obtain client-signed-access-token
-            return stores.tokenStore()@.fetchFabricToken()
-        end if
-        return "pending"
-    end function
-    ).then(sub (result)
+    promises.chain(m.loginProvider.checkToken(m.activationData)).then(
+    sub (result)
         if result <> "pending"
             ' Assume success. this is VERY optimistic.
             ' We don't need to actually navigate to Dashboard, removing the app stack will
             ' cause [MainRouter] to re-run started logic, realize we're logged in and navigate to Dashboard.
             ' This is required to make sure none of the login flow screens are in the backstack after login.
+            m.expirationTimer.control = "stop"
+            m.statusTimer.control = "stop"
             router().removeStack = "app"
         end if
     end sub)
