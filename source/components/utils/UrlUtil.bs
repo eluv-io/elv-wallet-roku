@@ -9,8 +9,8 @@ namespace UrlUtil
     sub imageLinkToUrl(linkJson as dynamic, heightParam = invalid) as string
         uri = assetLinkToUrl(linkJson)
         if uri <> invalid and heightParam <> invalid
-            trueHeight = PixelUtil.convertToRealPixels(heightParam)
-            uri = appendQuery(uri, "height", trueHeight)
+            realHeight = PixelUtil.convertToRealPixels(heightParam)
+            uri = appendQuery(uri, "height", realHeight)
         end if
         return uri
     end sub
@@ -45,6 +45,8 @@ namespace UrlUtil
 
     function qrUrlForData(data, width as integer, height = width as integer) as string
         encodedData = data.EncodeUriComponent()
-        return `https://api.qrserver.com/v1/create-qr-code/?size=${width}x${height}&margin=10&data=${encodedData}`
+        realWidth = PixelUtil.convertToRealPixels(width)
+        realHeight = PixelUtil.convertToRealPixels(height)
+        return `https://api.qrserver.com/v1/create-qr-code/?size=${realWidth}x${realHeight}&margin=10&data=${encodedData}`
     end function
 end namespace
