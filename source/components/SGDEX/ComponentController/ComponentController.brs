@@ -296,7 +296,7 @@ function closeView() as boolean
             fp: ["", {}]
         })
 
-        ' result is bool if count of Views is 2 or more, so View in stach is closed and back button successfully handled
+        ' result is true if count of Views is 2 or more, so View in stack is closed and back button successfully handled
         if result then return true
 
         ' if last View is closed check if developer opens a new one in wasClosed callback, if so, back is handled

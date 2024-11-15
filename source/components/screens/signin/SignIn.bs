@@ -151,6 +151,13 @@ end sub
 
 function OnKeyEvent(key as string, press as boolean) as boolean
     if press
+        ' Roku's ComponentController should take care of this, but once again they have disappointed me.
+        if key = "back" and router().viewManager.viewCount = 1
+            ' We are the last view in the "signin" stack, remove the stack.
+            router().removeStack = "signin"
+            return true
+        end if
+
         backButtonFocused = m.backButton?.hasFocus?() ?? false
         metamaskAvailable = m.metamaskButton?.visible ?? false
         metamaskFocused = m.metamaskButton?.hasFocus?() ?? false
