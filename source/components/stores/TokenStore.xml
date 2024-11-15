@@ -7,6 +7,9 @@
         <field id="refreshToken" type="string" />
         <field id="clusterToken" type="string" />
         <field id="walletAddress" type="string" />
+        <!-- The login provider the current fabricToken was obtained for -->
+        <field id="loginProvider" type="string" />
+
         <!-- Clear all data in the token store. Effectively a "sign out" operation. -->
         <function name="wipe" />
         <function name="GetActivationData" />

@@ -59,9 +59,14 @@ sub onPropertySelected()
         Toast.show("Error loading property")
         return
     end if
-    signIn = CreateObject("roSGNode", "SignIn")
-    signIn.property = property
-    router()@.show({ view: signIn })
+    loginProvider = property.login?.settings?.provider ?? "auth0"
+    if stores.tokenStore().loginProvider = loginProvider
+        Toast.show("TODO: Impl property details page")
+    else
+        signIn = CreateObject("roSGNode", "SignIn")
+        signIn.property = property
+        router()@.show({ view: signIn })
+    end if
 end sub
 
 ' The logo is our "focus placeholder" for when we want to have nothing selected in the grid

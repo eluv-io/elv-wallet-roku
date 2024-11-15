@@ -19,6 +19,7 @@ sub onPropertyChanged()
     property = m.top.property
     login = property?.login
     providerName = login?.settings?.provider ?? "auth0"
+    m.providerName = providerName
 
     if m.top.useMetamask or providerName = "metamask"
         view = CreateObject("roSGNode", "MetamaskSignInView")
@@ -119,6 +120,7 @@ sub checkStatus()
             ' This is required to make sure none of the login flow screens are in the backstack after login.
             m.expirationTimer.control = "stop"
             m.statusTimer.control = "stop"
+            stores.tokenStore().loginProvider = m.providerName
             router().removeStack = "app"
         end if
     end sub)

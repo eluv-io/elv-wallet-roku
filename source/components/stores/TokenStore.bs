@@ -7,7 +7,7 @@ const AUTH0_CLIENT_ID = "***REMOVED***"
 
 const TOKEN_REGISTRY_SECTION = "tokens"
 
-const PERSISTED_FIELDS = ["fabricToken", "walletAddress"]
+const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken", "loginProvider"]
 
 sub init()
     m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
@@ -101,7 +101,7 @@ function fetchFabricToken(tenantId as string)
 
         ' Get fabricToken from server. "clusterToken" will be embedded in the headers by HttpTask.
         channelId = createObject("roDeviceInfo").GetChannelClientId()
-        return http.post(`${context.baseUrl}/wlt/sign/csat`, { tid: context.tid, nonce: channelId })
+        return http.post(`${context.baseUrl}/wlt/sign/csat`, { tid: context.tid, nonce: channelId, force: true })
     end function).then(function(response, context)
         m.top.fabricToken = response.json.token
         return "success"
