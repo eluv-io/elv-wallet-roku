@@ -8,40 +8,33 @@ import "pkg:/components/screens/signin/UrlShortener.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
-    m.bgImage = m.top.findNode("bgImage")
-
-    m.qrCode = m.top.findNode("qr_code")
-    m.qrImage = m.top.findNode("qr_image")
-
     m.expirationTimer = m.top.findNode("code_expiration_timer")
     m.expirationTimer.ObserveField("fire", "getNewCode")
 
     m.statusTimer = m.top.findNode("status_poll_timer")
     m.statusTimer.ObserveField("fire", "checkStatus")
-
-    m.newCodeButton = m.top.findNode("btn_new_code")
-    m.newCodeButton.ObserveField("buttonSelected", "getNewCode")
-
-    m.metamaskButton = m.top.findNode("btn_metamask")
-    m.metamaskButton.observeFieldScoped("buttonSelected", "onMetamaskClicked")
-    m.backButton = m.top.findNode("btn_back")
-    m.backButton.observeFieldScoped("buttonSelected", "onBackClicked")
-
-    m.spinner = m.top.findNode("spinner")
-    m.spinner.poster.observeField("loadStatus", "centerSpinner")
-    centerSpinner()
 end sub
 
 sub onPropertyChanged()
     property = m.top.property
     login = property?.login
-    loginStyle = login?.styling
-    uri = loginStyle?.background_image_tv ?? loginStyle?.background_image_desktop
-    m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
+    providerName = login?.settings?.provider ?? "auth0"
 
-    providerName = login?.settings?.provider ?? "UNKNOWN"
+    if m.top.useMetamask or providerName = "metamask"
+        view = CreateObject("roSGNode", "MetamaskSignInView")
+    else
+        view = CreateObject("roSGNode", "NormalSignInView")
+    end if
+    m.top.appendChild(view)
+
+    saveViewReferences()
+
+    if m.bgImage <> invalid
+        uri = login?.styling?.background_image_tv ?? login?.styling?.background_image_desktop
+        m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
+    end if
     if providerName = "ory"
-        m.metamaskButton.visible = false
+        if m.metamaskButton <> invalid then m.metamaskButton.visible = false
         provider = new OryProvider(property)
     else if providerName = "auth0"
         provider = new Auth0Provider(property)
@@ -55,6 +48,27 @@ sub onPropertyChanged()
 
     m.loginProvider = provider
     getNewCode()
+end sub
+
+sub saveViewReferences()
+    m.bgImage = m.top.findNode("bgImage")
+
+    m.qrCode = m.top.findNode("qr_code")
+    m.qrImage = m.top.findNode("qr_image")
+
+    m.newCodeButton = m.top.findNode("btn_new_code")
+    m.newCodeButton.ObserveField("buttonSelected", "getNewCode")
+    setInitialFocus(m.newCodeButton)
+
+    m.metamaskButton = m.top.findNode("btn_metamask")
+    _ = m.metamaskButton?.observeFieldScoped?("buttonSelected", "onMetamaskClicked")
+
+    m.backButton = m.top.findNode("btn_back")
+    _ = m.backButton?.observeFieldScoped?("buttonSelected", "onBackClicked")
+
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+    centerSpinner()
 end sub
 
 sub getNewCode()
@@ -89,7 +103,10 @@ sub onBackClicked()
 end sub
 
 sub onMetamaskClicked()
-    router()@.show({ view: CreateObject("roSGNode", "MetamaskLogin") })
+    view = CreateObject("roSGNode", "SignIn")
+    view.useMetamask = true
+    view.property = m.top.property
+    router()@.show({ view: view })
 end sub
 
 sub checkStatus()
@@ -117,15 +134,18 @@ end sub
 
 function OnKeyEvent(key as string, press as boolean) as boolean
     if press
+        backButtonFocused = m.backButton?.hasFocus?() ?? false
+        metamaskAvailable = m.metamaskButton?.visible ?? false
+        metamaskFocused = m.metamaskButton?.hasFocus?() ?? false
+        if key = "down" and (m.newCodeButton.hasFocus() or backButtonFocused) and metamaskAvailable
+            return m.metamaskButton.setFocus(true)
+        else if key = "up" and metamaskFocused
+            return m.newCodeButton.setFocus(true)
+        else if key = "right" and m.newCodeButton.hasFocus()
+            return m.backButton.setFocus(true)
+        else if key = "left" and backButtonFocused
+            return m.newCodeButton.setFocus(true)
+        end if
+        return false
     end if
-    if key = "down" and (m.newCodeButton.hasFocus() or m.backButton.hasFocus())
-        return m.metamaskButton.setFocus(true)
-    else if key = "up" and m.metamaskButton.hasFocus()
-        return m.newCodeButton.setFocus(true)
-    else if key = "right" and m.newCodeButton.hasFocus()
-        return m.backButton.setFocus(true)
-    else if key = "left" and m.backButton.hasFocus()
-        return m.newCodeButton.setFocus(true)
-    end if
-    return false
 end function

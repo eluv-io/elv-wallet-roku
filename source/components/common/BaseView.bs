@@ -20,3 +20,9 @@ sub onFocusedChildChanged()
         m.shouldRestoreFocus = true
     end if
 end sub
+
+' Allows inheritors to "prime" the focus restoration logic to set focus on a particular child once the parent gains focus
+sub setInitialFocus(node)
+    m.lastFocusedChild = node
+    m.shouldRestoreFocus = true
+end sub

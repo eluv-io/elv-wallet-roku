@@ -1,47 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
     <interface>
+        <!-- Must be set before [property]!! -->
+        <field id="useMetamask" type="boolean" value="false" />
         <field id="property" type="assocArray" onChange="onPropertyChanged" />
     </interface>
     <children>
         <Timer id="code_expiration_timer" repeat="false" />
         <Timer id="status_poll_timer" repeat="true" />
-        <Poster id="bgImage" width="1920" height="1080" opacity="0.7" />
-        <LayoutGroup
-            translation="[960,174]"
-            layoutDirection="vert"
-            horizAlignment="center"
-            vertAlignment="top"
-        >
-            <TvLabel text="Sign In" fontStyle="title_62" />
-            <Spacer height="30" />
-            <TvLabel id="qr_code" fontStyle="title_62" />
-            <Spacer height="18" />
-            <Group>
-                <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
-                <Poster id="qr_image" width="399" height="399" />
-            </Group>
-            <Spacer height="66" />
-            <LayoutGroup layoutDirection="horiz" itemSpacings="9">
-                <TvButton
-                    minWidth="498"
-                    id="btn_new_code"
-                    text="Request New Code"
-                />
-                <TvButton
-                    minWidth="174"
-                    id="btn_back"
-                    text="Back"
-                />
-            </LayoutGroup>
-            <Spacer height="9" />
-            <TvButton
-                id="btn_metamask"
-                text="-Or- Sign On With MetaMask"
-                focusFootprintBitmapUri=""
-                textColor="#7B7B7B"
-                minWidth="726"
-            />
-        </LayoutGroup>
     </children>
 </component>

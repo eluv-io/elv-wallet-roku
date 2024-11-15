@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="MetamaskLogin" extends="BaseView" initialFocus="btn_new_code">
+<component name="MetamaskSignInView" extends="Group">
     <children>
-        <Timer id="code_expiration_timer" repeat="false" />
-        <Timer id="status_poll_timer" repeat="true" />
         <Poster
             uri="pkg:/images/elv_logo_bw.png"
             inheritParentTransform="false"
