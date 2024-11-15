@@ -5,9 +5,9 @@ sub init()
     m.top.properties = []
 end sub
 
-function fetchDiscoverableProperties(_ = invalid) as void
+function fetchDiscoverableProperties(_ = invalid)
     print "[PropertyStore] Starting Discover Property fetch"
-    promises.onThen(
+    return promises.onThen(
     PropertyApi.discoverableProperties(),
     sub (result)
         properties = result.json.contents

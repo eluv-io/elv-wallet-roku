@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PropertyDetail" extends="BaseView">
+    <interface>
+        <field id="property" type="assocArray" onChange="onPropertyChanged"/>
+    </interface>
+    <children>
+        <Label id="lbl" text="propdetail"/>
+    </children>
+</component>

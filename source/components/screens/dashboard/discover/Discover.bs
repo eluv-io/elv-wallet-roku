@@ -61,10 +61,13 @@ sub onPropertySelected()
     end if
     loginProvider = property.login?.settings?.provider ?? "auth0"
     if stores.tokenStore().loginProvider = loginProvider
-        Toast.show("TODO: Impl property details page")
+        view = CreateObject("roSGNode", "PropertyDetail")
+        view.property = property
+        router()@.show({ view: view })
     else
         signIn = CreateObject("roSGNode", "SignIn")
         signIn.property = property
+        router().addStack = "signin"
         router()@.show({ view: signIn })
     end if
 end sub

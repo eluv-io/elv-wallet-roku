@@ -1,0 +1,6 @@
+sub init()
+end sub
+
+sub onPropertyChanged()
+    m.top.findNode("lbl").text = m.top.property.name
+end sub

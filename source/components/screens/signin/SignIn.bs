@@ -112,7 +112,7 @@ end sub
 
 sub checkStatus()
     promises.chain(m.loginProvider.checkToken(m.activationData)).then(
-    sub (result)
+    function(result)
         if result <> "pending"
             ' Assume success. this is VERY optimistic.
             ' We don't need to actually navigate to Dashboard, removing the app stack will
@@ -120,10 +120,25 @@ sub checkStatus()
             ' This is required to make sure none of the login flow screens are in the backstack after login.
             m.expirationTimer.control = "stop"
             m.statusTimer.control = "stop"
+
             stores.tokenStore().loginProvider = m.providerName
-            router().removeStack = "app"
+
+            ' Re-fetch Properties before navigating away from sign-in
+            return stores.propertyStore()@.fetchDiscoverableProperties()
+        else
+            return result
         end if
-    end sub)
+    end function).then(
+    sub(result)
+        if result <> "pending"
+            nextView = createObject("roSGNode", "PropertyDetail")
+            nextView.property = m.top.property
+
+            router().removeStack = "signin"
+            router()@.show({ view: nextView })
+        end if
+    end sub
+    )
 end sub
 
 sub centerSpinner()
