@@ -1,0 +1,131 @@
+' Mostly copied from Android.
+' The resolved permissions are stored in the permission object under [._content / ._page / ._property / ._search]
+namespace PermissionResolver
+    'Recursively resolves permissions and updates entities with resolved permissions.
+    ' @param item can be anything that has .permissions
+    ' @param parentPermissions optional parent's resolved permission object
+    ' @param permissionStates the Property level set of every permission_item_id and whether or not the user is authorized to it or not
+    sub resolvePermissions(item, parentPermissions, permissionStates)
+        ' Special cases
+        if (resolveSpecialPermissions(item.permissions, permissionStates))
+            print `[PermissionsResolver] Short-circuiting content permission resolution for ${item}`
+            return
+        end if
+
+        resolveContentPermissions(item, parentPermissions, permissionStates)
+
+        ' Iterate children and update their permissions too
+        children = [item.main_page]
+        for each child in children
+            if child <> invalid
+                resolvePermissions(child, item.permissions._content, permissionStates)
+            end if
+        end for
+    end sub
+
+    ' @return true if we can short-circuit the content permission resolution process.
+    function resolveSpecialPermissions(permissions, permissionStates) as boolean
+        if permissions.property_permissions <> invalid
+            propertyPermissions = {
+                permission_item_ids: permissions.property_permissions,
+                behavior: permissions.property_permissions_behavior
+                alternate_page_id: permissions.property_permissions_alternate_page_id,
+                secondary_market_purchase_option: permissions.property_permissions_secondary_market_purchase_option
+            }
+            permissions._property = merge(
+            propertyPermissions,
+            invalid,
+            permissionStates
+            )
+            ' An in-accessible property could still render a Page, so we can't short-circuit here.
+            return false
+        else if permissions.page_permissions <> invalid
+            pagePermissions = {
+                permission_item_ids: permissions.page_permissions,
+                behavior: permissions.page_permissions_behavior
+                alternate_page_id: permissions.page_permissions_alternate_page_id,
+                secondary_market_purchase_option: permissions.page_permissions_secondary_market_purchase_option
+            }
+            permissions._page = merge(
+            pagePermissions,
+            invalid,
+            permissionStates
+            )
+            ' In the case of an unauthorized page, we can save ourselves from checking any content
+            ' permissions, because none of that content will be visible to the user
+            return permissions._page.authorized = false
+        end if
+        return false
+    end function
+
+
+    ' Updates [item] with resolved permissions.
+    function resolveContentPermissions(item, parentPermissions, permissionStates)
+        if (parentPermissions = invalid)
+            ' top level, resolve with [item] as parent.
+            if item.permissions <> invalid
+                item.permissions._content = merge(
+                item.permissions,
+                invalid,
+                permissionStates
+                )
+            end if
+        else
+            item.permissions._content = merge(
+            parentPermissions,
+            item.rawPermissions,
+            permissionStates
+            )
+        end if
+    end function
+
+
+    ' Returns a new [CompositePermissions] with merged permissions.
+    ' Note that [parent] and [child] are not treated equally, and parent permissions take over
+    ' once we hit an unauthorized state.
+    function merge(parent, child, permissionStates)
+        if child = invalid
+            ' Child has nothing defined, [authorized] will be the same as the parent's,
+            ' unless it still needs to be calculated.
+            return CompositePermissions(parent.authorized ?? isAuthorized(parent, permissionStates), parent, parent)
+        end if
+
+        if parent.authorized = false
+            ' Parent is not authorized, everything down the line is not authorized
+            ' and will inherit behavior, unless it's not already set.
+            return CompositePermissions(false, parent, child)
+        end if
+
+        ' Parent is authorized, child will have to check its own permissions.
+        ' Child fields take precedence over parent fields.
+        return CompositePermissions(isAuthorized(child, permissionStates), child, parent)
+    end function
+
+    function CompositePermissions(authorized as boolean, primary, fallback)
+        if primary.permission_item_ids <> invalid and primary.permission_item_ids.count() > 0
+            items = primary.permission_item_ids
+        else
+            items = fallback.permission_item_ids
+        end if
+        return {
+            authorized: authorized,
+            permission_item_ids: items,
+            behavior: primary.behavior ?? fallback.behavior,
+            alternative_page_id: primary.alternative_page_id ?? fallback.alternative_page_id,
+            secondary_market_purchase_option: primary.secondary_market_purchase_option ?? fallback.secondary_market_purchase_option,
+        }
+    end function
+
+    function isAuthorized(item, authStates as roAssociativeArray) as boolean
+        permissionItems = item.permission_item_ids
+        ' If not permissionsed by any items - we're authorized
+        if permissionItems = invalid or permissionItems.count() = 0 then return true
+
+        for each item in permissionItems
+            if (authStates[item]?.authorized ?? false)
+                return true
+            end if
+        end for
+        return false
+    end function
+end namespace

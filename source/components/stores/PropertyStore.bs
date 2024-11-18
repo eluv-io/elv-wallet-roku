@@ -1,4 +1,6 @@
 import "pkg:/components/http/apis/PropertyApi.bs"
+import "pkg:/components/utils/str.bs"
+import "pkg:/components/stores/permissions/PermissionsResolver.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
@@ -10,9 +12,16 @@ function fetchDiscoverableProperties(_ = invalid)
     return promises.onThen(
     PropertyApi.discoverableProperties(),
     sub (result)
-        properties = result.json.contents
-        ' TODO: resolve permissions
-        m.top.properties = properties ?? []
+        properties = result.json.contents ?? []
+
+        ' Skip permission resolution if not logged in
+        if strNotEmpty(stores.tokenStore().fabricToken)
+            for each item in properties
+                PermissionResolver.resolvePermissions(item, invalid, item.permission_auth_state)
+            end for
+        end if
+
+        m.top.properties = properties
         print "Properties fetched and saved"
     end sub)
 end function
