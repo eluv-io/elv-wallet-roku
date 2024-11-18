@@ -5,7 +5,23 @@ sub Init()
     m.top.ObserveField("focusedChild", "onFocusedChildChanged")
 end sub
 
+' Called after m.top has been attached to a parent.
+' Sometimes needed for more complicated init logic.
+sub initAfterParenting()
+end sub
+
+' Allows inheritors to "prime" the focus restoration logic to set focus on a particular child once the parent gains focus
+sub setInitialFocus(node)
+    m.lastFocusedChild = node
+    m.shouldRestoreFocus = true
+end sub
+
 sub onFocusedChildChanged()
+    if m.__baseview_after_parent_init <> true
+        m.__baseview_after_parent_init = true
+        initAfterParenting()
+    end if
+
     if m.top.IsInFocusChain()
         if m.shouldRestoreFocus
             ' The view is becoming visible, restore focus to the last known focused child
@@ -19,10 +35,4 @@ sub onFocusedChildChanged()
         ' The view is losing focus, save a flag to restore focus next time we come back
         m.shouldRestoreFocus = true
     end if
-end sub
-
-' Allows inheritors to "prime" the focus restoration logic to set focus on a particular child once the parent gains focus
-sub setInitialFocus(node)
-    m.lastFocusedChild = node
-    m.shouldRestoreFocus = true
 end sub

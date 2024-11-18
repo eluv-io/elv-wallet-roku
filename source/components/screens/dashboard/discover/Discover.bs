@@ -18,9 +18,6 @@ sub init()
     m.logo.ObserveFieldScoped("focusedChild", "onLogoFocused")
 
     stores.propertyStore().ObserveFieldScoped("properties", "onPropertiesChanged")
-
-    'Queue a timer for 10ms just to skip the first render pass and wait for parent to be attached
-    time.setTimer(initAfterParenting, 0.01)
 end sub
 
 sub initAfterParenting()
