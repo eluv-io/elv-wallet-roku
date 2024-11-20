@@ -1,0 +1,31 @@
+import "pkg:/components/screens/property/rows/row_util.bs"
+sub init()
+end sub
+
+sub onContentChanged()
+    'TODO reuse?
+    m.top.removeChild(m.itemNode)
+
+    sectionItem = m.top.itemContent.aa
+    itemNode = invalid
+    if sectionItem?.type = "banner"
+        itemNode = m.top.createChild("BannerItem")
+    else if sectionItem?.type = "text"
+        itemNode = m.top.CreateChild("TextItem")
+    else if sectionItem?.type = "carouselItem"
+        itemNode = m.top.CreateChild("CarouselItem")
+    end if
+
+    itemNode.width = m.top.width
+    itemNode.height = m.top.height
+    itemNode.content = sectionItem
+    m.itemNode = itemNode
+end sub
+
+sub onSizeChanged()
+    item = m.itemNode
+    if item <> invalid
+        item.width = m.top.width
+        item.height = m.top.height
+    end if
+end sub

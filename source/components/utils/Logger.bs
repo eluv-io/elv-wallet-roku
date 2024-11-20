@@ -1,0 +1,14 @@
+import "pkg:/components/utils/str.bs"
+
+namespace Logger
+    sub log(message)
+        try
+            ' Might be an expensive way to do this, explore performance impact at some point..
+            throw ""
+        catch e
+            caller = e.backtrace[e.backtrace.count() - 2]
+            file = substringAfterLast(caller.filename, "/")
+            print `[${file}:${caller.line_number}] ${message}`
+        end try
+    end sub
+end namespace

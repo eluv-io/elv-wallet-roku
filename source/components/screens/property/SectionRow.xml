@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="SectionRow" extends="Group">
+    <interface>
+        <field id="rowContent" type="node" onChange ="onSectionChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="drawBeforeItems" type="boolean" value="true" />
+    </interface>
+    <children>
+        <Spacer id="bg" color="#ff000000"/>
+    </children>
+</component>

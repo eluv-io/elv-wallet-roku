@@ -1,0 +1,17 @@
+namespace AspectRatio
+    const SQUARE = 1.0
+    const WIDE = 16.0 / 9.0
+    const POSTER = 2.0 / 3.0
+
+    function fromString(ratioStr)
+        if ratioStr = "Square"
+            return SQUARE
+        else if ratioStr = "Wide" or ratioStr = "Landscape"
+            return WIDE
+        else if ratioStr = "Poster" or ratioStr = "Portrait"
+            return POSTER
+        else
+            return invalid
+        end if
+    end function
+end namespace

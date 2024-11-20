@@ -1,11 +1,8 @@
 import "pkg:/components/http/apis/PropertyApi.bs"
 import "pkg:/components/utils/str.bs"
 import "pkg:/components/stores/permissions/PermissionsResolver.bs"
+import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/utils/promise.bs"
-
-sub init()
-    m.top.properties = []
-end sub
 
 function fetchDiscoverableProperties(_ = invalid)
     print "[PropertyStore] Starting Discover Property fetch"
@@ -23,5 +20,27 @@ function fetchDiscoverableProperties(_ = invalid)
 
         m.top.properties = properties
         print "Properties fetched and saved"
+    end sub)
+end function
+
+function fetchSections(property, page)
+    Logger.log(source_function_name)
+    context = {
+        key: `${property.id}_${page.id}`
+        pageContentPermissions: page.permissions._content,
+        authStates: property.permission_auth_state
+    }
+    return promises.chain(
+    PropertyApi.sectionsById(property.id, page.layout.sections),
+    context
+    ).then(sub(response, context)
+        sections = response.json.contents
+        for each section in sections
+            PermissionResolver.resolvePermissions(section, context.pageContentPermissions, context.authStates)
+        end for
+        Logger.log(`Saved sections for ${context.key}`)
+        allSections = m.top.sections
+        allSections[context.key] = sections
+        m.top.sections = allSections
     end sub)
 end function

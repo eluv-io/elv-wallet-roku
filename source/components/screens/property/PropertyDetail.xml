@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="PropertyDetail" extends="BaseView">
+<component name="PropertyDetail" extends="BaseView" initialFocus="rowList">
     <interface>
-        <field id="property" type="assocArray" onChange="onPropertyChanged"/>
+        <field id="property" type="assocArray" onChange="onPropertyChanged" />
     </interface>
     <children>
-        <Label id="lbl" text="propdetail"/>
+        <Poster id="bgImage" width="1920" height="1080" />
+        <ZoomRowList
+            id="rowList"
+            itemComponentName="SectionItem"
+            rowDecorationComponentName='["SectionRow"]'
+            spacingAfterRow="30"
+            remainZoomedAboveFocus="never"
+            fadeOutAboveFocus="never"
+            useDefaultAspectRatio="[false]"
+            wrap="false"
+            translation="[78,0]"
+        />
     </children>
 </component>

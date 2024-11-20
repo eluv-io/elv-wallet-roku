@@ -1,0 +1,13 @@
+import "pkg:/components/screens/property/rows/row_util.bs"
+
+sub init()
+end sub
+
+sub onContentChanged()
+    ' content = m.top.content
+end sub
+
+sub onSizeChanged()
+    ' Handle height growth due to zoom
+    ' m.tmp.translation = [0, m.top.height]
+end sub

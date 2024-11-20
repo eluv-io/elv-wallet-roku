@@ -1,0 +1,23 @@
+import "pkg:/components/utils/AspectRatio.bs"
+
+namespace DisplaySettings
+    ' Media items are themselves a "DisplaySettings"
+    function getThumbnailAndRatio(display)
+        if display?.thumbnail_image_square <> invalid
+            return {
+                thumbnail: display.thumbnail_image_square,
+                aspectRatio: AspectRatio.SQUARE
+            }
+        else if display?.thumbnail_image_portrait <> invalid
+            return {
+                thumbnail: display.thumbnail_image_portrait,
+                aspectRatio: AspectRatio.POSTER
+            }
+        else if display?.thumbnail_image_landscape <> invalid
+            return {
+                thumbnail: display.thumbnail_image_landscape,
+                aspectRatio: AspectRatio.WIDE
+            }
+        end if
+    end function
+end namespace

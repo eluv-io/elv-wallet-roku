@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="BannerItem" extends="Group">
+    <interface>
+        <field id="content" type="assocArray" onChange="onContentChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+    </interface>
+    <children>
+        <Poster id="image" />
+    </children>
+</component>

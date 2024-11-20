@@ -1,6 +1,182 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/AspectRatio.bs"
+import "pkg:/components/screens/property/DisplaySettings.bs"
+import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/stores/stores.bs"
+
 sub init()
+    m.bgImage = m.top.findNode("bgImage")
+    m.rowList = m.top.findNode("rowList")
+    m.rowList.rowWidth = 1920 - m.rowList.translation[0]
+    m.rowList.observeFieldScoped("rowItemSelected", "onSectionItemSelected")
 end sub
 
 sub onPropertyChanged()
-    m.top.findNode("lbl").text = m.top.property.name
+    property = m.top.property
+
+    ' TODO: figure out page according to permissions
+    m.page = property.main_page
+
+    stores.propertyStore()@.fetchSections(property, m.page)
+    stores.propertyStore().ObserveFieldScoped("sections", "onSectionsChanged")
+    onSectionsChanged()
+end sub
+
+sub onSectionsChanged()
+    Logger.log(source_function_name)
+    property = m.top.property
+    sections = stores.propertyStore().sections[`${property?.id}_${m.page.id}`]
+    if sections = invalid then return
+    content = createObject("roSGNode", "ContentNode")
+    heroSectionBgImage = invalid
+    for each section in sections
+        sectionToNodes(section, content)
+
+        ' Find the first hero section and use its background as the page background.
+        if heroSectionBgImage = invalid and section.type = "hero"
+            for each heroItem in section.hero_items
+                if heroItem.display?.background_image <> invalid
+                    heroSectionBgImage = heroItem.display?.background_image
+                    exit for
+                end if
+            end for
+        end if
+    end for
+
+    m.bgImage.uri = UrlUtil.imageLinkToUrl(heroSectionBgImage ?? m.page.layout.background_image, m.bgImage.height)
+
+    updateListHeights(content)
+
+    m.rowList.content = content
+end sub
+
+sub updateListHeights(content)
+    listTopPadding = 102
+
+    rowHeight = createObject("roArray", content.getChildCount(), false)
+    rowZoomHeight = createObject("roArray", content.getChildCount(), false)
+
+    rowItemHeight = createObject("roArray", content.getChildCount(), false)
+    rowItemZoomHeight = createObject("roArray", content.getChildCount(), false)
+
+    rowItemYOffset = createObject("roArray", content.getChildCount(), false)
+    rowItemZoomYOffset = createObject("roArray", content.getChildCount(), false)
+
+    for i = 0 to content.getChildCount() - 1
+        height = content.getChild(i).desiredHeight ?? 200
+        rowHeight[i] = height
+        rowZoomHeight[i] = height + listTopPadding
+        rowItemHeight[i] = height
+        rowItemZoomHeight[i] = height
+
+        rowItemYOffset[i] = 0
+        rowItemZoomYOffset[i] = listTopPadding
+    end for
+
+    rowList = m.rowList
+
+    rowList.rowHeight = rowHeight
+    rowList.rowZoomHeight = rowZoomHeight
+    rowList.rowItemHeight = rowItemHeight
+    rowList.rowItemZoomHeight = rowItemZoomHeight
+    rowList.rowItemYOffset = rowItemYOffset
+    rowList.rowItemZoomYOffset = rowItemZoomYOffset
+end sub
+
+' Each "section" from the backend might end up being 0-n rows on the UI
+sub sectionToNodes(section, rootNode)
+    if shouldHideSection(section) then return
+    if section.type = "automatic" or section.type = "manual" or section.type = "search"
+        createCarouselSection(section, rootNode)
+    else if section.type = "hero"
+        createHeroSections(section, rootNode)
+    end if
+end sub
+
+function shouldHideSection(section)
+    if section.permissions?._content?.authorized <> true then return true
+    if section.display.hide_on_tv = true then return true
+    ' TODO:
+    ' if type=contrainer and all subsections hidden -> return true
+    ' if all items are hidden -> return true
+    return false
+end function
+
+
+sub createCarouselSection(section, rootNode)
+    row = createNewSection("carousel", rootNode, { display: section.display })
+    for each item in section.content
+        child = row.createChild("AAContentNode")
+        child.aa = { "type": "carouselItem", item: item }
+        child.update({ aspectRatio: DisplaySettings.getThumbnailAndRatio(item.media)?.aspectRatio }, true)
+    end for
+end sub
+
+sub createHeroSections(section, rootNode)
+    ' Create a dummy label we can measure text-sections against
+    dummyLabel = createObject("roSGNode", "TvLabel")
+
+    items = section.hero_items ?? []
+    for each item in items
+        if item.display?.logo <> invalid
+            ' Create banner from Hero logo
+            row = createNewSection("generic", rootNode)
+            row.createChild("AAContentNode").aa = { "type": "banner", imageLink: item.display.logo }
+        end if
+        createTextSection(item.display?.title, 1, "carousel_48", dummyLabel, rootNode)
+        createTextSection(item.display?.description, 3, "label_24", dummyLabel, rootNode)
+    end for
+end sub
+
+sub createTextSection(text, maxLines, fontStyle, dummyLabel, rootNode)
+    if text = invalid then return
+    row = createNewSection("textSection", rootNode)
+    labelSettings = {
+        "type": "text"
+        text: text,
+        maxLines: maxLines,
+        fontStyle: fontStyle,
+        wrap: true
+    }
+    ' Update the dummy label with the settings so we can measure how wide it would grow naturally
+    dummyLabel.setFields(labelSettings)
+
+    width = dummyLabel.boundingRect().width
+    ' same width set in TextItem
+    labelMaxWidth = 990
+    if width > labelMaxWidth then width = labelMaxWidth
+
+    ' Bound the width to labelMaxWidth to check how many lines the label would wrap to.
+    dummyLabel.width = labelMaxWidth
+    height = dummyLabel.boundingRect().height
+    ' Reset for next use
+    dummyLabel.width = 0
+
+    textItem = row.createChild("AAContentNode")
+    textItem.update({ aspectRatio: width / height }, true)
+    textItem.aa = labelSettings
+
+    row.update({ desiredHeight: height }, true)
+end sub
+
+function createNewSection(sectionType, rootNode, additionalInfo = invalid)
+    section = rootNode.createChild("AAContentNode")
+    aa = { "type": sectionType }
+    aa.append(additionalInfo)
+    section.aa = aa
+    return section
+end function
+
+sub onSectionItemSelected(event)
+    index = m.rowList.rowItemSelected
+    item = m.rowList.content.getChild(index[0]).getChild(index[1])
+    itemType = item.aa.type
+    if itemType = "carouselItem"
+        Toast.show(`TODO: media card click`)
+    else if itemType = "text"
+        Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
+    else
+        Toast.show(`to be impl: type=${itemType}`)
+    end if
 end sub

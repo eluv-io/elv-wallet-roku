@@ -2,3 +2,25 @@
 function strNotEmpty(s) as boolean
     return getInterface(s, "ifString") <> invalid and s <> ""
 end function
+
+function substringAfterLast(s, delimiter, missingDelimiterValue = s)
+    if s = invalid then return missingDelimiterValue
+    
+    index = -1
+    while true
+        nextIndex = s.inStr(index + 1, delimiter)
+        if nextIndex = -1
+            ' no more occurances, [index] is our final result
+            exit while
+        else
+            ' Advance [index] and look for more in the next iteration
+            index = nextIndex
+        end if
+    end while
+    
+    if index = -1
+        return missingDelimiterValue
+    else
+        return s.mid(index + 1)
+    end if
+end function

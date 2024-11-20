@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="PropertyStore" extends="Node">
     <interface>
-        <field id="properties" type="array" />
+        <!-- Array of all Properties known to the app -->
+        <field id="properties" type="array" value="[]" />
+        <!-- A map of PropertyID_PageID to list of sections in the papge -->
+        <field id="sections" type="assocArray" value="{}" />
+
         <function name="fetchDiscoverableProperties" />
+        <function name="fetchSections" />
     </interface>
 </component>

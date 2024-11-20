@@ -1,0 +1,21 @@
+import "pkg:/components/screens/property/DisplaySettings.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+
+sub init()
+    m.image = m.top.findNode("image")
+end sub
+
+sub onContentChanged()
+    content = m.top.content
+
+    imageLink = DisplaySettings.getThumbnailAndRatio(content.item.media).thumbnail
+    uri = UrlUtil.imageLinkToUrl(imageLink, m.image.height)
+    if m.image.uri <> uri
+        m.image.uri = uri
+    end if
+end sub
+
+sub onSizeChanged()
+    m.image.width = m.top.width
+    m.image.height = m.top.height
+end sub

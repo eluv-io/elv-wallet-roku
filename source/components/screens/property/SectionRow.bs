@@ -1,0 +1,17 @@
+sub init()
+    m.bg = m.top.findNode("bg")
+end sub
+
+sub onSectionChanged()
+    ' TODO: impl section backgrounds and stuff
+end sub
+
+sub onRowFocusChange()
+end sub
+
+sub onSizeChanged()
+    width = m.top.width
+    height = m.top.height
+    m.bg.width = width
+    m.bg.height = height
+end sub

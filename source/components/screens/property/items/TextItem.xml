@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="TextItem" extends="Group">
+    <interface>
+        <field id="content" type="assocArray" onChange="onContentChanged" />
+
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+    </interface>
+    <children>
+        <TvLabel
+            id="label"
+            width="990"
+            wrap="true"
+            maxLines="2"
+        />
+    </children>
+</component>

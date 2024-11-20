@@ -1,0 +1,16 @@
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/screens/property/rows/row_util.bs"
+
+sub init()
+    m.label = m.top.findNode("label")
+end sub
+
+sub onContentChanged()
+    ' [content] includes all the Label fields like text/maxLines/fontStyle etc
+    m.label.setFields(m.top.content)
+end sub
+
+sub onSizeChanged()
+    m.label.width = m.top.width
+    m.label.height = m.top.height
+end sub

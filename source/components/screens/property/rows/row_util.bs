@@ -1,0 +1,28 @@
+' Finds a ZoomRowList in the hierarchy and sets the rowHeight at [index] to [height]
+sub updateRowHeight(node, index, height)
+    return
+    parent = findZoomRowListParent(node)
+    if parent <> invalid
+        rowHeights = parent.rowHeight
+        rowHeights[index] = height
+        if index = 0
+            ' Add padding to first row 
+            rowHeights[0] += parent.rowItemYOffset[0]
+        end if
+        parent.rowHeight = rowHeights
+        parent.rowZoomHeight = rowHeights
+
+        itemHeights = parent.rowItemHeight
+        itemHeights[index] = height
+        parent.rowItemHeight = itemHeights
+        parent.rowItemZoomHeight = itemHeights
+    end if
+end sub
+
+function findZoomRowListParent(node)
+    parent = node.getParent()
+    while parent <> invalid and parent.subtype() <> "ZoomRowList"
+        parent = parent.getParent()
+    end while
+    return parent
+end function

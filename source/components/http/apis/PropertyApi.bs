@@ -15,4 +15,9 @@ namespace PropertyApi
         url = `${baseUrl()}/mw/properties?include_public=false`
         return http.get(url)
     end function
+
+    function sectionsById(propertyId, sectionIds)
+        url = `${baseUrl()}/mw/properties/${propertyId}/sections?resolve_subsections=true`
+        return http.post(url, formatJson(sectionIds))
+    end function
 end namespace
