@@ -9,6 +9,11 @@ sub init()
 end sub
 
 sub updateLabelBgSize()
+    if m.top.getParent() = invalid
+        ' Not attached to parent yet, try again soon
+        time.setTimer(updateLabelBgSize, 0.01)
+        return
+    endif
     rect = m.label.boundingRect()
     if rect <> invalid
         ' Add horiz/vert padding
