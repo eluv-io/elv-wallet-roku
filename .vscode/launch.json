@@ -14,7 +14,8 @@
             "rootDir": "${workspaceFolder}/dist",
             "preLaunchTask": "build",
             "enableDebugProtocol": true,
-            "injectRdbOnDeviceComponent": true
+            "injectRdbOnDeviceComponent": true,
+            "rendezvousTracking": false,
         }
     ]
 }
