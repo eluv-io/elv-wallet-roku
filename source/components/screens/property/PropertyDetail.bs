@@ -124,7 +124,7 @@ end function
 
 
 sub createCarouselSection(section, rootNode)
-    row = createNewSection("carousel", rootNode, { display: section.display })
+    row = createNewSection(rootNode, section.display)
     row.title = section.display?.title
     for each item in section.content
         child = row.createChild("AAContentNode")
@@ -138,7 +138,7 @@ sub createHeroSections(section, rootNode)
     for each item in items
         if item.display?.logo <> invalid
             ' Create banner from Hero logo
-            row = createNewSection("generic", rootNode)
+            row = createNewSection(rootNode)
             row.createChild("AAContentNode").aa = { "type": "banner", imageLink: item.display.logo }
         end if
         createTextSection(item.display?.title, 1, "carousel_48", rootNode)
@@ -148,7 +148,7 @@ end sub
 
 sub createTextSection(text, maxLines, fontStyle, rootNode)
     if text = invalid then return
-    row = createNewSection("textSection", rootNode)
+    row = createNewSection(rootNode)
     labelSettings = {
         "type": "text"
         text: text,
@@ -179,11 +179,11 @@ sub createTextSection(text, maxLines, fontStyle, rootNode)
     row.update({ desiredHeight: height }, true)
 end sub
 
-function createNewSection(sectionType, rootNode, additionalInfo = invalid)
+function createNewSection(rootNode, display = invalid)
     section = rootNode.createChild("AAContentNode")
-    aa = { "type": sectionType }
-    aa.append(additionalInfo)
-    section.aa = aa
+    if display <> invalid
+        section.update({ display: display }, true)
+    end if
     return section
 end function
 
