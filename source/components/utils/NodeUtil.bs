@@ -6,3 +6,18 @@ sub findFocusedNode(node as roSGNode) as roSGNode
     end while
     return invalid
 end sub
+
+' Small convenince method to observe fields on nodes.
+' Main just a way to make sure we are referencing a function that exists by using references instead of strings.
+sub observe(node, field, callback, scoped = true)
+    ' convert callback ref to string
+    if type(callback) = "roFunction" or type(callback) = "Function" then
+        callback = callback.toStr().tokenize(" ").peek()
+    end if
+
+    if scoped
+        node.observeFieldScoped(field, callback)
+    else
+        node.observeField(field, callback)
+    endif
+end sub

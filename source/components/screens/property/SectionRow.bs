@@ -1,12 +1,20 @@
+import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/screens/property/SectionConstants.bs"
+
 sub init()
     m.bg = m.top.findNode("bg")
+    m.title = m.top.findNode("title")
 end sub
 
 sub onSectionChanged()
     ' TODO: impl section backgrounds and stuff
+    m.title.text = m.top.rowContent.title
 end sub
 
 sub onRowFocusChange()
+    ' Slide the title "down" as the row height increases, 
+    ' to keep it at the same position relative to the row items
+    m.title.translation = [0, SectionConstants.PROPERTY_LIST_TOP_PADDING * m.top.rowFocusPercent]
 end sub
 
 sub onSizeChanged()

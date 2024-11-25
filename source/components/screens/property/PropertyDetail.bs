@@ -3,13 +3,17 @@ import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/utils/AspectRatio.bs"
 import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
     m.rowList = m.top.findNode("rowList")
     m.rowList.rowWidth = 1920 - m.rowList.translation[0]
-    m.rowList.observeFieldScoped("rowItemSelected", "onSectionItemSelected")
+    observe(m.rowList, "rowItemSelected", onSectionItemSelected)
+
+    ' Dummy label that isn't attached to the screen. We use that to measure text sizes.
+    m.dummyLabel = createObject("roSGNode", "TvLabel")
 end sub
 
 sub onPropertyChanged()
@@ -52,36 +56,51 @@ sub onSectionsChanged()
 end sub
 
 sub updateListHeights(content)
-    listTopPadding = 102
+    listTopPadding = SectionConstants.PROPERTY_LIST_TOP_PADDING
 
-    rowHeight = createObject("roArray", content.getChildCount(), false)
-    rowZoomHeight = createObject("roArray", content.getChildCount(), false)
+    rowCount = content.getChildCount()
+    rowHeights = createObject("roArray", rowCount, false)
+    rowZoomHeights = createObject("roArray", rowCount, false)
 
-    rowItemHeight = createObject("roArray", content.getChildCount(), false)
-    rowItemZoomHeight = createObject("roArray", content.getChildCount(), false)
+    rowItemHeights = createObject("roArray", rowCount, false)
+    rowItemZoomHeights = createObject("roArray", rowCount, false)
 
-    rowItemYOffset = createObject("roArray", content.getChildCount(), false)
-    rowItemZoomYOffset = createObject("roArray", content.getChildCount(), false)
+    rowItemYOffsets = createObject("roArray", rowCount, false)
+    rowItemZoomYOffsets = createObject("roArray", rowCount, false)
 
-    for i = 0 to content.getChildCount() - 1
-        height = content.getChild(i).desiredHeight ?? 200
-        rowHeight[i] = height
-        rowZoomHeight[i] = height + listTopPadding
-        rowItemHeight[i] = height
-        rowItemZoomHeight[i] = height
+    dummyLabel = m.dummyLabel
+    dummyLabel.update({
+        text: "A"
+        fontStle: "body_32"
+        maxLines: 1
+    })
+    titleFontHeight = dummyLabel.boundingRect().height
+    rowTitleOffsets = createObject("roArray", rowCount, false)
 
-        rowItemYOffset[i] = 0
-        rowItemZoomYOffset[i] = listTopPadding
+    for i = 0 to rowCount - 1
+        row = content.getChild(i)
+        itemHeight = row.desiredHeight ?? 200
+        rowHeight = itemHeight
+        if strNotEmpty(row.title)
+            rowHeight += titleFontHeight + 30 ' a lil' extra padding below title
+        end if
+        rowHeights[i] = rowHeight
+        rowZoomHeights[i] = rowHeight + listTopPadding
+        rowItemHeights[i] = itemHeight
+        rowItemZoomHeights[i] = itemHeight
+
+        rowItemYOffsets[i] = rowHeight - itemHeight
+        rowItemZoomYOffsets[i] = (rowHeight - itemHeight) + listTopPadding
     end for
 
     rowList = m.rowList
-
-    rowList.rowHeight = rowHeight
-    rowList.rowZoomHeight = rowZoomHeight
-    rowList.rowItemHeight = rowItemHeight
-    rowList.rowItemZoomHeight = rowItemZoomHeight
-    rowList.rowItemYOffset = rowItemYOffset
-    rowList.rowItemZoomYOffset = rowItemZoomYOffset
+    rowList.rowHeight = rowHeights
+    rowList.rowZoomHeight = rowZoomHeights
+    rowList.rowItemHeight = rowItemHeights
+    rowList.rowItemZoomHeight = rowItemZoomHeights
+    rowList.rowItemYOffset = rowItemYOffsets
+    rowList.rowItemZoomYOffset = rowItemZoomYOffsets
+    rowList.rowTitleOffset = rowTitleOffsets
 end sub
 
 ' Each "section" from the backend might end up being 0-n rows on the UI
@@ -106,6 +125,7 @@ end function
 
 sub createCarouselSection(section, rootNode)
     row = createNewSection("carousel", rootNode, { display: section.display })
+    row.title = section.display?.title
     for each item in section.content
         child = row.createChild("AAContentNode")
         child.aa = { "type": "carouselItem", item: item }
@@ -114,9 +134,6 @@ sub createCarouselSection(section, rootNode)
 end sub
 
 sub createHeroSections(section, rootNode)
-    ' Create a dummy label we can measure text-sections against
-    dummyLabel = createObject("roSGNode", "TvLabel")
-
     items = section.hero_items ?? []
     for each item in items
         if item.display?.logo <> invalid
@@ -124,12 +141,12 @@ sub createHeroSections(section, rootNode)
             row = createNewSection("generic", rootNode)
             row.createChild("AAContentNode").aa = { "type": "banner", imageLink: item.display.logo }
         end if
-        createTextSection(item.display?.title, 1, "carousel_48", dummyLabel, rootNode)
-        createTextSection(item.display?.description, 3, "label_24", dummyLabel, rootNode)
+        createTextSection(item.display?.title, 1, "carousel_48", rootNode)
+        createTextSection(item.display?.description, 3, "label_24", rootNode)
     end for
 end sub
 
-sub createTextSection(text, maxLines, fontStyle, dummyLabel, rootNode)
+sub createTextSection(text, maxLines, fontStyle, rootNode)
     if text = invalid then return
     row = createNewSection("textSection", rootNode)
     labelSettings = {
@@ -139,6 +156,8 @@ sub createTextSection(text, maxLines, fontStyle, dummyLabel, rootNode)
         fontStyle: fontStyle,
         wrap: true
     }
+
+    dummyLabel = m.dummyLabel
     ' Update the dummy label with the settings so we can measure how wide it would grow naturally
     dummyLabel.setFields(labelSettings)
 
