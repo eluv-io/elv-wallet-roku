@@ -139,7 +139,10 @@ sub createHeroSections(section, rootNode)
         if item.display?.logo <> invalid
             ' Create banner from Hero logo
             row = createNewSection(rootNode)
-            row.createChild("AAContentNode").aa = { "type": "banner", imageLink: item.display.logo }
+            child = row.createChild("AAContentNode")
+            child.aa = { "type": "banner", imageLink: item.display.logo }
+            child.update({aspectRatio: 7.0}, true)
+            row.update({ desiredHeight: 180 }, true)
         end if
         createTextSection(item.display?.title, 1, "carousel_48", rootNode)
         createTextSection(item.display?.description, 3, "label_24", rootNode)

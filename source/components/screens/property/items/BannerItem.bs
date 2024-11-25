@@ -1,37 +1,36 @@
 import "pkg:/components/screens/property/rows/row_util.bs"
+import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/utils/NodeUtil.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
     m.image = m.top.findNode("image")
-    m.image.observeFieldScoped("loadStatus", "onStatusChanged")
+    observe(m.image, "loadStatus", onStatusChanged)
 end sub
 
 sub onStatusChanged()
-    ' if m.image.loadStatus = "ready"
-    '     updateRowHeight(m.top, m.top.rowIndex, m.image.bitmapHeight)
-    '     zoomList = findZoomRowListParent(m.top)
-    '     zoomList.setChildWidth = [m.top.rowIndex, m.top.index, m.image.bitmapWidth]
-    ' end if
+    if m.image.loadStatus = "ready"
+        image = m.image
+        ' Resize image width to not be longer than the actual bitmap width.
+        ' This will prevent the logo from being center-aligned instead of left-aligned.
+        if image.width > image.bitmapWidth
+            image.width = image.bitmapWidth
+        end if
+    end if
 end sub
 
 sub onContentChanged()
     content = m.top.content
-    maxHeight = 120
-    ' updateRowHeight(m.top, m.top.rowIndex, 120)
-
     imageLink = m.top.content.imageLink
-    uri = UrlUtil.imageLinkToUrl(imageLink, maxHeight)
+    uri = UrlUtil.imageLinkToUrl(imageLink, m.top.height)
     if m.image.uri <> uri
         m.image.uri = uri
     end if
 end sub
 
 sub onSizeChanged()
-    'TODO: come back to this
-    ' image = m.image
-    ' image.height = m.top.height
-    ' if image.height > 0
-    '     imageLink = m.top.content.imageLink
-    '     image.uri = UrlUtil.imageLinkToUrl(imageLink, image.height)
-    ' end if
+    ' This happens before content is set
+    image = m.image
+    image.width = m.top.width
+    image.height = m.top.height
 end sub

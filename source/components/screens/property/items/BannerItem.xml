@@ -6,6 +6,6 @@
         <field id="height" type="float" onChange="onSizeChanged" />
     </interface>
     <children>
-        <Poster id="image" />
+        <Poster id="image" loadDisplayMode="scaleToFit" />
     </children>
 </component>
