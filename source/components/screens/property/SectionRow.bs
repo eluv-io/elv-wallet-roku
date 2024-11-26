@@ -1,4 +1,5 @@
 import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 
 sub init()
@@ -7,14 +8,30 @@ sub init()
 end sub
 
 sub onSectionChanged()
+    content = m.top.rowContent
+    m.title.text = content.title
+
+    yOffset = 0
+    decorations = content.customDecorations ?? []
+' Add all decorations as children nodes of the row, in a vertical stack
+    for each decoration in decorations
+        node = m.top.createChild(decoration.type)
+        node.width = decoration.width
+        node.height = decoration.height
+        node.content = decoration.content
+        node.translation = [0, yOffset]
+        yOffset += decoration.height
+    end for
+    ' Put the title below all the decorations
+    m.title.translation = [0, yOffset]
+
     ' TODO: impl section backgrounds and stuff
-    m.title.text = m.top.rowContent.title
 end sub
 
 sub onRowFocusChange()
-    ' Slide the title "down" as the row height increases, 
+    ' Slide the title and decorations "down" as the row height increases,
     ' to keep it at the same position relative to the row items
-    m.title.translation = [0, SectionConstants.PROPERTY_LIST_TOP_PADDING * m.top.rowFocusPercent]
+    m.top.translation = [0, SectionConstants.PROPERTY_LIST_TOP_PADDING * m.top.rowFocusPercent]
 end sub
 
 sub onSizeChanged()
