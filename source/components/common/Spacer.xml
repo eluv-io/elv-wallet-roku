@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="Spacer" extends="Rectangle" />
+<component name="Spacer" extends="Rectangle">
+    <script type="text/brightscript">
+        <![CDATA[
+
+        sub init()
+            m.top.color = "#00000000"
+        end sub
+
+        ]]>
+    </script>
+</component>

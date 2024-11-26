@@ -62,16 +62,16 @@ namespace NftOps
         node.contentType = contentType
 
         if usePosterImage and item.poster_image <> invalid
-            aspectRatio = 2 / 3
+            ratio = 2 / 3
             node.FHDPosterUrl = UrlUtil.assetLinkToUrl(item.poster_image)
         else
             ' RedeemableOffers won't have this, so they'll default to 1x1 ratio.
-            aspectRatio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
+            ratio = lcase(item.image_aspect_ratio ?? "") = "wide" ? 16 / 9 : 1
             node.FHDPosterUrl = item.image
         end if
 
         node.addField("FHDItemWidth", "float", false)
-        node.FHDItemWidth = itemHeight * aspectRatio
+        node.FHDItemWidth = itemHeight * ratio
 
         ' Now it's safe to reparent the node
         node.reparent(rootNode, false)

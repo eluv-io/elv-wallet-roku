@@ -4,12 +4,16 @@ import "pkg:/components/utils/AspectRatio.bs"
 import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
     m.rowList = m.top.findNode("rowList")
-    m.rowList.rowWidth = 1920 - m.rowList.translation[0]
+    listLeftPadding = m.rowList.translation[0]
+    m.rowList.rowWidth = 1920 - listLeftPadding
+    m.rowList.itemClippingRect = { x: -listLeftPadding, y: 0, width: 1920, height: 1080 }
+    m.rowList.clippingRect = [-listLeftPadding, 0, 1920, 1080]
     observe(m.rowList, "rowItemSelected", onSectionItemSelected)
 
     ' Dummy label that isn't attached to the screen. We use that to measure text sizes.
@@ -160,6 +164,10 @@ function createCarouselSection(section, decorations)
         child.aa = { "type": "CarouselItem", item: item }
         child.update({ aspectRatio: DisplaySettings.getThumbnailAndRatio(item.media)?.aspectRatio }, true)
     end for
+    'TODO: don't always show VIEW ALL
+    viewAll = row.createChild("AAContentNode")
+    viewAll.aa = { "type": "ViewAllButton" }
+    viewAll.update({ aspectRatio: 0.4 }, true)
     return [row]
 end function
 
@@ -260,12 +268,12 @@ function createNewSection(display = invalid)
 end function
 
 sub onSectionItemSelected(event)
-    index = m.rowList.rowItemSelected
+    index = m.rowList.rowItemSelected ' [rowIndex, itemIndex]
     item = m.rowList.content.getChild(index[0]).getChild(index[1])
     itemType = item.aa.type
-    if itemType = "carouselItem"
+    if itemType = "CarouselItem"
         Toast.show(`TODO: media card click`)
-    else if itemType = "text"
+    else if itemType = "TextItem"
         Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
     else
         Toast.show(`to be impl: type=${itemType}`)

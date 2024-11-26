@@ -13,12 +13,14 @@ sub onSectionChanged()
 
     yOffset = 0
     decorations = content.customDecorations ?? []
-' Add all decorations as children nodes of the row, in a vertical stack
+    ' Add all decorations as children nodes of the row, in a vertical stack
     for each decoration in decorations
         node = m.top.createChild(decoration.type)
         node.width = decoration.width
         node.height = decoration.height
-        node.content = decoration.content
+        if node.doesExist("content")
+            node.content = decoration.content
+        end if
         node.translation = [0, yOffset]
         yOffset += decoration.height
     end for
@@ -26,17 +28,14 @@ sub onSectionChanged()
     m.title.translation = [0, yOffset]
 
     ' TODO: impl section backgrounds and stuff
+    ' Push BG all the way to scene 0,yOffset
+    m.bg.translation = [-m.bg.sceneBoundingRect().x, yOffset]
+    m.bg.height = m.top.height - yOffset
+    ' m.bg.color = (rnd(&hffffff)<<8) or &h000000ff
 end sub
 
 sub onRowFocusChange()
     ' Slide the title and decorations "down" as the row height increases,
     ' to keep it at the same position relative to the row items
     m.top.translation = [0, SectionConstants.PROPERTY_LIST_TOP_PADDING * m.top.rowFocusPercent]
-end sub
-
-sub onSizeChanged()
-    width = m.top.width
-    height = m.top.height
-    m.bg.width = width
-    m.bg.height = height
 end sub

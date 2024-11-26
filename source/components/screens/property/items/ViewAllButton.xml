@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ViewAllButton" extends="Group">
+    <interface>
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+    </interface>
+    <children>
+        <Rectangle id="bg" color="#00000022">
+            <TvLabel
+                id="btn"
+                text="View All"
+                maxLines="2"
+                wrap="true"
+                fontStyle="label_24"
+                horizAlign="center"
+                vertAlign="center"
+            />
+        </Rectangle>
+    </children>
+</component>

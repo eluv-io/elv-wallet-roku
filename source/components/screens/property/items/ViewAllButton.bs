@@ -1,0 +1,15 @@
+sub init()
+    m.btn = m.top.findNode("btn")
+    m.bg = m.top.findNode("bg")
+end sub
+
+sub onSizeChanged()
+    width = m.top.width 
+    height =m.top.height 
+    
+    m.btn.width = width
+    m.btn.height = height
+
+    m.bg.width = width
+    m.bg.height = height
+end sub

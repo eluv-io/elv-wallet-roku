@@ -11,7 +11,9 @@ sub onContentChanged()
 
     itemNode.width = m.top.width
     itemNode.height = m.top.height
-    itemNode.content = sectionItem
+    if itemNode.doesExist("content")
+        itemNode.content = sectionItem
+    end if
     m.itemNode = itemNode
 end sub
 

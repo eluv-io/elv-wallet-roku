@@ -2,13 +2,13 @@
 <component name="SectionRow" extends="Group">
     <interface>
         <field id="rowContent" type="node" onChange="onSectionChanged" />
-        <field id="width" type="float" onChange="onSizeChanged" />
-        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="width" type="float" />
+        <field id="height" type="float" />
         <field id="drawBeforeItems" type="boolean" value="true" />
         <field id="rowFocusPercent" type="float" onChange="onRowFocusChange" />
     </interface>
     <children>
-        <Spacer id="bg" color="#ff000000" />
+        <Spacer id="bg" width="1920" />
         <TvLabel id="title" fontStyle="body_32" />
     </children>
 </component>
