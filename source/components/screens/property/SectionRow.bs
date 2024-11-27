@@ -3,7 +3,8 @@ import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 
 sub init()
-    m.bg = m.top.findNode("bg")
+    m.bgColor = m.top.findNode("bgColor")
+    m.bgImage = m.top.findNode("bgImage")
     m.title = m.top.findNode("title")
 end sub
 
@@ -25,13 +26,19 @@ sub onSectionChanged()
         yOffset += decoration.height
     end for
     ' Put the title below all the decorations
-    m.title.translation = [0, yOffset]
+    m.title.translation = [0, yOffset + SectionConstants.SECTION_TOP_PADDING]
 
-    ' TODO: impl section backgrounds and stuff
     ' Push BG all the way to scene 0,yOffset
-    m.bg.translation = [-m.bg.sceneBoundingRect().x, yOffset]
-    m.bg.height = m.top.height - yOffset
-    ' m.bg.color = (rnd(&hffffff)<<8) or &h000000ff
+    m.bgColor.translation = [-m.bgColor.sceneBoundingRect().x, yOffset]
+    m.bgImage.translation = [-m.bgImage.sceneBoundingRect().x, yOffset]
+    m.bgColor.height = m.top.height - yOffset
+    m.bgImage.height = m.top.height - yOffset
+    if strNotEmpty(content.display?.inline_background_color)
+        m.bgColor.color = content.display?.inline_background_color
+    end if
+    if content.display?.inline_background_image <> invalid
+        m.bgImage.uri = UrlUtil.imageLinkToUrl(content.display?.inline_background_image, m.bgImage.height)
+    end if
 end sub
 
 sub onRowFocusChange()

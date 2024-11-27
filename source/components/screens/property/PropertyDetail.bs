@@ -100,12 +100,13 @@ sub updateListHeights(content)
     titleFontHeight = dummyLabel.boundingRect().height
     rowTitleOffsets = createObject("roArray", rowCount, false)
 
+    bottomPadding = 36
     for i = 0 to rowCount - 1
         row = content.getChild(i)
         itemHeight = row.desiredHeight ?? 200
-        rowHeight = itemHeight
+        rowHeight = itemHeight + SectionConstants.SECTION_TOP_PADDING + bottomPadding
         if strNotEmpty(row.title)
-            rowHeight += titleFontHeight + 30 ' a lil' extra padding below title
+            rowHeight += titleFontHeight + 36 ' a lil' extra padding below title
         end if
 
         decorations = row.customDecorations ?? []
@@ -118,8 +119,8 @@ sub updateListHeights(content)
         rowItemHeights[i] = itemHeight
         rowItemZoomHeights[i] = itemHeight
 
-        rowItemYOffsets[i] = rowHeight - itemHeight
-        rowItemZoomYOffsets[i] = (rowHeight - itemHeight) + listTopPadding
+        rowItemYOffsets[i] = rowHeight - itemHeight - bottomPadding
+        rowItemZoomYOffsets[i] = rowItemYOffsets[i] + listTopPadding
     end for
 
     rowList = m.rowList

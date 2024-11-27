@@ -4,4 +4,6 @@ namespace SectionConstants
     ' Regardless of whether all items are displayed or not, 
     ' if a section has more than this number of items, View All will be shown
     const VIEW_ALL_THRESHOLD = 5
+
+    const SECTION_TOP_PADDING = 30
 end namespace

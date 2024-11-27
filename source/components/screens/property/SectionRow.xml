@@ -8,7 +8,8 @@
         <field id="rowFocusPercent" type="float" onChange="onRowFocusChange" />
     </interface>
     <children>
-        <Spacer id="bg" width="1920" />
+        <Spacer id="bgColor" width="1920" />
+        <Poster id="bgImage" width="1920" />
         <TvLabel id="title" fontStyle="body_32" />
     </children>
 </component>
