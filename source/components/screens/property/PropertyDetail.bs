@@ -56,11 +56,18 @@ sub onSectionsChanged()
         end if
     end for
 
+    if content.getChildCount() = 0
+        ' Make focus transparent
+        m.rowList.focusBitmapBlendColor = "#00000000"
+    else
+        ' Make sure focus is not transparent from a previous SectionChange
+        m.rowList.focusBitmapBlendColor = "#FFFFFFFF"
+    end if
+
     if decorations.count() > 0
         Logger.log(`Unfocusable rows at end of List. Adding an empty row`)
         row = createNewSection()
         dumpDecorations(row, decorations)
-        row.createChild("AAContentNode").aa = { "type": "Spacer" }
         content.appendChild(row)
     end if
 
@@ -150,6 +157,8 @@ end sub
 function shouldHideSection(section)
     if section.permissions?._content?.authorized <> true then return true
     if section.display.hide_on_tv = true then return true
+    hasNoItems = (section.content ?? []).count() = 0 and (section.hero_items ?? []).count() = 0
+    if hasNoItems then return true
     ' TODO:
     ' if type=contrainer and all subsections hidden -> return true
     ' if all items are hidden -> return true
@@ -159,15 +168,23 @@ end function
 function createCarouselSection(section, decorations)
     row = createNewSection(section.display)
     row.title = section.display?.title
-    for each item in section.content
+
+    totalItems = section.content.count()
+    displayLimit = section.display?.display_limit ?? totalItems
+    ' If set to 0, it means no limit, so we can show as many items as there are.
+    displayLimit = displayLimit = 0 ? totalItems : displayLimit
+
+    for each item in section.content.slice(0, displayLimit)
         child = row.createChild("AAContentNode")
         child.aa = { "type": "CarouselItem", item: item }
         child.update({ aspectRatio: DisplaySettings.getThumbnailAndRatio(item.media)?.aspectRatio }, true)
     end for
-    'TODO: don't always show VIEW ALL
-    viewAll = row.createChild("AAContentNode")
-    viewAll.aa = { "type": "ViewAllButton" }
-    viewAll.update({ aspectRatio: 0.4 }, true)
+
+    if totalItems > displayLimit or totalItems > SectionConstants.VIEW_ALL_THRESHOLD
+        viewAll = row.createChild("AAContentNode")
+        viewAll.aa = { "type": "ViewAllButton" }
+        viewAll.update({ aspectRatio: 0.4 }, true)
+    end if
     return [row]
 end function
 
@@ -275,6 +292,8 @@ sub onSectionItemSelected(event)
         Toast.show(`TODO: media card click`)
     else if itemType = "TextItem"
         Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
+    else if itemType = "Spacer"
+        ' No-Op
     else
         Toast.show(`to be impl: type=${itemType}`)
     end if
