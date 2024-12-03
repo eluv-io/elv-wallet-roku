@@ -1,3 +1,5 @@
+import "pkg:/components/utils/Logger.bs"
+
 namespace time
     ' Return the current Epoch time in milliseconds
     function now()
@@ -10,7 +12,39 @@ namespace time
         end if
         date = createObject("roDateTime")
         date.FromISO8601String(iso8601String)
+        ' Manually figure out timezone stuff, because roku is dumb
+        timezoneOffsetSeconds = _getTimezoneOffsetSeconds(iso8601String)
+        date.fromSeconds(date.asSeconds() + timezoneOffsetSeconds)
+        ' Call once to offset the current time in the date object according to the system clock
+        date.toLocalTime()
         return date
+    end function
+
+    ' date.FromISO8601String() assumes the string is in UTC, so we need to manually calculate the timezone offset
+    function _getTimezoneOffsetSeconds(isoString)
+        if isoString.len() < 24
+            Logger.log(`ISO 8601 without timezone indicator`)
+            return 0
+        end if
+
+        timezoneIndicator = isoString.mid(23, 1)
+        if timezoneIndicator = "Z"
+            ' isoString is in UTC, no need to update anything
+            return 0
+        else if timezoneIndicator <> "+" and timezoneIndicator <> "-"
+            Logger.log(`Invalid time zone indicator: '${timezoneIndicator}'`)
+            return 0
+        end if
+
+        offset = isoString.mid(24).replace(":", "")
+        hours = offset.left(2).toInt()
+        minutes = offset.right(2).toInt()
+
+        offsetSeconds = (hours * 3600) + (minutes * 60)
+        if timezoneIndicator = "+"
+            offsetSeconds *= -1
+        end if
+        return offsetSeconds
     end function
 
     ' Creates and starts a [Timer].
