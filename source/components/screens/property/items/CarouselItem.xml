@@ -11,6 +11,16 @@
     <children>
         <Poster id="image" />
 
+        <Rectangle id="liveTag">
+            <TvLabel
+                id="liveTagText"
+                horizAlign="center"
+                maxLines="2"
+                wrap="true"
+                lineSpacing="0"
+            />
+        </Rectangle>
+
         <!-- black overlay with 80% alpha -->
         <Rectangle id="overlay" color="#000000cc" opacity="0.0">
             <TvLabel
