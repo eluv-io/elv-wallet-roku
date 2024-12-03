@@ -1,9 +1,12 @@
 namespace SectionConstants
     const PROPERTY_LIST_TOP_PADDING = 102
     const TEXT_MAX_WIDTH = 990
-    ' Regardless of whether all items are displayed or not, 
+    ' Regardless of whether all items are displayed or not,
     ' if a section has more than this number of items, View All will be shown
     const VIEW_ALL_THRESHOLD = 5
 
     const SECTION_TOP_PADDING = 30
+
+    const CAROUSEL_CARD_TITLE_TOP_PADDING = 12
+    const CAROUSEL_CARD_TITLE_BOTTOM_PADDING = 6
 end namespace

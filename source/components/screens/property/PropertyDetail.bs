@@ -168,6 +168,7 @@ end function
 
 function createCarouselSection(section, decorations)
     row = createNewSection(section.display)
+    row.update({ desiredHeight: 252 }, true)
     row.title = section.display?.title
 
     totalItems = section.content.count()
@@ -175,10 +176,23 @@ function createCarouselSection(section, decorations)
     ' If set to 0, it means no limit, so we can show as many items as there are.
     displayLimit = displayLimit = 0 ? totalItems : displayLimit
 
+    titleLabelSettings = {
+        fontStyle: "20_medium"
+        maxLines: 1
+        wrap: true
+    }
+    ' Set it once for all following calls to [calcMediaItemRatio].
+    ' This is error-prone because we have an implicit assumption that no other code with change
+    ' the settings of m.dummyLabel until the end of the for-loop;
+    ' But it's more efficient than settings the same values in every iteration.
+    m.dummyLabel.update(titleLabelSettings)
+
     for each item in section.content.slice(0, displayLimit)
         child = row.createChild("AAContentNode")
-        child.aa = { "type": "CarouselItem", item: item }
-        child.update({ aspectRatio: DisplaySettings.getThumbnailAndRatio(item.media)?.aspectRatio }, true)
+        child.update({
+            aa: { "type": "CarouselItem", item: item, titleLabelSettings: titleLabelSettings },
+            aspectRatio: calcMediaItemRatio(item.media, row.desiredHeight)
+        }, true)
     end for
 
     if totalItems > displayLimit or totalItems > SectionConstants.VIEW_ALL_THRESHOLD
@@ -187,6 +201,27 @@ function createCarouselSection(section, decorations)
         viewAll.update({ aspectRatio: 0.4 }, true)
     end if
     return [row]
+end function
+
+' Returns [invalid] when [media=invalid] or doesn't have a thumbnail defined.
+' Assumes m.dummyLabel is already loaded with the correct settings to match the Title label in the CarouselItem
+function calcMediaItemRatio(media, cardTotalHeight)
+    thumbnailRatio = DisplaySettings.getThumbnailAndRatio(media)?.aspectRatio
+    if thumbnailRatio = invalid
+        ' this includes a check for media=invalid as well
+        return invalid
+    end if
+    ' Start off with the thumbnail taking up the entire card
+    thumbnailHeight = cardTotalHeight
+    if strNotEmpty(media?.title)
+        ' If a title exists, remove the height it will take in the card
+        thumbnailHeight -= (m.dummyLabel.boundingRect().height + SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING + SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING)
+    end if
+    ' Calculate the width required to display the thumbnail correctly, given the new height
+    thumbnailWidth = thumbnailRatio * thumbnailHeight
+
+    ' Finally, the total ratio for the card:
+    return thumbnailWidth / cardTotalHeight
 end function
 
 function createHeroSections(section, decorations)

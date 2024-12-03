@@ -18,6 +18,7 @@ namespace DisplaySettings
                 thumbnail: display.thumbnail_image_landscape,
                 aspectRatio: AspectRatio.WIDE
             }
+        else return invalid
         end if
     end function
 end namespace

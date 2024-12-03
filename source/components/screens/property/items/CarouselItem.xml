@@ -5,10 +5,11 @@
 
         <field id="width" type="float" onChange="onSizeChanged" />
         <field id="height" type="float" onChange="onSizeChanged" />
-
-        <!-- <field id="onClick" type="integer" onChange="onRowClick" alwaysNotify="true" /> -->
     </interface>
     <children>
         <Poster id="image" />
+        <!-- Label settings (font, wrap, maxlines, etc) is passed in m.top.content.titleLabelSettings -->
+        <!-- This helps make sure the settings are consistent between when calculating sizes in the container (PropertyDetail.bs) and what is actually displayed -->
+        <TvLabel id="title" />
     </children>
 </component>
