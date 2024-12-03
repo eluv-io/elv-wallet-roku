@@ -1,5 +1,7 @@
 import "pkg:/components/screens/property/rows/row_util.bs"
+
 sub init()
+    m.delegatedFields = {}
 end sub
 
 sub onContentChanged()
@@ -9,18 +11,17 @@ sub onContentChanged()
     sectionItem = m.top.itemContent.aa
     itemNode = m.top.CreateChild(sectionItem.type)
 
-    itemNode.width = m.top.width
-    itemNode.height = m.top.height
+    ' Dump all delegated fields before setting content
+    itemNode.update(m.delegatedFields)
     if itemNode.doesExist("content")
         itemNode.content = sectionItem
     end if
     m.itemNode = itemNode
 end sub
 
-sub onSizeChanged()
-    item = m.itemNode
-    if item <> invalid
-        item.width = m.top.width
-        item.height = m.top.height
-    end if
+' Saves the values so they can be set on itemNode when it will be created.
+' Also fowrads updates to m.itemNode, if it already exists.
+sub delegate(event)
+    m.delegatedFields.addReplace(event.getField(), event.getData())
+    _ = m.itemNode?.setField?(event.getField(), event.getData())
 end sub

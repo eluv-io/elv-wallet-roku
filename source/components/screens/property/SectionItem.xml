@@ -3,7 +3,10 @@
     <interface>
         <field id="itemContent" type="node" onChange="onContentChanged" />
 
-        <field id="width" type="float" onChange="onSizeChanged" />
-        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="width" type="float" onChange="delegate" />
+        <field id="height" type="float" onChange="delegate" />
+
+        <field id="itemHasFocus" type="boolean" onChange="delegate" />
+        <field id="focusPercent" type="float" onChange="delegate" />
     </interface>
 </component>
