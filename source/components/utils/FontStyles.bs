@@ -66,10 +66,41 @@ namespace FontStyles
             font.size = 30
             font.uri = "pkg:/fonts/inter_extralight.ttf"
         else
-            print `Unkown fontStyle [${fontStyle}], defaulting to label_40`
-            font.size = 40
-            font.uri = "pkg:/fonts/inter_Medium.ttf"
+            fontSettings = _parseValues(fontStyle)
+            if fontSettings = invalid
+                print `Unkown fontStyle [${fontStyle}], defaulting to label_40`
+                fontSettings = { size: 40, uri: "pkg:/fonts/inter_Medium.ttf" }
+            end if
+            font.update(fontSettings)
         end if
         return font
     end function
+
+    ' Tries to parse fonts of the form "size_weight" (e.g. "33_bold")
+    function _parseValues(fontStyle)
+        values = fontStyle.split("_")
+        if values = invalid or values.count() <> 2
+            return invalid
+        end if
+
+        fontWeight = values[1]
+        if not fontWeights.doesExist(fontWeight)
+            return invalid
+        end if
+
+        ' str.toInt() is too flexible and will allow weird values.
+        ' parseJson will fail on strings that aren't pure numbers and that's what we want
+        size = parseJson(values[0])
+        if type(size) <> "roInt"
+            return invalid
+        end if
+
+        return {
+            size: size
+            uri: `pkg:/fonts/inter_${fontWeight}.ttf`
+        }
+    end function
+
+    ' Arrays don't have a "contains" function, so it's easier to use .doesExist on dict
+    const fontWeights = { "bold": 1, "extralight": 1, "medium": 1, "regular": 1, "semibold": 1, "thin": 1 }
 end namespace
