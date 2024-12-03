@@ -1,10 +1,16 @@
 import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
+import "pkg:/components/utils/str.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
     m.image = m.top.findNode("image")
     m.title = m.top.findNode("title")
+
+    m.overlay = m.top.findNode("overlay")
+    m.metaHeaders = m.top.findNode("metaHeaders")
+    m.metaTitle = m.top.findNode("metaTitle")
+    m.metaSubtitle = m.top.findNode("metaSubtitle")
 end sub
 
 sub onContentChanged()
@@ -20,6 +26,14 @@ sub onContentChanged()
     image = m.image
     image.width = m.top.width
     image.height = m.top.height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING
+    ' Round down to a multiple of 3 to prevent scaling issues
+    image.height -= image.height mod 3
+    m.overlay.width = image.width
+    m.overlay.height = image.height
+    updateOverlayTexts(content.item.media)
+    ' Text padding depends on if this is a Wide or not
+    textPadding = (image.width / image.height) > 1 ? 36 : 24
+    updateOverlayTextPositions(image.width, textPadding)
 
     imageLink = DisplaySettings.getThumbnailAndRatio(content.item.media).thumbnail
     uri = UrlUtil.imageLinkToUrl(imageLink, image.height)
@@ -28,6 +42,29 @@ sub onContentChanged()
     end if
 end sub
 
-sub onSizeChanged()
+sub onFocusPercentChanged()
+    m.overlay.opacity = m.top.focusPercent
+end sub
 
+sub updateOverlayTexts(display)
+    headers = display.headers?.join?(", ") ?? ""
+    m.metaHeaders.text = UCase(headers)
+    m.metaTitle.text = display.title
+    m.metaSubtitle.text = UCase(display.subtitle)
+end sub
+
+sub updateOverlayTextPositions(cardWidth, textPadding)
+    yOffset = m.overlay.height - textPadding
+    ' Start placing labels from bottom to top
+    labels = [m.metaSubtitle, m.metaTitle, m.metaHeaders]
+    ' In the design, there's different spacing between headers/title/subtitle, but this is good enough for roku.
+    labelSpacing = 6
+    for each label in labels
+        if not strNotEmpty(label.text) then continue for
+        label.width = cardWidth - (textPadding * 2)
+        height = label.boundingRect().height
+        label.height = height
+        label.translation = [textPadding, yOffset - height]
+        yOffset -= height + labelSpacing
+    end for
 end sub

@@ -168,7 +168,7 @@ end function
 
 function createCarouselSection(section, decorations)
     row = createNewSection(section.display)
-    row.update({ desiredHeight: 252 }, true)
+    row.update({ desiredHeight: 270 }, true)
     row.title = section.display?.title
 
     totalItems = section.content.count()
@@ -216,9 +216,13 @@ function calcMediaItemRatio(media, cardTotalHeight)
     if strNotEmpty(media?.title)
         ' If a title exists, remove the height it will take in the card
         thumbnailHeight -= (m.dummyLabel.boundingRect().height + SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING + SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING)
+        ' "round" down to the closest multiple of 3 (roku ui scaling factor)
+        thumbnailHeight -= thumbnailHeight mod 3
     end if
     ' Calculate the width required to display the thumbnail correctly, given the new height
     thumbnailWidth = thumbnailRatio * thumbnailHeight
+    ' Round down to a multiple of 3 to prevent scaling issues
+    thumbnailWidth -= thumbnailWidth mod 3
 
     ' Finally, the total ratio for the card:
     return thumbnailWidth / cardTotalHeight

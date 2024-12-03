@@ -3,13 +3,42 @@
     <interface>
         <field id="content" type="assocArray" onChange="onContentChanged" />
 
-        <field id="width" type="float" onChange="onSizeChanged" />
-        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="width" type="float" />
+        <field id="height" type="float" />
+
+        <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />
     </interface>
     <children>
         <Poster id="image" />
-        <!-- Label settings (font, wrap, maxlines, etc) is passed in m.top.content.titleLabelSettings -->
-        <!-- This helps make sure the settings are consistent between when calculating sizes in the container (PropertyDetail.bs) and what is actually displayed -->
+
+        <!-- black overlay with 80% alpha -->
+        <Rectangle id="overlay" color="#000000cc" opacity="0.0">
+            <TvLabel
+                id="metaHeaders"
+                fontStyle="15_medium"
+                maxlines="1"
+                color="#A5A6A8"
+                wrap="true"
+            />
+            <TvLabel
+                id="metaTitle"
+                fontStyle="24_medium"
+                maxlines="1"
+                wrap="true"
+            />
+            <TvLabel
+                id="metaSubtitle"
+                fontStyle="21_medium"
+                maxlines="1"
+                wrap="true"
+                color="#818590"
+            />
+        </Rectangle>
+
+        <!-- Label settings (font, wrap, maxlines, etc) is passed in
+        m.top.content.titleLabelSettings -->
+        <!-- This helps make sure the settings are consistent between when calculating sizes in the
+        container (PropertyDetail.bs) and what is actually displayed -->
         <TvLabel id="title" />
     </children>
 </component>
