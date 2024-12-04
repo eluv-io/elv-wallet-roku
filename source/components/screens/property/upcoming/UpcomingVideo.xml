@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="UpcomingVideo" extends="BaseView">
+    <interface>
+        <field id="property" type="assocArray" onChange="onContentChanged" />
+        <field id="media" type="assocArray" onChange="onContentChanged" />
+        
+        <field id="wasClosed" type="boolean" onChange="onViewClosed"/>
+    </interface>
+    <children>
+        <LayoutGroup
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center"
+            itemSpacings="[54]"
+            width="1920"
+            height="1080"
+            translation="[960, 540]"
+        >
+            <LayoutGroup
+                id="iconContainer"
+                layoutDirection="horiz"
+                itemSpacings="[24]"
+            />
+            <TvLabel id="headers" fontStyle="33_medium" color="#A5A6A8" />
+            <TvLabel id="title" fontStyle="33_bold" color="#ffffff" />
+            <TvLabel id="countdown" fontStyle="60_bold" color="#ffffff" />
+        </LayoutGroup>
+    </children>
+</component>

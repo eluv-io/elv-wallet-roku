@@ -6,7 +6,7 @@ namespace time
         return createObject("roDateTime").asSeconds()
     end function
 
-    function fromISO8601String(iso8601String)
+    function fromISO8601String(iso8601String, asUtc = false)
         if iso8601String = invalid
             return invalid
         end if
@@ -15,8 +15,10 @@ namespace time
         ' Manually figure out timezone stuff, because roku is dumb
         timezoneOffsetSeconds = _getTimezoneOffsetSeconds(iso8601String)
         date.fromSeconds(date.asSeconds() + timezoneOffsetSeconds)
-        ' Call once to offset the current time in the date object according to the system clock
-        date.toLocalTime()
+        if not asUtc
+            ' Call once to offset the current time in the date object according to the system clock
+            date.toLocalTime()
+        end if
         return date
     end function
 

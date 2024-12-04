@@ -1,0 +1,118 @@
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+
+sub init()
+    m.iconContainer = m.top.findNode("iconContainer")
+    m.headers = m.top.findNode("headers")
+    m.title = m.top.findNode("title")
+    m.countdown = m.top.findNode("countdown")
+end sub
+
+sub onContentChanged()
+    media = m.top.media
+    property = m.top.property
+
+    if media = invalid or property = invalid
+        ' Not ready yet. Waiting for everything to be set.
+        return
+    end if
+
+    m.title.text = media.title
+    m.headers.text = media.headers?.join?(", ")
+
+    icons = media.icons ?? []
+    container = m.iconContainer
+    ' remove any previous children
+    while container.removeChildIndex(0): end while
+    for each icon in icons
+        poster = container.createChild("Poster")
+        poster.width = 204
+        poster.height = 204
+        poster.uri = UrlUtil.imageLinkToUrl(icon.icon, poster.height)
+    end for
+
+    if m.timer <> invalid
+        m.timer.control = "stop"
+        m.timer = invalid
+    end if
+    updateTime()
+    m.timer = time.setTimer(updateTime, 1, true)
+end sub
+
+sub updateTime()
+    secondsToStart = time.fromISO8601String(m.top.media.start_time, true).asSeconds() - time.now()
+
+    if secondsToStart <= 0
+        'TODO: forward to video player?
+        m.countdown.text = "LIVE NOW!"
+        return
+    end if
+    
+    days = int(secondsToStart / (24 * 60 * 60))
+    hours = (secondsToStart / 60 / 60) mod 24
+    minutes = (secondsToStart / 60) mod 60
+    seconds = secondsToStart mod 60
+    
+    hasDays = days <> 0
+    hasHours = hours <> 0
+    hasMinutes = minutes <> 0
+    hasSeconds = seconds <> 0
+    components = 0
+    
+    text = ""
+    if hasDays
+        text += `${days}`
+        if days = 1
+            text += " Day"
+        else
+            text += " Days"
+        end if
+        components++
+    end if
+
+    if hasHours or (hasDays and (hasMinutes or hasSeconds))
+        if components > 0
+            text += ", "
+        end if
+        components++
+        text += `${hours}`
+        if hours = 1
+            text += " Hour"
+        else
+            text += " Hours"
+        end if
+    end if
+
+    if hasMinutes or (hasSeconds and (hasHours or hasDays))
+        if components > 0
+            text += ", "
+        end if
+        components++
+        text += `${minutes}`
+        if minutes = 1
+            text += " Minute"
+        else
+            text += " Minutes"
+        end if
+    end if
+
+    ' Always show Seconds
+    if components > 0
+        text += ", "
+    end if
+    text += `${seconds}`
+    if seconds = 1
+        text += " Second"
+    else
+        text += " Seconds"
+    end if
+
+    m.countdown.text = text
+end sub
+
+sub onViewClosed()
+    if m.timer <> invalid
+        m.timer.control = "stop"
+        m.timer = invalid
+    end if
+end sub
