@@ -36,7 +36,11 @@ function fetchSections(property, page)
     ).then(sub(response, context)
         sections = response.json.contents
         for each section in sections
-            PermissionResolver.resolvePermissions(section, context.pageContentPermissions, context.authStates)
+            try
+                PermissionResolver.resolvePermissions(section, context.pageContentPermissions, context.authStates)
+            catch e
+                Logger.log(`Error parsing permissions for section ${section.id}`)
+            end try
         end for
         Logger.log(`Saved sections for ${context.key}`)
         allSections = m.top.sections

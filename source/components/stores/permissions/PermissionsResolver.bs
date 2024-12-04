@@ -6,9 +6,14 @@ namespace PermissionResolver
     ' @param parentPermissions optional parent's resolved permission object
     ' @param permissionStates the Property level set of every permission_item_id and whether or not the user is authorized to it or not
     sub resolvePermissions(item, parentPermissions, permissionStates)
+        ' Make sure there's SOME permission object
+        if item.permissions = invalid
+            item.permissions = {}
+        end if
+        
         ' Special cases
         if (resolveSpecialPermissions(item.permissions, permissionStates))
-            print `[PermissionsResolver] Short-circuiting content permission resolution for ${item}`
+            Logger.log(`Short-circuiting content permission resolution for ${item}`)
             return
         end if
 

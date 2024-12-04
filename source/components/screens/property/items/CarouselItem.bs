@@ -22,6 +22,9 @@ sub onContentChanged()
     content = m.top.content
     media = content.item?.media
 
+    ' TODO: handle non-media items
+    if media = invalid then return
+
     title = m.title
     title.update(content.titleLabelSettings)
     title.text = media?.title
@@ -43,7 +46,7 @@ sub onContentChanged()
 
     updateLiveVideoTag(media)
 
-    imageLink = DisplaySettings.getThumbnailAndRatio(media).thumbnail
+    imageLink = DisplaySettings.getThumbnailAndRatio(media)?.thumbnail
     uri = UrlUtil.imageLinkToUrl(imageLink, image.height)
     if image.uri <> uri
         image.uri = uri
