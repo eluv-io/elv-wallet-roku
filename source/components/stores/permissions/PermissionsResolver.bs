@@ -112,9 +112,9 @@ namespace PermissionResolver
         return {
             authorized: authorized,
             permission_item_ids: items,
-            behavior: primary.behavior ?? fallback.behavior,
-            alternative_page_id: primary.alternative_page_id ?? fallback.alternative_page_id,
-            secondary_market_purchase_option: primary.secondary_market_purchase_option ?? fallback.secondary_market_purchase_option,
+            behavior: strNotEmpty(primary.behavior) ? primary.behavior : fallback.behavior,
+            alternative_page_id: strNotEmpty(primary.alternative_page_id) ? primary.alternative_page_id :  fallback.alternative_page_id,
+            secondary_market_purchase_option: strNotEmpty(primary.secondary_market_purchase_option) ? primary.secondary_market_purchase_option : fallback.secondary_market_purchase_option,
         }
     end function
 
@@ -148,13 +148,13 @@ namespace PermissionResolver
             else
                 permissionItems = item.permissions
             end if
-            
+
             ' Map values to the standard structure
             itemIds = []
             for each permissionItem in permissionItems
                 itemIds.push(permissionItem.permission_item_id)
             end for
-            
+
             item.permissions = {
                 permission_item_ids: itemIds
             }

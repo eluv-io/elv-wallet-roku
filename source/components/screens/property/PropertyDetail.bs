@@ -6,6 +6,7 @@ import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
+import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -346,8 +347,19 @@ sub onMediaItemClicked(media)
         return
     end if
 
-    if media.permissions._content.authorized <> true
-        Toast.show("TODO: unauthorized item")
+    permissions = media.permissions._content
+    if PermissionUtil.showAlternatePage(permissions)
+        Toast.show("TODO: show alt page")
+        return
+    else if PermissionUtil.showPurchaseOptions(permissions)
+        Toast.show("TODO: show purchase options")
+        return
+    else if PermissionUtil.isDisabled(permissions)
+        Toast.show("Media Disabled")
+        return
+    else if permissions.authorized = false and permissions.behavior <> "show_if_unauthorized"
+        ' There's also an error-case where the user isn't authorized but we don't know which behavior to apply
+        Logger.log(`Media unauthorized but behavior unknown. Ignoring click.`)
         return
     end if
 
