@@ -5,6 +5,7 @@ import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/utils/NftOps.bs"
+import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -329,7 +330,7 @@ sub onSectionItemSelected(event)
     item = m.rowList.content.getChild(index[0]).getChild(index[1])
     itemType = item.aa.type
     if itemType = "CarouselItem"
-        Toast.show(`TODO: media card click`)
+        onMediaItemClicked(item.aa.item.media)
     else if itemType = "TextItem"
         Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
     else if itemType = "Spacer"
@@ -337,6 +338,32 @@ sub onSectionItemSelected(event)
     else
         Toast.show(`to be impl: type=${itemType}`)
     end if
+end sub
+
+sub onMediaItemClicked(media)
+    if media = invalid
+        Toast.show("Something went wrong (missing media)")
+        return
+    end if
+
+    if media.live_video = true
+        if MediaItemUtils.isEndedLive(media)
+            Toast.show("Stream already completed.")
+            return
+        else if not MediaItemUtils.isStartedLive(media)
+            Toast.show("TODO: show upcoming countdown screen")
+            return
+        else
+            ' This is a LIVE video that's valid to view, continue normally
+        end if
+    end if
+
+    videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
+    videoPlayerView.propertyMedia = {
+        propertyId: m.top.property.id
+        mediaId: media.id
+    }
+    router()@.show({ view: videoPlayerView })
 end sub
 
 sub dumpDecorations(row, decorations)

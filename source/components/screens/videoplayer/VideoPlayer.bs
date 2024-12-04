@@ -1,5 +1,6 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/http/http.bs"
 
 sub init()
@@ -20,6 +21,29 @@ sub onFabricTokenChanged()
     m.videoPlayer.content.httpHeaders = `Authorization:Bearer ${token}`
 
     print "Set video player token to", token
+end sub
+
+sub onPropertyMediaChanged()
+    propertyId = m.top.propertyMedia.propertyId
+    mediaId = m.top.propertyMedia.mediaId
+
+    if propertyId = invalid or mediaId = invalid
+        Toast.show("Invalid media")
+        return
+    end if
+
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    url = `${baseUrl}/mw/properties/${propertyId}/media_items/${mediaId}/offerings/any/playout_options`
+    promises.chain(http.get(url)).then(sub(result)
+        playoutConfig = result.json["dash-clear"] ?? result.json["hls-clear"] ?? result.json["dash-widevine"]
+        fabricUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
+        m.videoPlayer.content.setFields({
+            streamFormat: playoutConfig.properties.protocol,
+            url: `${fabricUrl}/${playoutConfig.uri}`,
+            drmParams: buildDrm(playoutConfig.properties)
+        })
+        m.videoPlayer.control = "play"
+    end sub)
 end sub
 
 sub onVideoItemChanged()
