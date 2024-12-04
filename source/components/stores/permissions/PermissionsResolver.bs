@@ -6,11 +6,8 @@ namespace PermissionResolver
     ' @param parentPermissions optional parent's resolved permission object
     ' @param permissionStates the Property level set of every permission_item_id and whether or not the user is authorized to it or not
     sub resolvePermissions(item, parentPermissions, permissionStates)
-        ' Make sure there's SOME permission object
-        if item.permissions = invalid
-            item.permissions = {}
-        end if
-        
+        _sanitizePermissions(item)
+
         ' Special cases
         if (resolveSpecialPermissions(item.permissions, permissionStates))
             Logger.log(`Short-circuiting content permission resolution for ${item}`)
@@ -20,7 +17,7 @@ namespace PermissionResolver
         resolveContentPermissions(item, parentPermissions, permissionStates)
 
         ' Iterate children and update their permissions too
-        children = [item.main_page]
+        children = _getPermissionedChildren(item)
         for each child in children
             if child <> invalid
                 resolvePermissions(child, item.permissions._content, permissionStates)
@@ -78,7 +75,7 @@ namespace PermissionResolver
         else
             item.permissions._content = merge(
             parentPermissions,
-            item.rawPermissions,
+            item.permissions,
             permissionStates
             )
         end if
@@ -132,5 +129,53 @@ namespace PermissionResolver
             end if
         end for
         return false
+    end function
+
+    ' Make sure .permissions conforms to the same structure for all items
+    function _sanitizePermissions(item)
+        ' Make sure there's SOME permission object
+        if item.permissions = invalid
+            item.permissions = {}
+        end if
+
+        ' Media items have a permissions array instead of the same structure as prop/page/section.
+        ' Massage it to conform
+        if type(item.permissions) = "roArray"
+            if item.public = true
+                ' Server can still send a non-empty dto.permissions list even if the item is
+                ' public. In that case we should ignore the list completely.
+                permissionItems = []
+            else
+                permissionItems = item.permissions
+            end if
+            
+            ' Map values to the standard structure
+            itemIds = []
+            for each permissionItem in permissionItems
+                itemIds.push(permissionItem.permission_item_id)
+            end for
+            
+            item.permissions = {
+                permission_item_ids: itemIds
+            }
+        end if
+    end function
+
+    ' Returns child objects that also have (or can have) a .permissions field that needs to be resolved
+    function _getPermissionedChildren(item)
+        children = [
+            ' Properties contain their main page
+            item.main_page,
+        ]
+
+        ' MediaLists have a list of ids under 'media', we don't care about that,
+        ' but we DO want SectionItem's 'media' which points to an actual media object
+        if type(item.media) = "roAssociativeArray"
+            children.push(item.media)
+        end if
+
+        ' Sections have SectionItems in .content
+        children.append(item.content ?? [])
+        return children
     end function
 end namespace

@@ -346,6 +346,11 @@ sub onMediaItemClicked(media)
         return
     end if
 
+    if media.permissions._content.authorized <> true
+        Toast.show("TODO: unauthorized item")
+        return
+    end if
+
     if media.live_video = true
         if MediaItemUtils.isEndedLive(media)
             Toast.show("Stream already completed.")
