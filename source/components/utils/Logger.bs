@@ -8,7 +8,8 @@ namespace Logger
         catch e
             caller = e.backtrace[e.backtrace.count() - 2]
             file = substringAfterLast(caller.filename, "/")
-            print `[${file}:${caller.line_number}] ${message}`
+            func = substringBefore(caller.function, "(")
+            print `[elvlog ${file}:${func}():${caller.line_number}] ${message}`
         end try
     end sub
 end namespace

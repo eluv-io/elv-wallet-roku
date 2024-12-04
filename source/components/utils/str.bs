@@ -3,9 +3,16 @@ function strNotEmpty(s) as boolean
     return getInterface(s, "ifString") <> invalid and s <> ""
 end function
 
+function substringBefore(s, delimiter, missingDelimiterValue = s)
+    if s = invalid then return missingDelimiterValue
+    index = s.instr(delimiter)
+    if index = -1 then return missingDelimiterValue
+    return s.left(index)
+end function
+
 function substringAfterLast(s, delimiter, missingDelimiterValue = s)
     if s = invalid then return missingDelimiterValue
-    
+
     index = -1
     while true
         nextIndex = s.inStr(index + 1, delimiter)
@@ -17,7 +24,7 @@ function substringAfterLast(s, delimiter, missingDelimiterValue = s)
             index = nextIndex
         end if
     end while
-    
+
     if index = -1
         return missingDelimiterValue
     else
