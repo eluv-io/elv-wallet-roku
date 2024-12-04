@@ -11,8 +11,14 @@ sub onContentChanged()
     sectionItem = m.top.itemContent.aa
     itemNode = m.top.CreateChild(sectionItem.type)
 
-    ' Dump all delegated fields before setting content
-    itemNode.update(m.delegatedFields)
+    ' Dump all delegated fields before setting content.
+    ' It's easier to call node.update(m.delegatedFields) but it litters the log
+    fields = m.delegatedFields
+    for each key in fields
+        if itemNode.doesExist(key)
+            itemNode[key] = fields[key]
+        end if
+    end for
     if itemNode.doesExist("content")
         itemNode.content = sectionItem
     end if
@@ -22,6 +28,12 @@ end sub
 ' Saves the values so they can be set on itemNode when it will be created.
 ' Also fowrads updates to m.itemNode, if it already exists.
 sub delegate(event)
-    m.delegatedFields.addReplace(event.getField(), event.getData())
-    _ = m.itemNode?.setField?(event.getField(), event.getData())
+    field = event.getField()
+    data = event.getData()
+
+    m.delegatedFields.addReplace(field, data)
+
+    if m.itemNode <> invalid and m.itemNode.doesExist(field)
+        m.itemNode[field] = data
+    end if
 end sub

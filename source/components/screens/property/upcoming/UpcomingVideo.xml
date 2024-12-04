@@ -12,8 +12,6 @@
             horizAlignment="center"
             vertAlignment="center"
             itemSpacings="[54]"
-            width="1920"
-            height="1080"
             translation="[960, 540]"
         >
             <LayoutGroup
