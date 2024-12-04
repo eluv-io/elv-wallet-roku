@@ -46,7 +46,7 @@ function GetActivationData(metamask = false) as object
         return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
             op: "create",
             ' This is hardcoded to the Main network, will not work on Demo
-            dest: "https://wallet.contentfabric.io?action=login&mode=login&response=code&source=code#/login"
+            dest: `${http.WALLET_URL}?action=login&mode=login&response=code&source=code#/login`
         })
     else
         return http.post(`${AUTH0_BASE_URL}oauth/device/code`, {

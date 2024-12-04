@@ -5,10 +5,12 @@ namespace http
     ' Main
     const BASE_URL = "https://main.net955305.contentfabric.io/s/main/"
     const CONFIG_URL = "https://main.net955305.contentfabric.io/config"
+    const WALLET_URL = "https://wallet.contentfabric.io"
 
     ' Demo
     ' const BASE_URL = "https://demov3.net955210.contentfabric.io/s/demov3/"
     ' const CONFIG_URL = "https://demov3.net955210.contentfabric.io/config"
+    ' const WALLET_URL = "https://wallet.demov3.contentfabric.io"
 
     sub init()
         task = CreateObject("roSGNode", "HttpTask")
