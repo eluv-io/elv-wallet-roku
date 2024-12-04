@@ -2,6 +2,7 @@ import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/utils/str.bs"
 import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
@@ -86,17 +87,16 @@ sub updateLiveVideoTag(media)
     bg.opacity = 1.0
     label = m.liveTagText
 
-    now = time.now()
     hPadding = 0
     vPadding = 0
     width = 0
     height = 0
     label.width = 0
     label.height = 0
-    if (time.fromISO8601String(media.end_time).asSeconds() ?? now + 1) < now
+    if MediaItemUtils.isEndedLive(media)
         ' Live video ended. design TBD (maybe it won't even show in the first place)
         bg.opacity = 0.0
-    else if (time.fromISO8601String(media.start_time).asSeconds() ?? now - 1) < now
+    else if MediaItemUtils.isStartedLive(media)
         ' Live now. started but not ended
         bg.color = "#ff0000"
         label.update({
