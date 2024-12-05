@@ -5,7 +5,7 @@ import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/utils/promise.bs"
 
 function fetchDiscoverableProperties(_ = invalid)
-    print "[PropertyStore] Starting Discover Property fetch"
+    Logger.log("Starting Discover Property fetch")
     return promises.onThen(
     PropertyApi.discoverableProperties(),
     sub (result)
@@ -19,7 +19,7 @@ function fetchDiscoverableProperties(_ = invalid)
         end if
 
         m.top.properties = properties
-        print "Properties fetched and saved"
+        Logger.log("Properties fetched and saved")
     end sub)
 end function
 
