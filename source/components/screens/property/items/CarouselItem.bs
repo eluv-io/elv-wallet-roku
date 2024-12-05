@@ -23,9 +23,19 @@ sub onContentChanged()
     content = m.top.content
     media = content.item?.media
 
-    ' TODO: handle non-media items
-    if media = invalid then return
+    if content.bannerImageLink <> invalid
+        Logger.log(`FOUND BANNER ITEM`)
+        setupAsBanner(content.bannerImageLink)
+        return
+    end if
+    
+    if media <> invalid
+        setupAsMediaCard(media, content.titleLabelSettings)
+        return
+    end if
+end sub
 
+sub setupAsMediaCard(media, titleLabelSettings)
     if PermissionUtil.isDisabled(media.permissions._content)
         m.top.opacity = 0.5
     else
@@ -33,7 +43,7 @@ sub onContentChanged()
     end if
 
     title = m.title
-    title.update(content.titleLabelSettings)
+    title.update(titleLabelSettings)
     title.text = media?.title
     titleHeight = title.boundingRect().height
     title.translation = [0, m.top.height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING]
@@ -58,6 +68,13 @@ sub onContentChanged()
     if image.uri <> uri
         image.uri = uri
     end if
+end sub
+
+sub setupAsBanner(bannerImageLink)
+    image = m.image
+    image.width = m.top.width
+    image.height = m.top.height
+    image.uri = UrlUtil.imageLinkToUrl(bannerImageLink)
 end sub
 
 sub onFocusPercentChanged()

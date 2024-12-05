@@ -169,15 +169,7 @@ function shouldHideSection(section)
 end function
 
 function createCarouselSection(section, decorations)
-    row = createNewSection(section.display)
-    row.update({ desiredHeight: 270 }, true)
-    row.title = section.display?.title
-
-    totalItems = section.content.count()
-    displayLimit = section.display?.display_limit ?? totalItems
-    ' If set to 0, it means no limit, so we can show as many items as there are.
-    displayLimit = displayLimit = 0 ? totalItems : displayLimit
-
+    rowHeight = 270
     titleLabelSettings = {
         fontStyle: "20_medium"
         maxLines: 1
@@ -189,20 +181,108 @@ function createCarouselSection(section, decorations)
     ' But it's more efficient than settings the same values in every iteration.
     m.dummyLabel.update(titleLabelSettings)
 
-    for each item in section.content.slice(0, displayLimit)
-        child = row.createChild("AAContentNode")
-        child.update({
-            aa: { "type": "CarouselItem", item: item, titleLabelSettings: titleLabelSettings },
-            aspectRatio: calcMediaItemRatio(item.media, row.desiredHeight)
-        }, true)
+    isBannerSection = section.display.display_format = "banner"
+    itemNodes = []
+    displayLimit = isBannerSection ? 0 : section.display?.display_limit ?? 0
+    for each item in section.content
+        node = createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
+        if node <> invalid
+            itemNodes.push(node)
+        end if
+        ' don't stop when we reach the limit (count=limit), but only after we went over
+        if displayLimit > 0 and itemNodes.count() > displayLimit
+            Logger.log(`Went over displayLimit, stopping node conversion for section ${section.id}`)
+            ' Short-circuit out, since the rest of the SectionItems won't be rendered anyway
+            exit for
+        end if
     end for
 
-    if totalItems > displayLimit or totalItems > SectionConstants.VIEW_ALL_THRESHOLD
-        viewAll = row.createChild("AAContentNode")
-        viewAll.aa = { "type": "ViewAllButton" }
-        viewAll.update({ aspectRatio: 0.4 }, true)
+    totalItems = itemNodes.count()
+    if totalItems = 0
+        ' Now items in Section, don't render section
+        return []
     end if
-    return [row]
+
+    if isBannerSection
+        ' Create a whole row for every item of a Banner section. That's the only way to get items in different rows
+        ' This has a potential bug where section bg images will "restart" for every item.
+        ' Solid color bg will also act weird when scrolling between rows.
+        ' Also ignore display limit / viewall for banner sections
+        rows = []
+        for i = 0 to totalItems - 1
+            row = createNewSection(section.display)
+            row.update({ desiredHeight: rowHeight }, true)
+            if i = 0
+                ' Only show title above the first banner
+                row.title = section.display?.title
+            end if
+            row.appendChild(itemNodes[i])
+            rows.push(row)
+        end for
+        return rows
+    else
+        row = createNewSection(section.display)
+        row.update({ desiredHeight: rowHeight }, true)
+        row.title = section.display?.title
+
+        ' If set to 0, it means no limit, so we can show as many items as there are.
+        displayLimit = displayLimit = 0 ? totalItems : displayLimit
+
+        ' Append all the nodes we created to the row, up to displayLimit
+        row.appendChildren(itemNodes.slice(0, displayLimit))
+
+        if totalItems > displayLimit or totalItems > SectionConstants.VIEW_ALL_THRESHOLD
+            viewAll = row.createChild("AAContentNode")
+            viewAll.aa = { "type": "ViewAllButton" }
+            viewAll.update({ aspectRatio: 0.4 }, true)
+        end if
+        return [row]
+    end if
+end function
+
+' Returns a node for [item] if it needs to be rendered, or [invalid] otherwise
+function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
+    bannerImageLink = isBannerSection ? item.banner_image : invalid
+
+    if isBannerSection and bannerImageLink = invalid
+        Logger.log(`Section item without banner_image configured, inside a section with display_format=banner. dropping item.`)
+        return invalid
+    end if
+
+    result = invalid
+    if PermissionUtil.isHidden(item.permissions._content)
+        ' Hidden item, don't render anything
+        return invalid
+    else if false
+        ' TODO: handle page/external links
+    else if item.media <> invalid
+        result = createObject("roSGNode", "AAContentNode")
+        if isBannerSection
+            ratio = invalid ' Let the code below calculate the real ratio
+        else
+            ratio = calcMediaItemRatio(item.media, rowHeight)
+        end if
+        result.update({
+            aa: { "type": "CarouselItem", item: item, titleLabelSettings: titleLabelSettings },
+            aspectRatio: ratio
+        }, true)
+    else if false
+        ' TODO: handle PurchaseItem
+    end if
+
+    ' Any item type can be displayed as a banner, so take whatever was created and slap the banner on it
+    if result <> invalid and isBannerSection
+        aa = result.aa
+        aa.bannerImageLink = bannerImageLink
+        ' Banners should take up the full width of the screen, minus the rowList horiz-padding
+        width = 1920 - (m.rowList.translation[0] * 2)
+        result.update({
+            aa: aa
+            aspectRatio: width / rowHeight
+        }, true)
+    end if
+
+    return result
 end function
 
 ' Returns [invalid] when [media=invalid] or doesn't have a thumbnail defined.
