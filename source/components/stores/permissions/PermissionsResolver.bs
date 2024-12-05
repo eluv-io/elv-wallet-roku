@@ -60,7 +60,6 @@ namespace PermissionResolver
         return false
     end function
 
-
     ' Updates [item] with resolved permissions.
     function resolveContentPermissions(item, parentPermissions, permissionStates)
         if (parentPermissions = invalid)
@@ -80,7 +79,6 @@ namespace PermissionResolver
             )
         end if
     end function
-
 
     ' Returns a new [CompositePermissions] with merged permissions.
     ' Note that [parent] and [child] are not treated equally, and parent permissions take over
@@ -113,13 +111,13 @@ namespace PermissionResolver
             authorized: authorized,
             permission_item_ids: items,
             behavior: strNotEmpty(primary.behavior) ? primary.behavior : fallback.behavior,
-            alternative_page_id: strNotEmpty(primary.alternative_page_id) ? primary.alternative_page_id :  fallback.alternative_page_id,
+            alternative_page_id: strNotEmpty(primary.alternative_page_id) ? primary.alternative_page_id : fallback.alternative_page_id,
             secondary_market_purchase_option: strNotEmpty(primary.secondary_market_purchase_option) ? primary.secondary_market_purchase_option : fallback.secondary_market_purchase_option,
         }
     end function
 
-    function isAuthorized(item, authStates as roAssociativeArray) as boolean
-        permissionItems = item.permission_item_ids
+    function isAuthorized(permissions, authStates as roAssociativeArray) as boolean
+        permissionItems = permissions.permission_item_ids
         ' If not permissionsed by any items - we're authorized
         if permissionItems = invalid or permissionItems.count() = 0 then return true
 
@@ -152,7 +150,9 @@ namespace PermissionResolver
             ' Map values to the standard structure
             itemIds = []
             for each permissionItem in permissionItems
-                itemIds.push(permissionItem.permission_item_id)
+                if permissionItem.permission_item_id <> invalid
+                    itemIds.push(permissionItem.permission_item_id)
+                end if
             end for
 
             item.permissions = {
