@@ -3,6 +3,7 @@ import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/utils/str.bs"
 import "pkg:/components/utils/Time.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
+import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
@@ -24,6 +25,12 @@ sub onContentChanged()
 
     ' TODO: handle non-media items
     if media = invalid then return
+
+    if PermissionUtil.isDisabled(media.permissions._content)
+        m.top.opacity = 0.5
+    else
+        m.top.opacity = 1.0
+    end if
 
     title = m.title
     title.update(content.titleLabelSettings)
