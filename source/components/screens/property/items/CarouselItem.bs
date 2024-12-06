@@ -21,30 +21,35 @@ end sub
 
 sub onContentChanged()
     content = m.top.content
-    media = content.item?.media
+    sectionItem = content.item
+
+    media = sectionItem.media
+    if media <> invalid
+        display = media
+        permissions = media.permissions._content
+    else
+        display = sectionItem.display
+        permissions = sectionItem.permissions._content
+    end if
 
     if content.bannerImageLink <> invalid
-        Logger.log(`FOUND BANNER ITEM`)
         setupAsBanner(content.bannerImageLink)
-        return
+    else
+        setupDisplaySettings(display, content.titleLabelSettings)
+        updateLiveVideoTag(media)
     end if
-    
-    if media <> invalid
-        setupAsMediaCard(media, content.titleLabelSettings)
-        return
-    end if
-end sub
 
-sub setupAsMediaCard(media, titleLabelSettings)
-    if PermissionUtil.isDisabled(media.permissions._content)
+    if PermissionUtil.isDisabled(permissions)
         m.top.opacity = 0.5
     else
         m.top.opacity = 1.0
     end if
+end sub
 
+sub setupDisplaySettings(display, titleLabelSettings)
     title = m.title
     title.update(titleLabelSettings)
-    title.text = media?.title
+    title.text = display?.title
     titleHeight = title.boundingRect().height
     title.translation = [0, m.top.height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING]
     title.width = m.top.width
@@ -56,14 +61,12 @@ sub setupAsMediaCard(media, titleLabelSettings)
     image.height -= image.height mod 3
     m.overlay.width = image.width
     m.overlay.height = image.height
-    updateOverlayTexts(media)
+    updateOverlayTexts(display)
     ' Text padding depends on if this is a Wide or not
     textPadding = (image.width / image.height) > 1 ? 36 : 24
     updateOverlayTextPositions(image.width, textPadding)
 
-    updateLiveVideoTag(media)
-
-    imageLink = DisplaySettings.getThumbnailAndRatio(media)?.thumbnail
+    imageLink = DisplaySettings.getThumbnailAndRatio(display)?.thumbnail
     uri = UrlUtil.imageLinkToUrl(imageLink, image.height)
     if image.uri <> uri
         image.uri = uri

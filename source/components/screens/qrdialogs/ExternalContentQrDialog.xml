@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="ExternalContentQrDialog" extends="LayoutGroup">
     <interface>
+        <field id="shorten" type="boolean" value="true" />
+        <field id="includeToken" type="boolean" value="true" />
+        <field id="showLinkText" type="boolean" value="true" />
+
         <!-- Link to generate a QR Code for -->
+        <!-- IMPORTANT: set link LAST to make sure everything else is configured when we read the
+        link -->
         <field id="link" type="string" onChange="onLinkChanged" />
     </interface>
     <children>
@@ -9,11 +15,13 @@
             text="Point your camera to the QR Code below for content"
             fontStyle="title_62"
             maxLines="2"
-            width="960"
+            width="1536"
             wrap="true"
             horizAlign="center"
         />
-        <Spacer height="48" />
+        <Spacer height="36" />
+        <TvLabel id="linkLabel" fontStyle="54_medium" />
+        <Spacer id="labelSpacer" height="36" />
         <Group>
             <!-- We never bother to hide the spinner, it'll just be behind the Poster -->
             <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />

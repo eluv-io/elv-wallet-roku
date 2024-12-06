@@ -1,5 +1,6 @@
 import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/screens/signin/UrlShortener.bs"
 import "pkg:/components/utils/PixelUtil.bs"
 
 sub init()
@@ -9,16 +10,37 @@ sub init()
     m.top.vertAlignment = "center"
 
     m.qr = m.top.findNode("qr")
+    m.linkLabel = m.top.findNode("linkLabel")
+    m.labelSpacer = m.top.findNode("labelSpacer")
 
     m.spinner = m.top.findNode("spinner")
     m.spinner.poster.observeField("loadStatus", "centerSpinner")
 end sub
 
 sub onLinkChanged()
-    width = PixelUtil.convertToRealPixels(m.qr.width)
-    height = PixelUtil.convertToRealPixels(m.qr.height)
-    data = UrlUtil.appendQuery(m.top.link, "authorization", stores.tokenStore().fabricToken)
-    m.qr.uri = UrlUtil.qrUrlForData(data, width, height)
+    uri = m.top.link
+
+    if m.top.includeToken
+        uri = UrlUtil.appendQuery(uri, "authorization", stores.tokenStore().fabricToken)
+    end if
+
+    if m.top.shorten
+        promises.chain(shortenUrl(uri)).then(sub(uri)
+            onLinkReady(uri)
+        end sub)
+    else
+        onLinkReady(uri)
+    end if
+end sub
+
+sub onLinkReady(uri)
+    if m.top.showLinkText
+        m.linkLabel.text = uri
+        m.labelSpacer.height = 36
+    else
+        m.labelSpacer.height = 0
+    end if
+    m.qr.uri = UrlUtil.qrUrlForData(uri, m.qr.width, m.qr.height)
 end sub
 
 sub centerSpinner()

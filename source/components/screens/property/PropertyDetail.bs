@@ -9,6 +9,8 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
+const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1 }
+
 sub init()
     m.bgImage = m.top.findNode("bgImage")
     m.rowList = m.top.findNode("rowList")
@@ -164,7 +166,6 @@ function shouldHideSection(section)
     if hasNoItems then return true
     ' TODO:
     ' if type=contrainer and all subsections hidden -> return true
-    ' if all items are hidden -> return true
     return false
 end function
 
@@ -253,14 +254,19 @@ function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSett
     if PermissionUtil.isHidden(item.permissions._content)
         ' Hidden item, don't render anything
         return invalid
-    else if false
-        ' TODO: handle page/external links
-    else if item.media <> invalid
+    else if SUPPORTED_ITEM_TYPES.doesExist(item.type)
         result = createObject("roSGNode", "AAContentNode")
+        if item.media <> invalid
+            ' TODO: take into account SectionItem.use_media_settings
+            display = item.media
+        else
+            display = item.display
+        end if
+
         if isBannerSection
             ratio = invalid ' Let the code below calculate the real ratio
         else
-            ratio = calcMediaItemRatio(item.media, rowHeight)
+            ratio = calcMediaItemRatio(display, rowHeight)
         end if
         result.update({
             aa: { "type": "CarouselItem", item: item, titleLabelSettings: titleLabelSettings },
@@ -411,7 +417,7 @@ sub onSectionItemSelected(event)
     item = m.rowList.content.getChild(index[0]).getChild(index[1])
     itemType = item.aa.type
     if itemType = "CarouselItem"
-        onMediaItemClicked(item.aa.item.media)
+        onSectionItemClicked(item.aa.item)
     else if itemType = "TextItem"
         Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
     else if itemType = "Spacer"
@@ -421,12 +427,21 @@ sub onSectionItemSelected(event)
     end if
 end sub
 
-sub onMediaItemClicked(media)
-    if media = invalid
-        Toast.show("Something went wrong (missing media)")
-        return
+sub onSectionItemClicked(sectionItem)
+    if sectionItem.media <> invalid
+        onMediaItemClicked(sectionItem.media)
+    else if sectionItem.type = "external_link"
+        qrView = createObject("roSGNode", "ExternalContentQrDialog")
+        qrView.showLinkText = true
+        qrView.includeToken = false
+        qrView.link = sectionItem.url
+        createObject("roSGNode", "FullscreenDialog").showView = qrView
+    else
+        Toast.show(`to be impl: click on ${sectionItem.type}`)
     end if
+end sub
 
+sub onMediaItemClicked(media)
     permissions = media.permissions._content
     if PermissionUtil.showAlternatePage(permissions)
         Toast.show("TODO: show alt page")
