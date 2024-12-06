@@ -16,6 +16,11 @@ namespace PropertyApi
         return http.get(url)
     end function
 
+    function getPropertyById(properytId)
+        url = `${baseUrl()}/mw/properties/${properytId}`
+        return http.get(url)
+    end function
+
     function sectionsById(propertyId, sectionIds)
         url = `${baseUrl()}/mw/properties/${propertyId}/sections?resolve_subsections=true`
         return http.post(url, formatJson(sectionIds))

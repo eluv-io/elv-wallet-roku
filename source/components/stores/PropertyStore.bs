@@ -4,23 +4,56 @@ import "pkg:/components/stores/permissions/PermissionsResolver.bs"
 import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/utils/promise.bs"
 
+sub init()
+    ' m.top.properties is an array of properties that show up on the Discover page.
+    ' m.propertyMap is a cache of ALL properties keyed by their IDs.
+    ' This includes properties individually fetched (e.g. from links or subproperty switching)
+    m.propertyMap = {}
+end sub
+
 function fetchDiscoverableProperties(_ = invalid)
     Logger.log("Starting Discover Property fetch")
     return promises.onThen(
     PropertyApi.discoverableProperties(),
     sub (result)
         properties = result.json.contents ?? []
+        propertyMap = {}
 
         ' Skip permission resolution if not logged in
-        if strNotEmpty(stores.tokenStore().fabricToken)
-            for each item in properties
+        shouldResolvePermissions = strNotEmpty(stores.tokenStore().fabricToken)
+        for each item in properties
+            propertyMap[item.id] = item
+            if shouldResolvePermissions
                 PermissionResolver.resolvePermissions(item, invalid, item.permission_auth_state)
-            end for
-        end if
+            end if
+        end for
 
+        m.propertyMap = propertyMap
         m.top.properties = properties
         Logger.log("Properties fetched and saved")
     end sub)
+end function
+
+' Returns a Promise that will resolve to a Property object.
+' Property is only fetched from network if it's not in cache.
+function getPropertyById(propertyId)
+    cachedProperty = m.propertyMap?.lookup?(propertyId)
+    if cachedProperty <> invalid
+        Logger.log(`Property found in cache, not fetching from network. (id=${propertyId})`)
+        return promises.resolve(cachedProperty)
+    end if
+
+    ' Property not in cache - fetch it from network
+    return promises.onThen(PropertyApi.getPropertyById(propertyId),
+    function(result)
+        property = result.json
+        Logger.log(`Fetched property from network (id=${property.id})`)
+        propMap = m.propertyMap
+        propMap[property.id] = property
+        m.propertyMap = propMap
+        return property
+    end function
+    )
 end function
 
 function fetchSections(property, page)

@@ -17,7 +17,7 @@ sub init()
     ' When the logo gains focus it means the grid is no longer focused
     m.logo.ObserveFieldScoped("focusedChild", "onLogoFocused")
 
-    stores.propertyStore().ObserveFieldScoped("properties", "onPropertiesChanged")
+    observe(stores.propertyStore(), "properties", onPropertiesChanged)
 end sub
 
 sub initAfterParenting()

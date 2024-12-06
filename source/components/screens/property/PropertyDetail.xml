@@ -2,6 +2,9 @@
 <component name="PropertyDetail" extends="BaseView" initialFocus="rowList">
     <interface>
         <field id="property" type="assocArray" onChange="onPropertyChanged" />
+        <!-- Can be used to view a property/page without a full object ready. -->
+        <!-- Pass { propertyId: string, pageId: string|invalid } -->
+        <field id="linkData" type="assocArray" onChange="onPageLinkChanged" />
     </interface>
     <children>
         <Poster id="bgImage" width="1920" height="1080" />

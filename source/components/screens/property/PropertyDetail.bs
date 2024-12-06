@@ -9,7 +9,7 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
-const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1 }
+const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1, "property_link": 1, "subproperty_link": 1, "page_link": 1 }
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
@@ -22,6 +22,19 @@ sub init()
 
     ' Dummy label that isn't attached to the screen. We use that to measure text sizes.
     m.dummyLabel = createObject("roSGNode", "TvLabel")
+end sub
+
+sub onPageLinkChanged()
+    link = m.top.linkData
+    ' Load property object and save in m.top.property
+    promises.chain(stores.propertyStore()@.getPropertyById(link.propertyId)).then(sub (property)
+        m.top.property = property
+    end sub)
+    
+    ' TODO: handle link.pageId
+    if link.pageId <> invalid
+        ' Toast.show(`showing main page instead of ${link.pageId}`)
+    end if
 end sub
 
 sub onPropertyChanged()
@@ -436,9 +449,23 @@ sub onSectionItemClicked(sectionItem)
         qrView.includeToken = false
         qrView.link = sectionItem.url
         createObject("roSGNode", "FullscreenDialog").showView = qrView
+    else if sectionItem.type = "property_link"
+        navigateToPage(sectionItem.property_id, sectionItem.property_page_id)
+    else if sectionItem.type = "subproperty_link"
+        navigateToPage(sectionItem.subproperty_id, sectionItem.subproperty_page_id)
+    else if sectionItem.type = "page_link"
+        navigateToPage(m.top.property.id, sectionItem.page_id)
     else
         Toast.show(`to be impl: click on ${sectionItem.type}`)
     end if
+end sub
+
+' PropertyId is required.
+' PageId is optional
+sub navigateToPage(propertyId as string, pageId as dynamic)
+    propView = createObject("roSGNode", "PropertyDetail")
+    propView.linkData = { propertyId: propertyId, pageId: pageId }
+    router()@.show({ view: propView })
 end sub
 
 sub onMediaItemClicked(media)
