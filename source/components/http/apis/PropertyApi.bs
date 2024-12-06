@@ -16,8 +16,8 @@ namespace PropertyApi
         return http.get(url)
     end function
 
-    function getPropertyById(properytId)
-        url = `${baseUrl()}/mw/properties/${properytId}`
+    function getPropertyById(propertyId)
+        url = `${baseUrl()}/mw/properties/${propertyId}`
         return http.get(url)
     end function
 
