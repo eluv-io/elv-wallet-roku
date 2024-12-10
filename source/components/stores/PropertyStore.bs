@@ -9,6 +9,9 @@ sub init()
     ' m.propertyMap is a cache of ALL properties keyed by their IDs.
     ' This includes properties individually fetched (e.g. from links or subproperty switching)
     m.propertyMap = {}
+
+    ' Keys are propertyId, and values are a map of PageId->Page object
+    m.pageMap = {}
 end sub
 
 function fetchDiscoverableProperties(_ = invalid)
@@ -18,17 +21,22 @@ function fetchDiscoverableProperties(_ = invalid)
     sub (result)
         properties = result.json.contents ?? []
         propertyMap = {}
+        pageMap = m.pageMap
 
         ' Skip permission resolution if not logged in
         shouldResolvePermissions = strNotEmpty(stores.tokenStore().fabricToken)
         for each item in properties
             propertyMap[item.id] = item
+            pages = pageMap[item.id] ?? {}
+            pages[item.main_page.id] = item.main_page
+            pageMap[item.id] = pages
             if shouldResolvePermissions
                 PermissionResolver.resolvePermissions(item, invalid, item.permission_auth_state)
             end if
         end for
 
         m.propertyMap = propertyMap
+        m.pageMap = pageMap
         m.top.properties = properties
         Logger.log("Properties fetched and saved")
     end sub)
@@ -44,16 +52,35 @@ function getPropertyById(propertyId)
     end if
 
     ' Property not in cache - fetch it from network
-    return promises.onThen(PropertyApi.getPropertyById(propertyId),
-    function(result)
+    return promises.chain(PropertyApi.getPropertyById(propertyId)).then(function(result)
         property = result.json
         Logger.log(`Fetched property from network (id=${property.id})`)
+        if strNotEmpty(stores.tokenStore().fabricToken)
+            PermissionResolver.resolvePermissions(property, invalid, property.permission_auth_state)
+        end if
         propMap = m.propertyMap
         propMap[property.id] = property
         m.propertyMap = propMap
         return property
-    end function
-    )
+    end function).toPromise()
+end function
+
+function getPageById(property, pageId)
+    cachedPage = m.pageMap[property.id]?.lookup?(pageId)
+    if cachedPage <> invalid
+        Logger.log(`Page found in cache. Not fetching from network (id=${pageId})`)
+        return promises.resolve(cachedPage)
+    end if
+
+    return promises.chain(PropertyApi.getPageById(property.id, pageId), property).then(function(result, property)
+        page = result.json
+        if strNotEmpty(stores.tokenStore().fabricToken)
+            PermissionResolver.resolvePermissions(page, property.permissions._content, property.permission_auth_state)
+        end if
+        pages = m.pageMap[property.id] ?? {}
+        pages[page.id] = page
+        return page
+    end function).toPromise()
 end function
 
 function fetchSections(property, page)

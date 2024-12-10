@@ -30,23 +30,77 @@ sub onPageLinkChanged()
     promises.chain(stores.propertyStore()@.getPropertyById(link.propertyId)).then(sub (property)
         m.top.property = property
     end sub)
-    
-    ' TODO: handle link.pageId
-    if link.pageId <> invalid
-        ' Toast.show(`showing main page instead of ${link.pageId}`)
-    end if
 end sub
 
 sub onPropertyChanged()
     property = m.top.property
 
-    ' TODO: figure out page according to permissions
-    m.page = property.main_page
+    pageId = m.top.linkData?.pageId
+    if pageId <> invalid
+        ' Observing a specific page will skip the property permissions check.
+        ' As long as properties don't link to specific pages in other properties,
+        ' this should be fine.
+        pagePromise = stores.propertyStore()@.getPageById(property, pageId)
+    else
+        ' The default case. Not passing mainPage here to make sure we check the
+        ' Property permissions before we check the page permissions,
+        pagePromise = promises.resolve(invalid)
+    end if
+    promises.chain(pagePromise, property).then(function(page, property)
+        return getFirstAuthorizedPage(property, page, {})
+    end function).then(sub (page, property)
+        m.page = page
+        stores.propertyStore()@.fetchSections(property, page)
+        observe(stores.propertyStore(), "sections", onSectionsChanged)
+        onSectionsChanged()
+    end sub)
 
-    stores.propertyStore()@.fetchSections(property, m.page)
-    stores.propertyStore().ObserveFieldScoped("sections", "onSectionsChanged")
-    onSectionsChanged()
 end sub
+
+' Returns a Promise with the page to display
+function getFirstAuthorizedPage(property, page, visitedPageIds)
+    ' redirect function fetches the next page object and recursively checks permissions
+    redirect = function(redirectPageId, property, visitedPageIds)
+        context = { property: property, visitedPageIds: visitedPageIds }
+        return promises.chain(stores.propertyStore()@.getPageById(property, redirectPageId), context).then(function(page, context)
+            return getFirstAuthorizedPage(context.property, page, context.visitedPageIds)
+        end function).toPromise()
+    end function
+
+    if page = invalid
+        ' No specific page provided, check Property permissions
+        if PermissionUtil.showAlternatePage(property.permissions._property)
+            Logger.log(`Property not authorized, redirecting to alternate page`)
+            return redirect(property.permissions._property.alternate_page_id, property, visitedPageIds)
+        else if PermissionUtil.showPurchaseOptions(property.permissions._property)
+            ' Show purchase options page for property...
+            Toast.show("to be impl: property purchase options")
+            return promises.reject("to be impl: property purchase options")
+        else
+            ' We're authorized to view the property, default to main_page and check its permissions
+            return getFirstAuthorizedPage(property, property.main_page, visitedPageIds)
+        end if
+    else
+        ' This is a request for a specific page, ignore Property permissions, or we'll get stuck in a never-ending loop.
+        pagePermissions = page.permissions._page
+        shouldRedirect = PermissionUtil.showAlternatePage(pagePermissions)
+        redirectPageId = shouldRedirect ? pagePermissions.alternate_page_id : invalid
+        if pagePermissions.authorized = true
+            Logger.log(`Authorized to view page '${page.id}'`)
+            return promises.resolve(page)
+        else if redirectPageId = page.id or visitedPageIds.doesExist(redirectPageId)
+            ' We already checked this page id, or this is a self-reference.
+            ' Either way we've completed a cycle without finding a page we are allowed to view.
+            Logger.log(`FIXME: Circular page permission problem!`)
+            ' throw? router().pop?
+        else
+            ' Page is unauthorized, but redirect is valid
+            Logger.log(`Reached unauthorized page ${page.id}, redirecting to ${redirectPageId}}`)
+            visitedPageIds[page.id] = 1
+            return redirect(redirectPageId, property, visitedPageIds)
+        end if
+    end if
+end function
 
 sub onSectionsChanged()
     Logger.log(source_function_name)

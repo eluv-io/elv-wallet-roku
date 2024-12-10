@@ -111,7 +111,7 @@ namespace PermissionResolver
             authorized: authorized,
             permission_item_ids: items,
             behavior: strNotEmpty(primary.behavior) ? primary.behavior : fallback.behavior,
-            alternative_page_id: strNotEmpty(primary.alternative_page_id) ? primary.alternative_page_id : fallback.alternative_page_id,
+            alternate_page_id: strNotEmpty(primary.alternate_page_id) ? primary.alternate_page_id : fallback.alternate_page_id,
             secondary_market_purchase_option: strNotEmpty(primary.secondary_market_purchase_option) ? primary.secondary_market_purchase_option : fallback.secondary_market_purchase_option,
         }
     end function
@@ -158,6 +158,18 @@ namespace PermissionResolver
             item.permissions = {
                 permission_item_ids: itemIds
             }
+        end if
+
+        if item.permissions.property_permissions = invalid and item.id.startsWith("iq__")
+            ' This is a Property, make sure it also has a property_permissions object
+            Logger.log(`Found a page without page_permissions, creating default.`)
+            item.permissions.property_permissions = {}
+        endif
+        
+        if item.permissions.page_permissions = invalid and (item.id = "main" or item.id.startsWith("ppge"))
+            ' This is a Page, make sure it also has a page_permissions object
+            Logger.log(`Found a page without page_permissions, creating default.`)
+            item.permissions.page_permissions = {}
         end if
     end function
 
