@@ -41,6 +41,9 @@ sub onPropertyMediaChanged()
             streamFormat: playoutConfig.properties.protocol,
             url: `${fabricUrl}/${playoutConfig.uri}`,
             drmParams: buildDrm(playoutConfig.properties)
+            ' Makes live video start at live-edge.
+            ' Seems to have no effect on non-live streams (good).
+            playStart: -0.1
         })
         m.videoPlayer.control = "play"
     end sub)
