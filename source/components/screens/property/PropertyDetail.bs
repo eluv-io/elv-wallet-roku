@@ -540,18 +540,14 @@ sub onMediaItemClicked(media)
     end if
 
     if media.live_video = true
-        if MediaItemUtils.isEndedLive(media)
-            Toast.show("Stream already completed.")
-            return
-        else if not MediaItemUtils.isStartedLive(media)
+        if not MediaItemUtils.isStartedLive(media)
             view = CreateObject("roSGNode", "UpcomingVideo")
             view.media = media
             view.property = m.top.property
             router()@.show({ view: view })
             return
-        else
-            ' This is a LIVE video that's valid to view, continue normally
         end if
+        ' This is a LIVE video that's valid to view, continue normally
     end if
 
     videoPlayerView = CreateObject("roSGNode", "VideoPlayer")

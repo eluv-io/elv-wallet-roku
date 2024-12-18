@@ -11,12 +11,15 @@ sub init()
     m.title = m.top.findNode("title")
 
     m.overlay = m.top.findNode("overlay")
+    m.overlayBg = m.top.findNode("overlayBg")
     m.metaHeaders = m.top.findNode("metaHeaders")
     m.metaTitle = m.top.findNode("metaTitle")
     m.metaSubtitle = m.top.findNode("metaSubtitle")
 
     m.liveTag = m.top.findNode("liveTag")
     m.liveTagText = m.top.findNode("liveTagText")
+
+    m.purchaseOptionsLabel = m.top.findNode("purchaseOptionsLabel")
 end sub
 
 sub onContentChanged()
@@ -44,6 +47,27 @@ sub onContentChanged()
     else
         m.top.opacity = 1.0
     end if
+
+    if PermissionUtil.showPurchaseOptions(permissions) or PermissionUtil.showAlternatePage(permissions)
+        m.locked = true
+        m.purchaseOptionsLabel.visible = true
+        m.overlayBg.opacity = 1.0
+    else
+        m.locked = false
+        m.purchaseOptionsLabel.visible = false
+        m.overlayBg.opacity = 0.0
+    end if
+end sub
+
+sub onFocusPercentChanged()
+    focusPercent = m.top.focusPercent
+    if m.locked = true
+        ' always show dim for locked items
+        m.overlayBg.opacity = 1.0
+    else
+        m.overlayBg.opacity = focusPercent
+    end if
+    m.overlay.opacity = focusPercent
 end sub
 
 sub setupDisplaySettings(display, titleLabelSettings)
@@ -60,7 +84,9 @@ sub setupDisplaySettings(display, titleLabelSettings)
     ' Round down to a multiple of 3 to prevent scaling issues
     image.height -= image.height mod 3
     m.overlay.width = image.width
+    m.overlayBg.width = image.width
     m.overlay.height = image.height
+    m.overlayBg.height = image.height
     updateOverlayTexts(display)
     ' Text padding depends on if this is a Wide or not
     textPadding = (image.width / image.height) > 1 ? 36 : 24
@@ -78,10 +104,6 @@ sub setupAsBanner(bannerImageLink)
     image.width = m.top.width
     image.height = m.top.height
     image.uri = UrlUtil.imageLinkToUrl(bannerImageLink)
-end sub
-
-sub onFocusPercentChanged()
-    m.overlay.opacity = m.top.focusPercent
 end sub
 
 sub updateOverlayTexts(display)
@@ -105,6 +127,8 @@ sub updateOverlayTextPositions(cardWidth, textPadding)
         label.translation = [textPadding, yOffset - height]
         yOffset -= height + labelSpacing
     end for
+
+    m.purchaseOptionsLabel.translation = [textPadding, textPadding]
 end sub
 
 sub updateLiveVideoTag(media)

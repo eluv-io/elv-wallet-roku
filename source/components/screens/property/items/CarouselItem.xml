@@ -22,7 +22,14 @@
         </Rectangle>
 
         <!-- black overlay with 80% alpha -->
-        <Rectangle id="overlay" color="#000000cc" opacity="0.0">
+        <Rectangle id="overlayBg" color="#000000cc" opacity="0.0" />
+        <Rectangle id="overlay" color="#00000000" opacity="0.0">
+            <TvLabel
+                id="purchaseOptionsLabel"
+                visible="false"
+                fontStyle="24_bold"
+                text="VIEW PURCHASE OPTIONS"
+            />
             <TvLabel
                 id="metaHeaders"
                 fontStyle="15_medium"
