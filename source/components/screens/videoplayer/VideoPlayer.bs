@@ -44,11 +44,13 @@ sub onPropertyMediaChanged()
             ' Makes live video start at live-edge.
             ' Seems to have no effect on non-live streams (good).
             playStart: -0.1
+            title: m.top.propertyMedia.title
         })
         m.videoPlayer.control = "play"
     end sub)
 end sub
 
+' LEGACY. Not called for Properties
 sub onVideoItemChanged()
     media = m.top.videoItem.media_link
     m.videoPlayer.content.title = media.display_title ?? media.title
