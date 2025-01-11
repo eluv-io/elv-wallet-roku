@@ -9,7 +9,7 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
-const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1, "property_link": 1, "subproperty_link": 1, "page_link": 1 }
+const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1, "property_link": 1, "subproperty_link": 1, "page_link": 1, "visual_only": 1 }
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
