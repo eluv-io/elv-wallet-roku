@@ -2,6 +2,8 @@ import "pkg:/components/utils/str.bs"
 
 namespace Logger
     sub log(message)
+        print `[elvlog] _noinfo_ ${message}`
+        return
         try
             ' Might be an expensive way to do this, explore performance impact at some point..
             throw ""
