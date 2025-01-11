@@ -1,20 +1,39 @@
 import "pkg:/components/utils/Time.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/NodeUtil.bs"
+import "pkg:/components/stores/Env.bs"
 import "pkg:/components/http/http.bs"
+
 sub init()
     m.registry = createObject("roRegistrySection", "config")
     m.top.observeFieldScoped("config", "onConfigChange")
 
-    ' Neverending loop that fetches config.
-    time.setTimer(refreshConfig, 180, true)
+    observe(stores.envStore(), "currentEnv", onEnvChanged)
+    onEnvChanged()
 
     ' Get pre-loaded config
     m.top.config = m.global.tempConfig
     m.global.tempConfig = invalid
 end sub
 
+sub onEnvChanged()
+    ?(`Env Changed. Starting to poll config for ${stores.envStore().currentEnv.name}`)
+
+    ' Cancel previous timer, if exists
+    lastTimer = m.pollingTimer
+    if lastTimer <> invalid
+        lastTimer.control = "stop"
+    end if
+
+    ' Neverending loop that fetches config.
+    m.pollingTimer = time.setTimer(refreshConfig, 180, true)
+    refreshConfig()
+end sub
+
 sub refreshConfig(_ = invalid)
+    ?"Refreshing config"
     promises.onThen(
-    http.get(http.CONFIG_URL),
+    http.get(Env.configUrl()),
     sub (result)
         m.top.config = result.json
     end sub)

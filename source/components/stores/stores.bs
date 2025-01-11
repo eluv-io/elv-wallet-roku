@@ -1,8 +1,13 @@
 namespace stores
     sub init()
+        ' Do this before any other store, so they can access it
         m.global.addFields({
-            tokenStore: CreateObject("roSGNode", "TokenStore")
+            envStore: CreateObject("roSGNode", "EnvStore")
+        })
+
+        m.global.addFields({
             fabricConfigStore: CreateObject("roSGNode", "FabricConfigStore")
+            tokenStore: CreateObject("roSGNode", "TokenStore")
             contentStore: CreateObject("roSGNode", "ContentStore")
             redeemableOfferStore: CreateObject("roSGNode", "RedeemableOfferStore")
             propertyStore: CreateObject("roSGNode", "PropertyStore")
@@ -16,6 +21,10 @@ namespace stores
         m.global.redeemableOfferStore.offers = {}
         m.global.propertyStore.properties = invalid
     end sub
+
+    function envStore() as roSGNode
+        return m.global.envStore
+    end function
 
     function tokenStore() as roSGNode
         return m.global.tokenStore

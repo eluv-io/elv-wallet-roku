@@ -1,17 +1,6 @@
 import "pkg:/components/utils/promise.bs"
 
 namespace http
-
-    ' Main
-    const BASE_URL = "https://main.net955305.contentfabric.io/s/main/"
-    const CONFIG_URL = "https://main.net955305.contentfabric.io/config"
-    const WALLET_URL = "https://wallet.contentfabric.io"
-
-    ' Demo
-    ' const BASE_URL = "https://demov3.net955210.contentfabric.io/s/demov3/"
-    ' const CONFIG_URL = "https://demov3.net955210.contentfabric.io/config"
-    ' const WALLET_URL = "https://wallet.demov3.contentfabric.io"
-
     sub init()
         task = CreateObject("roSGNode", "HttpTask")
         m.global.addFields({ httpTask: task })
@@ -39,5 +28,13 @@ namespace http
         promise.addFields({ request: requestNode })
         m.global.httpTask.request = promise
         return promise
+    end function
+
+    sub setStaging(staging as boolean)
+        m.global.httpTask.staging = staging
+    end sub
+    
+    function getStaging() as boolean
+        return m.global.httpTask.staging
     end function
 end namespace

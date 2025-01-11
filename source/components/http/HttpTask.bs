@@ -1,6 +1,7 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/SignOutHelper.bs"
 import "pkg:/components/utils/str.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
@@ -9,6 +10,10 @@ sub init()
     m.pendingRequests = {}
     saveUserAgent()
     m.top.observeField("request", m.port)
+
+    m.registry = createObject("roRegistrySection", "http")
+    m.top.staging = m.registry.read("staging") = "true"
+    m.top.observeField("staging", m.port)
 end sub
 
 sub saveUserAgent()
@@ -28,10 +33,17 @@ sub EventLoop()
                 handleHttpResponse(msg)
             else if msgType = "roSGNodeEvent"
                 field = msg.getField()
-                observer = msg.getData()
-                if field = "request" and observer <> invalid
-                    m.top.request = invalid ' prevent infinite loop after observer.output changes
-                    fireHttpRequest(observer)
+                if field = "request"
+                    observer = msg.getData()
+                    if observer <> invalid
+                        m.top.request = invalid ' prevent infinite loop after observer.output changes
+                        fireHttpRequest(observer)
+                    end if
+                else if field = "staging"
+                    state = msg.getData()
+                    Logger.log(`Staging state changed to: ${state}`)
+                    m.registry.write("staging", `${state}`)
+                    m.registry.flush()
                 end if
             end if
         end if
@@ -44,8 +56,12 @@ sub fireHttpRequest(promise)
     request.InitClientCertificates()
     request.RetainBodyOnError(true)
     request.setMessagePort(m.port)
-    request.setUrl(promise.request.url)
-
+    
+    url = promise.request.url
+    if m.top.staging and url.inStr("/as/mw") <> -1
+        url = UrlUtil.appendQuery(url, "staging", "true")
+    end if
+    request.setUrl(url)
 
     method = promise.request.method
     body = promise.request.body

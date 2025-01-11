@@ -1,4 +1,5 @@
 import "pkg:/components/utils/PixelUtil.bs"
+import "pkg:/components/stores/Env.bs"
 import "pkg:/components/http/http.bs"
 
 namespace UrlUtil
@@ -16,7 +17,7 @@ namespace UrlUtil
     end sub
 
     ' Turns an asset container object to a ready-to-use url
-    function assetLinkToUrl(assetLinkJson as dynamic, baseUrl = http.BASE_URL) as string
+    function assetLinkToUrl(assetLinkJson as dynamic, baseUrl = Env.baseUrl()) as string
         if assetLinkJson = invalid
             return ""
         end if

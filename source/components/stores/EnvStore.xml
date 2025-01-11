@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="EnvStore" extends="Node">
+    <interface>
+        <!-- Used to set the current Environment. Possible values: 'main' / 'demov3' -->
+        <field id="currentEnvName" type="string" onChange="onEnvNameChanged" />
+        <field id="currentEnv" type="assocArray" alwaysNotify="true" />
+    </interface>
+</component>

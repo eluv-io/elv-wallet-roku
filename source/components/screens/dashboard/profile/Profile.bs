@@ -29,8 +29,30 @@ sub init()
         prettyNetworkName = "Demo"
     end if
     m.top.findNode("networkName").text = `Network: ${prettyNetworkName}`
+
+    m.magicSequenceIndex = 0
 end sub
 
 sub onSignOutClicked()
     signOutApp("Sign out successful")
 end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = magicDebugSequence[m.magicSequenceIndex]
+            m.magicSequenceIndex = m.magicSequenceIndex + 1
+            if m.magicSequenceIndex = magicDebugSequence.count()
+                m.magicSequenceIndex = 0
+                Logger.log(`stav: SHOW DEBUG MENU`)
+                router()@.show({ view: createObject("roSGNode", "DebugMenu") })
+                handled = true
+            end if
+        else
+            m.magicSequenceIndex = 0
+        end if
+    end if
+    return handled
+end function
+
+const magicDebugSequence = ["up", "up", "down", "down", "right", "right", "right", "right"]

@@ -1,0 +1,54 @@
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/SignOutHelper.bs"
+import "pkg:/components/http/http.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    currentEnv = stores.envStore().currentEnvName
+    envLabel = m.top.findNode("envLabel")
+    envLabel.text = `Current env: ${currentEnv}`
+    m.envButton = m.top.findNode("envButton")
+
+    nextEnv = currentEnv = "main" ? "demov3" : "main"
+    m.nextEnv = nextEnv
+    m.envButton.text = `Change to ${nextEnv}`
+
+    m.checkList = m.top.findNode("checkList")
+    m.checkList.checkedState = [http.getStaging()]
+    observe(m.checkList, "checkedState", onCheckedStateChanged)
+
+    observe(m.envButton, "buttonSelected", onEnvButtonSelected)
+
+    observe(stores.fabricConfigStore(), "config", onConfigChanged)
+end sub
+
+sub onEnvButtonSelected()
+    stores.envStore().currentEnvName = m.nextEnv
+end sub
+
+sub onConfigChanged()
+    if m.nextEnv = stores.fabricConfigStore().config?.qspace?.names?[0]
+        ' Fetched config for new env
+        signOutApp(`Env changed to ${m.nextEnv}`)
+    end if
+end sub
+
+sub onCheckedStateChanged()
+    staging = m.checkList.checkedState[0]
+    http.setStaging(staging)
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "down" and m.envButton.IsInFocusChain()
+            m.checkList.setFocus(true)
+            handled = true
+        else if key = "up" and m.checkList.IsInFocusChain()
+            m.envButton.setFocus(true)
+            handled = true
+        end if
+    end if
+    return handled
+end function

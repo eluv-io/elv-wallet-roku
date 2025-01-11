@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="DebugMenu" extends="BaseView" initialFocus="envButton">
+    <children>
+        <LayoutGroup
+            layoutDirection="vert"
+            translation="[960,540]"
+            horizAlignment="center"
+            vertAlignment="center"
+        >
+            <TvLabel id="envLabel" />
+            <TvButton id="envButton" />
+            <Spacer height="30" />
+            <CheckList id="checkList">
+                <ContentNode role="content">
+                    <ContentNode title="Staging" />
+                </ContentNode>
+            </CheckList>
+        </LayoutGroup>
+    </children>
+</component>

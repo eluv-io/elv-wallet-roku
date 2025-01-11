@@ -1,0 +1,40 @@
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/stores/Env.bs"
+import "pkg:/components/utils/Logger.bs"
+
+const CURRENT_ENV_NAME_KEY = "current_env_name"
+
+sub init()
+    m.registry = createObject("roRegistrySection", "env")
+
+    currentEnvName = m.registry.read(CURRENT_ENV_NAME_KEY)
+    if currentEnvName <> "main" and currentEnvName <> "demov3"
+        ' If the current env is not set, default to main
+        currentEnvName = "main"
+        ' Save it to prevent store wipe on initial launch
+        m.registry.write(CURRENT_ENV_NAME_KEY, currentEnvName)
+        m.registry.flush()
+    end if
+
+    m.top.currentEnvName = currentEnvName
+end sub
+
+sub onEnvNameChanged()
+    newEnv = m.top.currentEnvName
+    envObj = Env.fromEnvName(newEnv)
+    if envObj = invalid
+        Logger.log(`Tried to set unknown env: ${newEnv}. Env remains unchanged (${m.top.currentEnvName}).`)
+        m.top.currentEnvName = m.registry.read(CURRENT_ENV_NAME_KEY)
+        return
+    end if
+
+    ' Only reachable if newEnv is valid
+    m.top.currentEnv = envObj
+    
+    if newEnv <> m.registry.read(CURRENT_ENV_NAME_KEY)
+        ' Env actually changed. Save it and wipe stores
+        m.registry.write(CURRENT_ENV_NAME_KEY, newEnv)
+        m.registry.flush()
+        stores.wipe()
+    end if
+end sub

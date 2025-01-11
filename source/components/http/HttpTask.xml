@@ -2,5 +2,6 @@
 <component name="HttpTask" extends="Task">
     <interface>
         <field id="request" type="node" alwaysNotify="true" />
+        <field id="staging" type="boolean" />
     </interface>
 </component>
