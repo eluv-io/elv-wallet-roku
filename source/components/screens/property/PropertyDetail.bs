@@ -115,7 +115,8 @@ sub onSectionsChanged()
     ' then the first following that is focusable will add pending decorations to their title row
     decorations = []
     for each section in sections
-        sectionToNodes(section, content, decorations)
+        nodes = sectionToNodes(section, decorations)
+        content.appendChildren(nodes)
 
         ' Find the first hero section and use its background as the page background.
         if heroSectionBgImage = invalid and section.type = "hero"
@@ -206,8 +207,8 @@ sub updateListHeights(content)
 end sub
 
 ' Each "section" from the backend might end up being 0-n rows on the UI
-sub sectionToNodes(section, rootNode, decorations)
-    if shouldHideSection(section) then return
+function sectionToNodes(section, decorations)
+    if shouldHideSection(section) then return []
 
     newRows = invalid
     if section.type = "automatic" or section.type = "manual" or section.type = "search"
@@ -215,7 +216,7 @@ sub sectionToNodes(section, rootNode, decorations)
     else if section.type = "hero"
         newRows = createHeroSections(section, decorations)
     else if section.type = "container"
-        ' TODO: impl section containers
+        newRows = createContainerSection(section, decorations)
     end if
 
     newRows = newRows ?? []
@@ -224,17 +225,28 @@ sub sectionToNodes(section, rootNode, decorations)
         dumpDecorations(newRows[0], decorations)
     end if
 
-    rootNode.appendChildren(newRows)
-end sub
+    return newRows
+end function
 
 function shouldHideSection(section)
     if section.permissions?._content?.authorized <> true then return true
+
     if section.display.hide_on_tv = true then return true
-    hasNoItems = (section.content ?? []).count() = 0 and (section.hero_items ?? []).count() = 0
+
+    hasNoItems = (section.content ?? []).count() = 0 and (section.hero_items ?? []).count() = 0 and (section.sections_resolved ?? []).count() = 0
     if hasNoItems then return true
-    ' TODO:
-    ' if type=contrainer and all subsections hidden -> return true
+
+    if isContainerWithNoVisibleSubsections(section) then return true
+
     return false
+end function
+
+function isContainerWithNoVisibleSubsections(section)
+    if section.type <> "container" then return false
+    for each subsection in (section.sections_resolved ?? [])
+        if not shouldHideSection(subsection) then return false
+    end for
+    return true
 end function
 
 function createCarouselSection(section, decorations)
@@ -307,6 +319,30 @@ function createCarouselSection(section, decorations)
         end if
         return [row]
     end if
+end function
+
+function createContainerSection(section, decorations)
+    if strNotEmpty(section.display.title)
+        dummyLabel = m.dummyLabel
+        decorations.push({
+            "type": "TextItem",
+            height: dummyLabel.boundingRect().height
+            width: SectionConstants.TEXT_MAX_WIDTH
+            content: {
+                fontStyle: "22_normal"
+                text: section.display.title
+                width: SectionConstants.TEXT_MAX_WIDTH
+                maxLines: 1
+                wrap: false
+            }
+        })
+    end if
+    rows = []
+    subsections = section.sections_resolved ?? []
+    for each subsection in subsections
+        rows.append(sectionToNodes(subsection, decorations))
+    end for
+    return rows
 end function
 
 ' Returns a node for [item] if it needs to be rendered, or [invalid] otherwise

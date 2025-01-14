@@ -164,8 +164,8 @@ namespace PermissionResolver
             ' This is a Property, make sure it also has a property_permissions object
             Logger.log(`Found a page without page_permissions, creating default.`)
             item.permissions.property_permissions = {}
-        endif
-        
+        end if
+
         if item.permissions.page_permissions = invalid and (item.id = "main" or item.id.startsWith("ppge"))
             ' This is a Page, make sure it also has a page_permissions object
             Logger.log(`Found a page without page_permissions, creating default.`)
@@ -188,6 +188,10 @@ namespace PermissionResolver
 
         ' Sections have SectionItems in .content
         children.append(item.content ?? [])
+
+        ' "container" type Sections will have other "sub sections" in .sections_resolved
+        children.append(item.sections_resolved ?? [])
+
         return children
     end function
 end namespace
