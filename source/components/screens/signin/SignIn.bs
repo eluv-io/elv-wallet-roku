@@ -132,7 +132,9 @@ sub checkStatus()
     sub(result)
         if result <> "pending"
             nextView = createObject("roSGNode", "PropertyDetail")
-            nextView.property = m.top.property
+            ' m.top.property doesn't have Permissions resolved because we fetched it before being logged in.
+            ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
+            nextView.linkData = { propertyId: m.top.property.id }
 
             router().removeStack = "signin"
             router()@.show({ view: nextView })

@@ -50,6 +50,7 @@ sub onPropertyChanged()
         return getFirstAuthorizedPage(property, page, {})
     end function).then(sub (page, property)
         m.page = page
+        Logger.log(`Fetching sections for page ${page.id}`)
         stores.propertyStore()@.fetchSections(property, page)
         observe(stores.propertyStore(), "sections", onSectionsChanged)
         onSectionsChanged()
