@@ -573,7 +573,7 @@ end sub
 sub onMediaItemClicked(media)
     permissions = media.permissions._content
     if PermissionUtil.showAlternatePage(permissions)
-        Toast.show("TODO: show alt page")
+        navigateToPage(m.top.property.id, permissions.alternate_page_id)
         return
     else if PermissionUtil.showPurchaseOptions(permissions)
         Toast.show("TODO: show purchase options")
