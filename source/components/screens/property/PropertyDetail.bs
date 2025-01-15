@@ -266,6 +266,11 @@ function createCarouselSection(section, decorations)
     itemNodes = []
     displayLimit = isBannerSection ? 0 : section.display?.display_limit ?? 0
     for each item in section.content
+        ' Propogate forced aspect ratio from the section to the section_items
+        if section.display.aspect_ratio <> invalid
+            if item.display = invalid then item.display = {}
+            item.display.aspect_ratio = section.display.aspect_ratio
+        end if
         node = createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
         if node <> invalid
             itemNodes.push(node)
@@ -370,6 +375,8 @@ function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSett
         else
             display = item.display
         end if
+        ' Propogate forced aspect ratio from the section_item to the display settings
+        display.aspect_ratio = item.display.aspect_ratio
 
         if isBannerSection
             ratio = invalid ' Let the code below calculate the real ratio

@@ -3,20 +3,44 @@ import "pkg:/components/utils/AspectRatio.bs"
 namespace DisplaySettings
     ' Media items are themselves a "DisplaySettings"
     function getThumbnailAndRatio(display)
+        ' If aspect ratio is forced, try to use the corresponding thumbnail.
+        ratio = invalid
+        if display?.aspect_ratio <> invalid
+            ratio = AspectRatio.fromString(display.aspect_ratio)
+            thumbnail = invalid
+            if ratio = AspectRatio.SQUARE
+                thumbnail = display.thumbnail_image_square
+            else if ratio = AspectRatio.POSTER
+                thumbnail = display.thumbnail_image_portrait
+            else if ratio = AspectRatio.WIDE
+                thumbnail = display.thumbnail_image_landscape
+            end if
+
+            if thumbnail <> invalid
+                ' There's a thumbnail defined for the forced aspect ratio
+                return {
+                    thumbnail: thumbnail,
+                    aspectRatio: ratio
+                }
+            end if
+        end if
+
+        ' Aspect ratio is either not set, or the corresponding thumbnail is not defined.
+        ' Try to find the best thumbnail, but still use the forced ratio if it exists
         if display?.thumbnail_image_square <> invalid
             return {
                 thumbnail: display.thumbnail_image_square,
-                aspectRatio: AspectRatio.SQUARE
+                aspectRatio: ratio ?? AspectRatio.SQUARE
             }
         else if display?.thumbnail_image_portrait <> invalid
             return {
                 thumbnail: display.thumbnail_image_portrait,
-                aspectRatio: AspectRatio.POSTER
+                aspectRatio: ratio ?? AspectRatio.POSTER
             }
         else if display?.thumbnail_image_landscape <> invalid
             return {
                 thumbnail: display.thumbnail_image_landscape,
-                aspectRatio: AspectRatio.WIDE
+                aspectRatio: ratio ?? AspectRatio.WIDE
             }
         else return invalid
         end if
