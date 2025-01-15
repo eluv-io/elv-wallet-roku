@@ -361,8 +361,12 @@ function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSett
     else if SUPPORTED_ITEM_TYPES.doesExist(item.type)
         result = createObject("roSGNode", "AAContentNode")
         if item.media <> invalid
-            ' TODO: take into account SectionItem.use_media_settings
-            display = item.media
+            if item.use_media_settings = true
+                display = item.media
+            else
+                ' Keep media display settings, but override with anything that is well-defined in item.display
+                display = DisplaySettings.applyOverrides(item.media, item.display)
+            end if
         else
             display = item.display
         end if

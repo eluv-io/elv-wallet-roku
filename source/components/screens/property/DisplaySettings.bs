@@ -21,4 +21,20 @@ namespace DisplaySettings
         else return invalid
         end if
     end function
+
+    ' Merges [overrides] into [base] and returns the result.
+    ' String values in [overrides] will only be applied if they are non-empty
+    function applyOverrides(base, overrides)
+        result = {}
+        result.append(base)
+        for each entry in (overrides ?? {}).items()
+            value = entry.value
+            ' Skip null values
+            if value = invalid then continue for
+            ' Skip empty strings
+            if getInterface(value, "ifString") <> invalid and value = "" then continue for
+            result[entry.key] = value
+        end for
+        return result
+    end function
 end namespace

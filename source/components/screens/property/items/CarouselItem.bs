@@ -28,7 +28,12 @@ sub onContentChanged()
 
     media = sectionItem.media
     if media <> invalid
-        display = media
+        if sectionItem.use_media_settings = true
+            display = media
+        else
+            ' Keep media display settings, but override with anything that is well-defined in item.display
+            display = DisplaySettings.applyOverrides(media, sectionItem.display)
+        end if
         permissions = media.permissions._content
     else
         display = sectionItem.display
