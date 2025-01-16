@@ -3,26 +3,23 @@ import "pkg:/components/utils/AspectRatio.bs"
 namespace DisplaySettings
     ' Media items are themselves a "DisplaySettings"
     function getThumbnailAndRatio(display)
+        forcedRatio = AspectRatio.fromString(display.aspect_ratio)
+        thumbnail = invalid
         ' If aspect ratio is forced, try to use the corresponding thumbnail.
-        ratio = invalid
-        if display?.aspect_ratio <> invalid
-            ratio = AspectRatio.fromString(display.aspect_ratio)
-            thumbnail = invalid
-            if ratio = AspectRatio.SQUARE
-                thumbnail = display.thumbnail_image_square
-            else if ratio = AspectRatio.POSTER
-                thumbnail = display.thumbnail_image_portrait
-            else if ratio = AspectRatio.WIDE
-                thumbnail = display.thumbnail_image_landscape
-            end if
+        if forcedRatio = AspectRatio.SQUARE
+            thumbnail = display.thumbnail_image_square
+        else if forcedRatio = AspectRatio.POSTER
+            thumbnail = display.thumbnail_image_portrait
+        else if forcedRatio = AspectRatio.WIDE
+            thumbnail = display.thumbnail_image_landscape
+        end if
 
-            if thumbnail <> invalid
-                ' There's a thumbnail defined for the forced aspect ratio
-                return {
-                    thumbnail: thumbnail,
-                    aspectRatio: ratio
-                }
-            end if
+        if thumbnail <> invalid
+            ' There's a thumbnail defined for the forced aspect ratio
+            return {
+                thumbnail: thumbnail,
+                aspectRatio: forcedRatio
+            }
         end if
 
         ' Aspect ratio is either not set, or the corresponding thumbnail is not defined.
@@ -30,17 +27,17 @@ namespace DisplaySettings
         if display?.thumbnail_image_square <> invalid
             return {
                 thumbnail: display.thumbnail_image_square,
-                aspectRatio: ratio ?? AspectRatio.SQUARE
+                aspectRatio: forcedRatio ?? AspectRatio.SQUARE
             }
         else if display?.thumbnail_image_portrait <> invalid
             return {
                 thumbnail: display.thumbnail_image_portrait,
-                aspectRatio: ratio ?? AspectRatio.POSTER
+                aspectRatio: forcedRatio ?? AspectRatio.POSTER
             }
         else if display?.thumbnail_image_landscape <> invalid
             return {
                 thumbnail: display.thumbnail_image_landscape,
-                aspectRatio: ratio ?? AspectRatio.WIDE
+                aspectRatio: forcedRatio ?? AspectRatio.WIDE
             }
         else return invalid
         end if

@@ -9,7 +9,11 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
-const SUPPORTED_ITEM_TYPES = { "media": 1, "external_link": 1, "property_link": 1, "subproperty_link": 1, "page_link": 1, "visual_only": 1 }
+const SUPPORTED_ITEM_TYPES = { "media": 1,
+    "external_link": 1, "property_link": 1, "subproperty_link": 1, "page_link": 1,
+    "visual_only": 1,
+    "item_purchase": 1
+}
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
@@ -266,9 +270,9 @@ function createCarouselSection(section, decorations)
     itemNodes = []
     displayLimit = isBannerSection ? 0 : section.display?.display_limit ?? 0
     for each item in section.content
+        if item.display = invalid then item.display = {}
         ' Propogate forced aspect ratio from the section to the section_items
-        if section.display.aspect_ratio <> invalid
-            if item.display = invalid then item.display = {}
+        if strNotEmpty(section.display.aspect_ratio)
             item.display.aspect_ratio = section.display.aspect_ratio
         end if
         node = createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
