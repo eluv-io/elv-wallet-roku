@@ -23,6 +23,12 @@
 
         <!-- black overlay with 80% alpha -->
         <Rectangle id="overlayBg" color="#000000cc" opacity="0.0" />
+        <Poster
+            id="video_icon"
+            loadDisplayMode="scaleToFit"
+            visible="true"
+            uri="pkg:/images/video_icon.png"
+        />
         <Rectangle id="overlay" color="#00000000" opacity="0.0">
             <TvLabel
                 id="purchaseOptionsLabel"

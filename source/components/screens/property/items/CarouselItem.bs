@@ -4,6 +4,7 @@ import "pkg:/components/utils/str.bs"
 import "pkg:/components/utils/Time.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
@@ -20,6 +21,8 @@ sub init()
     m.liveTagText = m.top.findNode("liveTagText")
 
     m.purchaseOptionsLabel = m.top.findNode("purchaseOptionsLabel")
+
+    m.video_icon = m.top.findNode("video_icon")
 end sub
 
 sub onContentChanged()
@@ -74,19 +77,27 @@ sub onFocusPercentChanged()
         m.overlayBg.opacity = focusPercent
     end if
     m.overlay.opacity = focusPercent
+
+    m.video_icon.opacity = isVideo() ? 1 - focusPercent : 0
 end sub
 
+function isVideo(content = m.top.content?.item?.media)
+    return content?.media_type = NFtOps.MediaType.VIDEO
+end function
+
 sub setupDisplaySettings(display, titleLabelSettings)
+    height = m.top.height
+    width = m.top.width
     title = m.title
     title.update(titleLabelSettings)
     title.text = display?.title
     titleHeight = title.boundingRect().height
-    title.translation = [0, m.top.height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING]
-    title.width = m.top.width
+    title.translation = [0, height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING]
+    title.width = width
 
     image = m.image
-    image.width = m.top.width
-    image.height = m.top.height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING
+    image.width = width
+    image.height = height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING
     ' Round down to a multiple of 3 to prevent scaling issues
     image.height -= image.height mod 3
     m.overlay.width = image.width
@@ -103,6 +114,13 @@ sub setupDisplaySettings(display, titleLabelSettings)
     if image.uri <> uri
         image.uri = uri
     end if
+
+    ' Assume icon is 1x1 ratio
+    iconSize = height * 0.3
+    iconSize = iconSize > 66 ? 66 : iconSize ' Max size of 66
+    m.video_icon.height = iconSize
+    m.video_icon.width = iconSize
+    m.video_icon.translation = [(image.width - iconsize) / 2, (image.height - iconSize) / 2]
 end sub
 
 sub setupAsBanner(bannerImageLink)
