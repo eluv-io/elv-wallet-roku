@@ -338,7 +338,7 @@ function createContainerSection(section, decorations)
             height: dummyLabel.boundingRect().height
             width: SectionConstants.TEXT_MAX_WIDTH
             content: {
-                fontStyle: "22_normal"
+                fontStyle: "22_regular"
                 text: section.display.title
                 width: SectionConstants.TEXT_MAX_WIDTH
                 maxLines: 1

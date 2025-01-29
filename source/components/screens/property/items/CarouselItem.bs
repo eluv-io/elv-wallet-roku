@@ -62,6 +62,7 @@ sub onContentChanged()
         m.purchaseOptionsLabel.visible = false
         m.overlayBg.opacity = 0.0
     end if
+    onFocusPercentChanged()
 end sub
 
 sub onFocusPercentChanged()
