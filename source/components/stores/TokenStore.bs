@@ -3,12 +3,9 @@ import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/stores/Env.bs"
 import "pkg:/components/http/http.bs"
 
-const AUTH0_BASE_URL = "https://prod-elv.us.auth0.com/"
-const AUTH0_CLIENT_ID = "***REMOVED***"
-
 const TOKEN_REGISTRY_SECTION = "tokens"
 
-const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken", "loginProvider"]
+const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken"]
 
 sub init()
     m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
@@ -41,43 +38,17 @@ sub onTrackedFieldChange(message)
     m.registry.flush()
 end sub
 
-function GetActivationData(metamask = false) as object
-    if metamask <> invalid and metamask
-        baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-        return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
-            op: "create",
-            ' This is hardcoded to the Main network, will not work on Demo
-            dest: `${Env.walletUrl()}?action=login&mode=login&response=code&source=code#/login`
-        })
-    else
-        return http.post(`${AUTH0_BASE_URL}oauth/device/code`, {
-            client_id: AUTH0_CLIENT_ID,
-            scope: "openid profile email offline_access"
-        })
-    end if
-end function
-
-' Poll Auth0 to see if user completed activation and there's an id/access/refresh token waiting for us
-function checkDeviceAuthorization(deviceCode) as object
-    httpPromise = http.post(`${AUTH0_BASE_URL}oauth/token`, {
-        client_id: AUTH0_CLIENT_ID,
-        grant_type: "urn:ietf:params:oauth:grant-type:device_code"
-        device_code: deviceCode
+function GetActivationData(_ = invalid) as object
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
+        op: "create",
+        ' This is hardcoded to the Main network, will not work on Demo
+        dest: `${Env.walletUrl()}?action=login&mode=login&response=code&source=code#/login`
     })
-
-    return promises.chain(httpPromise).then(sub(response) as object
-        if response.code = 200
-            m.top.idToken = response.json.id_token
-            m.top.accessToken = response.json.access_token
-            m.top.refreshToken = response.json.refresh_token
-        end if
-        return response
-    end sub).toPromise()
 end function
 
-' Same as [checkDeviceAuthorization] but for metamask - skips a step and give FabricToken directly.
-' However - token can never be refreshed
-function checkMetamaskAuthorization(code, passcode) as object
+' checks if auth has completed for the given code and passcode.
+function checkAuthorization(code, passcode) as object
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     return promises.chain(http.get(`${baseUrl}/wlt/login/redirect/metamask/${code}/${passcode}`)).then(function(response)
         if response.code = 200

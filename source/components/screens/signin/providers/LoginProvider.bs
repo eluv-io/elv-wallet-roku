@@ -1,4 +1,5 @@
 
+' The interface is here because we used to support multiple login providers, but now we've simplified it to only Ory.
 interface LoginProvider
     ' Return a Promise that fetches the activation data
     sub getActivationData() as object
@@ -16,57 +17,17 @@ interface LoginProvider
     sub getExpiresIn(activationData) as integer
 end interface
 
-class Auth0Provider
-    sub new(property)
-        m.property = property
-    end sub
-
-    sub getActivationData() as object
-        return stores.tokenStore()@.GetActivationData(false)
-    end sub
-
-    sub checkToken(activationData) as object
-        context = { tenantId: m.property.tenant.tenant_id }
-        return promises.chain(stores.tokenStore()@.checkDeviceAuthorization(activationData.device_code), context).then(
-        function(response, context)
-            if response.code = 200
-                ' Auth0 gave us an IdToken, move own to obtain client-signed-access-token
-                tid = context.tenantId
-                return stores.tokenStore()@.fetchFabricToken(tid)
-            end if
-            return "pending"
-        end function
-        ).toPromise()
-    end sub
-
-    sub getCode(activationData) as string
-        return activationData.user_code
-    end sub
-
-    sub getQrUrl(activationData) as string
-        return activationData.verification_uri_complete
-    end sub
-
-    sub getPollingInterval(activationData) as integer
-        return activationData.interval
-    end sub
-
-    sub getExpiresIn(activationData) as integer
-        return activationData.expires_in
-    end sub
-end class
-
 class OryProvider
     sub new(property)
         m.propertyId = property.id
     end sub
 
     sub getActivationData() as object
-        return stores.tokenStore()@.GetActivationData(true)
+        return stores.tokenStore()@.GetActivationData()
     end sub
 
     sub checkToken(activationData) as object
-        return promises.chain(stores.tokenStore()@.checkMetamaskAuthorization(activationData.id, activationData.passcode)).then(
+        return promises.chain(stores.tokenStore()@.checkAuthorization(activationData.id, activationData.passcode)).then(
         function(response)
             if response.code = 200
                 return stores.tokenStore().fabricToken
@@ -94,15 +55,5 @@ class OryProvider
 
     sub getExpiresIn(activationData) as integer
         return activationData.expiration - time.now()
-    end sub
-end class
-
-class MetaMaskProvider extends OryProvider
-    sub new(property)
-        super(property)
-    end sub
-
-    override sub getQrUrl(activationData) as string
-        return activationData.metamask_url
     end sub
 end class

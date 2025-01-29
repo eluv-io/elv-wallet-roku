@@ -56,8 +56,8 @@ sub onPropertySelected()
         Toast.show("Error loading property")
         return
     end if
-    loginProvider = property.login?.settings?.provider ?? "auth0"
-    if stores.tokenStore().loginProvider = loginProvider
+
+    if strNotEmpty(stores.tokenStore().fabricToken)
         view = CreateObject("roSGNode", "PropertyDetail")
         view.property = property
         router()@.show({ view: view })

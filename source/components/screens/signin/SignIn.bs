@@ -18,36 +18,17 @@ end sub
 sub onPropertyChanged()
     property = m.top.property
     login = property?.login
-    providerName = login?.settings?.provider ?? "auth0"
-    m.providerName = providerName
-
-    if m.top.useMetamask or providerName = "metamask"
-        view = CreateObject("roSGNode", "MetamaskSignInView")
-    else
-        view = CreateObject("roSGNode", "NormalSignInView")
-    end if
-    m.top.appendChild(view)
-
+    
     saveViewReferences()
-
+    
     if m.bgImage <> invalid
         uri = login?.styling?.background_image_tv ?? login?.styling?.background_image_desktop
         m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
     end if
-    if providerName = "ory"
-        if m.metamaskButton <> invalid then m.metamaskButton.visible = false
-        provider = new OryProvider(property)
-    else if providerName = "auth0"
-        provider = new Auth0Provider(property)
-    else if providerName = "metamask"
-        provider = new MetaMaskProvider(property)
-    end if
-
-    if provider = invalid
-        ' TBD, explode or something
-    end if
-
-    m.loginProvider = provider
+    
+    ' Technically "ory" isn't the only possible provider, but it's the only one we are currently using,
+    ' so we just assume it's "ory" all the time.
+    m.loginProvider = new OryProvider(property)
     getNewCode()
 end sub
 
@@ -60,9 +41,6 @@ sub saveViewReferences()
     m.newCodeButton = m.top.findNode("btn_new_code")
     m.newCodeButton.ObserveField("buttonSelected", "getNewCode")
     setInitialFocus(m.newCodeButton)
-
-    m.metamaskButton = m.top.findNode("btn_metamask")
-    _ = m.metamaskButton?.observeFieldScoped?("buttonSelected", "onMetamaskClicked")
 
     m.backButton = m.top.findNode("btn_back")
     _ = m.backButton?.observeFieldScoped?("buttonSelected", "onBackClicked")
@@ -101,13 +79,6 @@ end sub
 
 sub onBackClicked()
     m.top.close = true
-end sub
-
-sub onMetamaskClicked()
-    view = CreateObject("roSGNode", "SignIn")
-    view.useMetamask = true
-    view.property = m.top.property
-    router()@.show({ view: view })
 end sub
 
 sub checkStatus()
@@ -161,13 +132,7 @@ function OnKeyEvent(key as string, press as boolean) as boolean
         end if
 
         backButtonFocused = m.backButton?.hasFocus?() ?? false
-        metamaskAvailable = m.metamaskButton?.visible ?? false
-        metamaskFocused = m.metamaskButton?.hasFocus?() ?? false
-        if key = "down" and (m.newCodeButton.hasFocus() or backButtonFocused) and metamaskAvailable
-            return m.metamaskButton.setFocus(true)
-        else if key = "up" and metamaskFocused
-            return m.newCodeButton.setFocus(true)
-        else if key = "right" and m.newCodeButton.hasFocus()
+        if key = "right" and m.newCodeButton.hasFocus()
             return m.backButton.setFocus(true)
         else if key = "left" and backButtonFocused
             return m.newCodeButton.setFocus(true)
