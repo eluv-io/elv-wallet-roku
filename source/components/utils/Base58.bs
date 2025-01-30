@@ -6,6 +6,12 @@ namespace base58
         return encodeBytes(bytes)
     end function
 
+    function encodeAscii(inputString as string)
+        bytes = createObject("roByteArray")
+        bytes.fromAsciiString(inputString)
+        return encodeBytes(bytes)
+    end function
+
     function encodeBytes(inputBytes as roByteArray) as string
         ALPHABET = CreateObject("roByteArray")
         ALPHABET.fromAsciiString("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")

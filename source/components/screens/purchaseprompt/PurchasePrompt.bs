@@ -1,0 +1,128 @@
+import "pkg:/components/utils/Base58.bs"
+import "pkg:/components/stores/stores.bs"
+import "pkg:/components/stores/Env.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/screens/signin/UrlShortener.bs"
+import "pkg:/components/utils/str.bs"
+sub init()
+    m.qrImage = m.top.findNode("qr_image")
+    m.urlLabel = m.top.findNode("url_label")
+    m.bgImage = m.top.findNode("bgImage")
+
+    m.spinner = m.top.findNode("spinner")
+    m.spinner.poster.observeField("loadStatus", "centerSpinner")
+    centerSpinner()
+
+    observe(m.top.findNode("btn_back"), "buttonSelected", sub ()
+        m.top.close = true
+    end sub)
+end sub
+
+sub onPermissionDataChanged()
+    data = m.top.permissionData
+    permissionContext = data.context
+    permissionSettings = data.settings
+    pageOverride = data.pageOverride
+    if pageOverride = ""
+        pageOverride = invalid
+    end if
+
+    qrUrl = buildPurchaseUrl(permissionContext, permissionSettings, pageOverride)
+    promises.chain(shortenUrl(qrUrl)).then(sub (url)
+        size = m.qrImage.boundingRect().width
+        m.qrImage.uri = UrlUtil.qrUrlForData(url, size)
+        m.urlLabel.text = url
+    end sub)
+
+    setBackgroundImage(permissionContext)
+end sub
+
+function buildPurchaseUrl(permissionContext, permissionSettings, pageOverride)
+    encodedContext = invalid
+    if pageOverride = invalid
+        context = {}
+        context.type = "purchase"
+        ' Start from the most broad id and keep overriding with more specific ids.
+        ' Any field that is [null] will not override the previous value.
+        putOpt(context, "id", permissionContext.propertyId)
+        putOpt(context, "id", permissionContext.pageId)
+        putOpt(context, "id", permissionContext.sectionId)
+        putOpt(context, "id", permissionContext.sectionItemId)
+        putOpt(context, "id", permissionContext.mediaItemId)
+        putOpt(context, "sectionSlugOrId", permissionContext.sectionId)
+        putOpt(context, "sectionItemId", permissionContext.sectionItemId)
+        if permissionSettings.permission_item_ids <> invalid and permissionSettings.permission_item_ids.count() > 0
+            context["permissionItemIds"] = permissionSettings.permission_item_ids
+        end if
+        putOpt(context, "secondaryPurchaseOption", permissionSettings.secondary_market_purchase_option)
+
+        encodedContext = base58.encodeAscii(formatJson(context))
+    end if
+
+    tokenStore = stores.tokenStore()
+    auth = {
+        "address": tokenStore.walletAddress
+        ' "email": tokenStore.userEmail ?? extractEmail(tokenStore.idToken)
+    }
+    clusterToken = tokenStore.clusterToken
+    if clusterToken <> invalid
+        auth.provider = "ory" ' Currently we only support ory.
+        auth.clusterToken = clusterToken
+    else
+        ' No cluster token only applies when logged in with Metamask
+        auth.provider = "metamask"
+        auth.fabricToken = tokenStore.fabricToken
+        auth.expiresAt = invalid ' TODO:
+    end if
+    encodedAuth = base58.encodeAscii(formatJson(auth))
+
+    pageId = pageOverride ?? permissionContext.pageId
+
+    url = `${Env.walleturl()}/${permissionContext.propertyId}/${pageId}?authorization=${encodedAuth}`
+    if encodedContext <> invalid
+        url = `${url}&p=${encodedContext}`
+    end if
+    return url
+end function
+
+' Sets aa[key] only if [strValue] is non-empty
+sub putOpt(aa, key, strValue)
+    if strNotEmpty(strValue)
+        aa[key] = strValue
+    end if
+end sub
+
+sub centerSpinner()
+    if m.spinner.poster.loadStatus = "ready"
+        centerx = (m.qrImage.width - m.spinner.poster.bitmapWidth) / 2
+        centery = (m.qrImage.height - m.spinner.poster.bitmapHeight) / 2
+        m.spinner.translation = [centerx, centery]
+    end if
+end sub
+
+sub setBackgroundImage(permissionContext)
+    promises.chain(stores.propertyStore()@.getPropertyById(permissionContext.propertyId), permissionContext).then(function(property, context)
+        ' use login styling first, then default to page.bgImage from context, then finally default to property's mainpage
+        bgImage = property.login?.styling?.background_image_tv ?? property.login?.styling?.background_image_desktop
+        return bgImage ?? getPageBackgroundPromise(context, property)
+    end function).then(sub (imageLink, context)
+        uri = UrlUtil.imageLinkToUrl(imageLink)
+        if uri <> invalid
+            m.bgImage.uri = uri
+        end if
+    end sub)
+end sub
+
+function getPageBackgroundPromise(permissionContext, property)
+    pageId = permissionContext.pageId
+    if strNotEmpty(pageId)
+        explicitPagePromise = promises.onCatch(stores.propertyStore()@.getPageById(property, pageId), function(err)
+            return invalid
+        end function)
+    else
+        explicitPagePromise = promises.resolve(invalid)
+    end if
+    return promises.onThen(explicitPagePromise, function(page, property)
+        return page?.layout?.background_image ?? property.main_page?.layout?.background_image
+    end function, property)
+end function

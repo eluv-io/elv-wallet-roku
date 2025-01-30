@@ -269,7 +269,15 @@ function createCarouselSection(section, decorations)
     isBannerSection = section.display.display_format = "banner"
     itemNodes = []
     displayLimit = isBannerSection ? 0 : section.display?.display_limit ?? 0
+    permissionContext = {
+        propertyId: m.top.property.id,
+        pageId: m.page.id,
+        sectionId: section.id
+    }
     for each item in section.content
+        context = { sectionItemId: item.id }
+        context.append(permissionContext)
+        item._permissionContext = context
         if item.display = invalid then item.display = {}
         ' Propogate forced aspect ratio from the section to the section_items
         if strNotEmpty(section.display.aspect_ratio)
@@ -370,6 +378,7 @@ function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSett
     else if SUPPORTED_ITEM_TYPES.doesExist(item.type)
         result = createObject("roSGNode", "AAContentNode")
         if item.media <> invalid
+            item._permissionContext.mediaItemId = item.media.id
             if item.use_media_settings = true
                 display = item.media
             else
@@ -547,8 +556,9 @@ sub onSectionItemSelected(event)
 end sub
 
 sub onSectionItemClicked(sectionItem)
+    permissionContext = sectionItem._permissionContext
     if sectionItem.media <> invalid
-        onMediaItemClicked(sectionItem.media)
+        onMediaItemClicked(sectionItem.media, permissionContext)
     else if sectionItem.type = "external_link"
         qrView = createObject("roSGNode", "ExternalContentQrDialog")
         qrView.showLinkText = true
@@ -561,6 +571,8 @@ sub onSectionItemClicked(sectionItem)
         navigateToPage(sectionItem.subproperty_id, sectionItem.subproperty_page_id)
     else if sectionItem.type = "page_link"
         navigateToPage(m.top.property.id, sectionItem.page_id)
+    else if sectionItem.type = "item_purchase"
+        navigateToPurchasePrompt(sectionItem.permissions._content, permissionContext)
     else
         Toast.show(`to be impl: click on ${sectionItem.type}`)
     end if
@@ -574,13 +586,23 @@ sub navigateToPage(propertyId as string, pageId as dynamic)
     router()@.show({ view: propView })
 end sub
 
-sub onMediaItemClicked(media)
+sub navigateToPurchasePrompt(permissionSettings, permissionContext)
+    view = createObject("roSGNode", "PurchasePrompt")
+    permissionData = {
+        context: permissionContext,
+        settings: permissionSettings,
+    }
+    view.permissionData = permissionData
+    router()@.show({ view: view })
+end sub
+
+sub onMediaItemClicked(media, permissionContext)
     permissions = media.permissions._content
     if PermissionUtil.showAlternatePage(permissions)
         navigateToPage(m.top.property.id, permissions.alternate_page_id)
         return
     else if PermissionUtil.showPurchaseOptions(permissions)
-        Toast.show("TODO: show purchase options")
+        navigateToPurchasePrompt(media.permissions._content, permissionContext)
         return
     else if PermissionUtil.isDisabled(permissions)
         Toast.show("Media Disabled")

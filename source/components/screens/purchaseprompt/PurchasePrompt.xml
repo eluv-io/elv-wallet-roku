@@ -1,12 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PurchasePrompt" extends="BaseView" initialFocus="btn_back">
     <interface>
-        <field id="property" type="assocArray" onChange="onPropertyChanged" />
+        <!-- Needs to contain a "context" field with all the IDs in the hierarchy for the specific
+        item -->
+        <!-- And a "settings" field with the resolved permission settings (from "._content" /
+        "._page" / "._property") -->
+        <field id="permissionData" type="assocArray" onChange="onPermissionDataChanged" />
     </interface>
     <children>
-        <Timer id="code_expiration_timer" repeat="false" />
-        <Timer id="status_poll_timer" repeat="true" />
-
         <Poster id="bgImage" width="1920" height="1080" opacity="0.7" />
         <LayoutGroup
             translation="[960,174]"
@@ -14,21 +15,16 @@
             horizAlignment="center"
             vertAlignment="top"
         >
-            <TvLabel text="Sign In" fontStyle="title_62" />
+            <TvLabel text="Sign In On Browser to Purchase" fontStyle="title_62" />
             <Spacer height="30" />
-            <TvLabel id="qr_code" fontStyle="title_62" />
-            <Spacer height="18" />
+            <TvLabel id="url_label" fontStyle="54_medium" />
+            <Spacer height="30" />
             <Group>
                 <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" />
-                <Poster id="qr_image" width="399" height="399" />
+                <Poster id="qr_image" width="450" height="450" />
             </Group>
             <Spacer height="66" />
             <LayoutGroup layoutDirection="horiz" itemSpacings="9">
-                <TvButton
-                    minWidth="498"
-                    id="btn_new_code"
-                    text="Request New Code"
-                />
                 <TvButton
                     minWidth="174"
                     id="btn_back"
