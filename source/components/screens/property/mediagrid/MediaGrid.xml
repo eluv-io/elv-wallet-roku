@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="MediaGrid" extends="BaseView" initialFocus="grid">
+    <interface>
+        <!-- Set [property] and [page] before [section] -->
+        <field id="property" type="assocArray" />
+        <field id="page" type="assocArray" />
+        <field id="section" type="assocArray" onChange="onSectionChanged" />
+    </interface>
+    <children>
+        <TvLabel
+            id="title"
+            text="Le title"
+            fontStlye="body_32"
+            translation="[114, 60]"
+        />
+        <MarkupGrid
+            id="grid"
+            itemComponentName="SectionItem"
+            numColumns="4"
+            translation="[114, 168]"
+            numRows="4"
+            itemSize="[402, 270]"
+            itemSpacing="[24,30]"
+            vertFocusAnimationStyle="fixedFocus"
+            drawFocusFeedback="true"
+        />
+    </children>
+</component>

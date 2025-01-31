@@ -7,6 +7,7 @@ import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
+import "pkg:/components/screens/property/CarouselHelpers.bs"
 import "pkg:/components/stores/stores.bs"
 
 const SUPPORTED_ITEM_TYPES = { "media": 1,
@@ -216,7 +217,12 @@ function sectionToNodes(section, decorations)
 
     newRows = invalid
     if section.type = "automatic" or section.type = "manual" or section.type = "search"
-        newRows = createCarouselSection(section, decorations)
+        permissionContext = {
+            propertyId: m.top.property.id,
+            pageId: m.page.id,
+            sectionId: section.id
+        }
+        newRows = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel)
     else if section.type = "hero"
         newRows = createHeroSections(section, decorations)
     else if section.type = "container"
@@ -253,91 +259,6 @@ function isContainerWithNoVisibleSubsections(section)
     return true
 end function
 
-function createCarouselSection(section, decorations)
-    rowHeight = 270
-    titleLabelSettings = {
-        fontStyle: "20_medium"
-        maxLines: 1
-        wrap: true
-    }
-    ' Set it once for all following calls to [calcMediaItemRatio].
-    ' This is error-prone because we have an implicit assumption that no other code with change
-    ' the settings of m.dummyLabel until the end of the for-loop;
-    ' But it's more efficient than settings the same values in every iteration.
-    m.dummyLabel.update(titleLabelSettings)
-
-    isBannerSection = section.display.display_format = "banner"
-    itemNodes = []
-    displayLimit = isBannerSection ? 0 : section.display?.display_limit ?? 0
-    permissionContext = {
-        propertyId: m.top.property.id,
-        pageId: m.page.id,
-        sectionId: section.id
-    }
-    for each item in section.content
-        context = { sectionItemId: item.id }
-        context.append(permissionContext)
-        item._permissionContext = context
-        if item.display = invalid then item.display = {}
-        ' Propogate forced aspect ratio from the section to the section_items
-        if strNotEmpty(section.display.aspect_ratio)
-            item.display.aspect_ratio = section.display.aspect_ratio
-        end if
-        node = createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
-        if node <> invalid
-            itemNodes.push(node)
-        end if
-        ' don't stop when we reach the limit (count=limit), but only after we went over
-        if displayLimit > 0 and itemNodes.count() > displayLimit
-            Logger.log(`Went over displayLimit, stopping node conversion for section ${section.id}`)
-            ' Short-circuit out, since the rest of the SectionItems won't be rendered anyway
-            exit for
-        end if
-    end for
-
-    totalItems = itemNodes.count()
-    if totalItems = 0
-        ' Now items in Section, don't render section
-        return []
-    end if
-
-    if isBannerSection
-        ' Create a whole row for every item of a Banner section. That's the only way to get items in different rows
-        ' This has a potential bug where section bg images will "restart" for every item.
-        ' Solid color bg will also act weird when scrolling between rows.
-        ' Also ignore display limit / viewall for banner sections
-        rows = []
-        for i = 0 to totalItems - 1
-            row = createNewSection(section.display)
-            row.update({ desiredHeight: rowHeight }, true)
-            if i = 0
-                ' Only show title above the first banner
-                row.title = section.display?.title
-            end if
-            row.appendChild(itemNodes[i])
-            rows.push(row)
-        end for
-        return rows
-    else
-        row = createNewSection(section.display)
-        row.update({ desiredHeight: rowHeight }, true)
-        row.title = section.display?.title
-
-        ' If set to 0, it means no limit, so we can show as many items as there are.
-        displayLimit = displayLimit = 0 ? totalItems : displayLimit
-
-        ' Append all the nodes we created to the row, up to displayLimit
-        row.appendChildren(itemNodes.slice(0, displayLimit))
-
-        if totalItems > displayLimit or totalItems > SectionConstants.VIEW_ALL_THRESHOLD
-            viewAll = row.createChild("AAContentNode")
-            viewAll.aa = { "type": "ViewAllButton" }
-            viewAll.update({ aspectRatio: 0.4 }, true)
-        end if
-        return [row]
-    end if
-end function
-
 function createContainerSection(section, decorations)
     if strNotEmpty(section.display.title)
         dummyLabel = m.dummyLabel
@@ -346,7 +267,7 @@ function createContainerSection(section, decorations)
             height: dummyLabel.boundingRect().height
             width: SectionConstants.TEXT_MAX_WIDTH
             content: {
-                fontStyle: "22_regular"
+                fontStyle: "42_regular"
                 text: section.display.title
                 width: SectionConstants.TEXT_MAX_WIDTH
                 maxLines: 1
@@ -360,88 +281,6 @@ function createContainerSection(section, decorations)
         rows.append(sectionToNodes(subsection, decorations))
     end for
     return rows
-end function
-
-' Returns a node for [item] if it needs to be rendered, or [invalid] otherwise
-function createCarouselItemNode(item, rowHeight, isBannerSection, titleLabelSettings)
-    bannerImageLink = isBannerSection ? item.banner_image : invalid
-
-    if isBannerSection and bannerImageLink = invalid
-        Logger.log(`Section item without banner_image configured, inside a section with display_format=banner. dropping item.`)
-        return invalid
-    end if
-
-    result = invalid
-    if PermissionUtil.isHidden(item.permissions._content)
-        ' Hidden item, don't render anything
-        return invalid
-    else if SUPPORTED_ITEM_TYPES.doesExist(item.type)
-        result = createObject("roSGNode", "AAContentNode")
-        if item.media <> invalid
-            item._permissionContext.mediaItemId = item.media.id
-            if item.use_media_settings = true
-                display = item.media
-            else
-                ' Keep media display settings, but override with anything that is well-defined in item.display
-                display = DisplaySettings.applyOverrides(item.media, item.display)
-            end if
-        else
-            display = item.display
-        end if
-        ' Propogate forced aspect ratio from the section_item to the display settings
-        display.aspect_ratio = item.display.aspect_ratio
-
-        if isBannerSection
-            ratio = invalid ' Let the code below calculate the real ratio
-        else
-            ratio = calcMediaItemRatio(display, rowHeight)
-        end if
-        result.update({
-            aa: { "type": "CarouselItem", item: item, titleLabelSettings: titleLabelSettings },
-            aspectRatio: ratio
-        }, true)
-    else if false
-        ' TODO: handle PurchaseItem
-    end if
-
-    ' Any item type can be displayed as a banner, so take whatever was created and slap the banner on it
-    if result <> invalid and isBannerSection
-        aa = result.aa
-        aa.bannerImageLink = bannerImageLink
-        ' Banners should take up the full width of the screen, minus the rowList horiz-padding
-        width = 1920 - (m.rowList.translation[0] * 2)
-        result.update({
-            aa: aa
-            aspectRatio: width / rowHeight
-        }, true)
-    end if
-
-    return result
-end function
-
-' Returns [invalid] when [media=invalid] or doesn't have a thumbnail defined.
-' Assumes m.dummyLabel is already loaded with the correct settings to match the Title label in the CarouselItem
-function calcMediaItemRatio(media, cardTotalHeight)
-    thumbnailRatio = DisplaySettings.getThumbnailAndRatio(media)?.aspectRatio
-    if thumbnailRatio = invalid
-        ' this includes a check for media=invalid as well
-        return invalid
-    end if
-    ' Start off with the thumbnail taking up the entire card
-    thumbnailHeight = cardTotalHeight
-    if strNotEmpty(media?.title)
-        ' If a title exists, remove the height it will take in the card
-        thumbnailHeight -= (m.dummyLabel.boundingRect().height + SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING + SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING)
-        ' "round" down to the closest multiple of 3 (roku ui scaling factor)
-        thumbnailHeight -= thumbnailHeight mod 3
-    end if
-    ' Calculate the width required to display the thumbnail correctly, given the new height
-    thumbnailWidth = thumbnailRatio * thumbnailHeight
-    ' Round down to a multiple of 3 to prevent scaling issues
-    thumbnailWidth -= thumbnailWidth mod 3
-
-    ' Finally, the total ratio for the card:
-    return thumbnailWidth / cardTotalHeight
 end function
 
 function createHeroSections(section, decorations)
@@ -545,92 +384,20 @@ sub onSectionItemSelected(event)
     item = m.rowList.content.getChild(index[0]).getChild(index[1])
     itemType = item.aa.type
     if itemType = "CarouselItem"
-        onSectionItemClicked(item.aa.item)
+        CarouselHelpers.onSectionItemClicked(item.aa.item, m.top.property)
     else if itemType = "TextItem"
         Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
     else if itemType = "Spacer"
         ' No-Op
+    else if itemType = "ViewAllButton"
+        view = createObject("roSGNode", "MediaGrid")
+        view.property = m.top.property
+        view.page = m.page
+        view.section = item.aa.section
+        router()@.show({ view: view })
     else
         Toast.show(`to be impl: type=${itemType}`)
     end if
-end sub
-
-sub onSectionItemClicked(sectionItem)
-    permissionContext = sectionItem._permissionContext
-    if sectionItem.media <> invalid
-        onMediaItemClicked(sectionItem.media, permissionContext)
-    else if sectionItem.type = "external_link"
-        qrView = createObject("roSGNode", "ExternalContentQrDialog")
-        qrView.showLinkText = true
-        qrView.includeToken = false
-        qrView.link = sectionItem.url
-        createObject("roSGNode", "FullscreenDialog").showView = qrView
-    else if sectionItem.type = "property_link"
-        navigateToPage(sectionItem.property_id, sectionItem.property_page_id)
-    else if sectionItem.type = "subproperty_link"
-        navigateToPage(sectionItem.subproperty_id, sectionItem.subproperty_page_id)
-    else if sectionItem.type = "page_link"
-        navigateToPage(m.top.property.id, sectionItem.page_id)
-    else if sectionItem.type = "item_purchase"
-        navigateToPurchasePrompt(sectionItem.permissions._content, permissionContext)
-    else
-        Toast.show(`to be impl: click on ${sectionItem.type}`)
-    end if
-end sub
-
-' PropertyId is required.
-' PageId is optional
-sub navigateToPage(propertyId as string, pageId as dynamic)
-    propView = createObject("roSGNode", "PropertyDetail")
-    propView.linkData = { propertyId: propertyId, pageId: pageId }
-    router()@.show({ view: propView })
-end sub
-
-sub navigateToPurchasePrompt(permissionSettings, permissionContext)
-    view = createObject("roSGNode", "PurchasePrompt")
-    permissionData = {
-        context: permissionContext,
-        settings: permissionSettings,
-    }
-    view.permissionData = permissionData
-    router()@.show({ view: view })
-end sub
-
-sub onMediaItemClicked(media, permissionContext)
-    permissions = media.permissions._content
-    if PermissionUtil.showAlternatePage(permissions)
-        navigateToPage(m.top.property.id, permissions.alternate_page_id)
-        return
-    else if PermissionUtil.showPurchaseOptions(permissions)
-        navigateToPurchasePrompt(media.permissions._content, permissionContext)
-        return
-    else if PermissionUtil.isDisabled(permissions)
-        Toast.show("Media Disabled")
-        return
-    else if permissions.authorized = false and permissions.behavior <> "show_if_unauthorized"
-        ' There's also an error-case where the user isn't authorized but we don't know which behavior to apply
-        Logger.log(`Media unauthorized but behavior unknown. Ignoring click.`)
-        return
-    end if
-
-    if media.live_video = true
-        if not MediaItemUtils.isStartedLive(media)
-            view = CreateObject("roSGNode", "UpcomingVideo")
-            view.media = media
-            view.property = m.top.property
-            router()@.show({ view: view })
-            return
-        end if
-        ' This is a LIVE video that's valid to view, continue normally
-    end if
-
-    videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
-    videoPlayerView.propertyMedia = {
-        propertyId: m.top.property.id
-        mediaId: media.id
-        title: media.display_title ?? media.title
-    }
-    router()@.show({ view: videoPlayerView })
 end sub
 
 sub dumpDecorations(row, decorations)

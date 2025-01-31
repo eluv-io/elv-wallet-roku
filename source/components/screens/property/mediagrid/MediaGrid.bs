@@ -1,0 +1,34 @@
+import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/stores/permissions/PermissionUtil.bs"
+import "pkg:/components/screens/property/CarouselHelpers.bs"
+import "pkg:/components/utils/str.bs"
+sub init()
+    m.grid = m.top.findNode("grid")
+    m.title = m.top.findNode("title")
+
+    ' Dummy label that isn't attached to the screen. We use that to measure text sizes.
+    m.dummyLabel = createObject("roSGNode", "TvLabel")
+
+    observe(m.grid, "itemSelected", onItemSelected)
+end sub
+
+sub onSectionChanged()
+    property = m.top.property
+    page = m.top.page
+    section = m.top.section
+    m.title.text = section.display.title
+    permissionContext = {
+        propertyId: property.id,
+        pageId: page.id,
+        sectionId: section.id
+    }
+    nodes = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel, true, "grid")
+    m.grid.content = nodes[0]
+end sub
+
+sub onItemSelected()
+    item = m.grid.content.getChild(m.grid.itemFocused)?.aa?.item
+    if item <> invalid
+        CarouselHelpers.onSectionItemClicked(item, m.top.property)
+    end if
+end sub
