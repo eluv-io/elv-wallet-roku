@@ -34,6 +34,15 @@ sub init()
         view.property = m.top.property
         router()@.show({ view: view })
     end sub)
+
+    ' Only show Search button when top row is focused.
+    observe(m.rowList, "currFocusRow", sub()
+        scrollPosition = m.rowList.currFocusRow
+        if scrollPosition < 1
+            ' Scrolling is between 0 and 1, update Search button opacity
+            m.btnSearch.opacity = 1 - scrollPosition
+        end if
+    end sub)
 end sub
 
 sub onPageLinkChanged()

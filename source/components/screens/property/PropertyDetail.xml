@@ -8,13 +8,6 @@
     </interface>
     <children>
         <Poster id="bgImage" width="1920" height="1080" />
-        <ActionButton
-            id="btnSearch"
-            translation="[1764, 66]"
-            iconUri="pkg:/images/search_icon.png"
-            size="60"
-            visible="false"
-        />
         <ZoomRowList
             id="rowList"
             itemComponentName="SectionItem"
@@ -27,6 +20,13 @@
             useDefaultAspectRatio="[false]"
             wrap="false"
             translation="[96,0]"
+        />
+        <ActionButton
+            id="btnSearch"
+            translation="[1764, 66]"
+            iconUri="pkg:/images/search_icon.png"
+            size="60"
+            visible="false"
         />
     </children>
 </component>
