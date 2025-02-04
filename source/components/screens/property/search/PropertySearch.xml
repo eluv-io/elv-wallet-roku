@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PropertySearch" extends="BaseView" initialFocus="searchBox">
+    <interface>
+        <field id="property" type="assocArray" onChange="onPropertyChanged" />
+    </interface>
+    <children>
+        <Rectangle id="underline" color="#FFFFFFFF" height="3" />
+        <Poster id="searchBoxBorder" uri="pkg:/images/component_border.9.png" visible="false" />
+        <LayoutGroup
+            id="header"
+            layoutDirection="horiz"
+            itemSpacings="[36]"
+            vertAlignment="center"
+        >
+            <Poster id="propertyLogo" height="48" />
+            <Poster id="searchIcon" uri="pkg:/images/search_icon.png" width="48" height="48" />
+            <TvLabel
+                id="searchBox"
+                focusable="true"
+            />
+        </LayoutGroup>
+        <BusySpinner
+            id="spinner"
+            uri="pkg:/images/busyspinner_hd.png"
+            translation="[864, 540]"
+        />
+        <ZoomRowList
+            id="rowList"
+            width="1920"
+            height="880"
+            translation="[96, 60]"
+            itemComponentName="SectionItem"
+            rowDecorationComponentName='["SectionRow"]'
+            spacingAfterRow="30"
+            remainZoomedAboveFocus="never"
+            fadeOutAboveFocus="never"
+            showRowCounter="[false]"
+            showRowTitle="[false]"
+            useDefaultAspectRatio="[false]"
+            wrap="false"
+        />
+    </children>
+</component>

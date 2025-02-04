@@ -30,4 +30,9 @@ namespace PropertyApi
         url = `${baseUrl()}/mw/properties/${propertyId}/sections?resolve_subsections=true`
         return http.post(url, formatJson(sectionIds))
     end function
+
+    function search(propertyId as string, query as string) as object
+        url = `${baseUrl()}/mw/properties/${propertyId}/search`
+        return http.post(url, formatJson({ search_term: query }))
+    end function
 end namespace

@@ -39,6 +39,21 @@ namespace PermissionResolver
             invalid,
             permissionStates
             )
+
+            behavior = permissions.search_permissions_behavior
+            '     Default to HIDE when not defined.
+            if behavior = invalid or behavior.isEmpty()
+                behavior = "hide"
+            end if
+            searchPermissions = {
+                behavior: behavior,
+                alternatePageId: permissions.search_permissions_alternate_page_id,
+                secondaryMarketPurchaseOption: permissions.search_permissions_secondary_market_purchase_option
+            }
+            permissions._search = merge(
+            searchPermissions, invalid, permissionStates
+            )
+
             ' An in-accessible property could still render a Page, so we can't short-circuit here.
             return false
         else if permissions.page_permissions <> invalid

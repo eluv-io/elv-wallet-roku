@@ -2,6 +2,7 @@ import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/screens/property/DisplaySettings.bs"
+import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 namespace CarouselHelpers
     const SUPPORTED_ITEM_TYPES = {
@@ -207,6 +208,57 @@ namespace CarouselHelpers
 
         return result
     end function
+
+    sub updateZoomRowListHeights(zoomRowList, content, dummyLabel, listTopPadding = SectionConstants.PROPERTY_LIST_TOP_PADDING)
+        rowCount = content.getChildCount()
+        rowHeights = createObject("roArray", rowCount, false)
+        rowZoomHeights = createObject("roArray", rowCount, false)
+
+        rowItemHeights = createObject("roArray", rowCount, false)
+        rowItemZoomHeights = createObject("roArray", rowCount, false)
+
+        rowItemYOffsets = createObject("roArray", rowCount, false)
+        rowItemZoomYOffsets = createObject("roArray", rowCount, false)
+
+        dummyLabel.update({
+            text: "A"
+            fontStle: "body_32"
+            maxLines: 1
+        })
+        titleFontHeight = dummyLabel.boundingRect().height
+        rowTitleOffsets = createObject("roArray", rowCount, false)
+
+        bottomPadding = 36
+        for i = 0 to rowCount - 1
+            row = content.getChild(i)
+            itemHeight = row.desiredHeight ?? 200
+            rowHeight = itemHeight + SectionConstants.SECTION_TOP_PADDING + bottomPadding
+            if strNotEmpty(row.title)
+                rowHeight += titleFontHeight + 36 ' a lil' extra padding below title
+            end if
+
+            decorations = row.customDecorations ?? []
+            for each decoration in decorations
+                rowHeight += decoration.height ?? 0
+            end for
+
+            rowHeights[i] = rowHeight
+            rowZoomHeights[i] = rowHeight + listTopPadding
+            rowItemHeights[i] = itemHeight
+            rowItemZoomHeights[i] = itemHeight
+
+            rowItemYOffsets[i] = rowHeight - itemHeight - bottomPadding
+            rowItemZoomYOffsets[i] = rowItemYOffsets[i] + listTopPadding
+        end for
+
+        zoomRowList.rowHeight = rowHeights
+        zoomRowList.rowZoomHeight = rowZoomHeights
+        zoomRowList.rowItemHeight = rowItemHeights
+        zoomRowList.rowItemZoomHeight = rowItemZoomHeights
+        zoomRowList.rowItemYOffset = rowItemYOffsets
+        zoomRowList.rowItemZoomYOffset = rowItemZoomYOffsets
+        zoomRowList.rowTitleOffset = rowTitleOffsets
+    end sub
 
     function _createNewSection(display = invalid)
         section = createObject("roSGNode", "AAContentNode")

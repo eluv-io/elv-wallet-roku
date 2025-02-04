@@ -19,7 +19,7 @@ sub onSectionChanged()
     m.title.text = section.display.title
     permissionContext = {
         propertyId: property.id,
-        pageId: page.id,
+        pageId: page?.id,
         sectionId: section.id
     }
     nodes = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel, true, "grid")

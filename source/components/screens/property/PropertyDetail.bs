@@ -27,6 +27,13 @@ sub init()
 
     ' Dummy label that isn't attached to the screen. We use that to measure text sizes.
     m.dummyLabel = createObject("roSGNode", "TvLabel")
+
+    m.btnSearch = m.top.findNode("btnSearch")
+    observe(m.btnSearch, "buttonSelected", sub()
+        view = createObject("roSGNode", "PropertySearch")
+        view.property = m.top.property
+        router()@.show({ view: view })
+    end sub)
 end sub
 
 sub onPageLinkChanged()
@@ -151,64 +158,10 @@ sub onSectionsChanged()
 
     m.bgImage.uri = UrlUtil.imageLinkToUrl(heroSectionBgImage ?? m.page.layout.background_image, m.bgImage.height)
 
-    updateListHeights(content)
+    CarouselHelpers.updateZoomRowListHeights(m.rowList, content, m.dummyLabel)
 
     m.rowList.content = content
-end sub
-
-sub updateListHeights(content)
-    listTopPadding = SectionConstants.PROPERTY_LIST_TOP_PADDING
-
-    rowCount = content.getChildCount()
-    rowHeights = createObject("roArray", rowCount, false)
-    rowZoomHeights = createObject("roArray", rowCount, false)
-
-    rowItemHeights = createObject("roArray", rowCount, false)
-    rowItemZoomHeights = createObject("roArray", rowCount, false)
-
-    rowItemYOffsets = createObject("roArray", rowCount, false)
-    rowItemZoomYOffsets = createObject("roArray", rowCount, false)
-
-    dummyLabel = m.dummyLabel
-    dummyLabel.update({
-        text: "A"
-        fontStle: "body_32"
-        maxLines: 1
-    })
-    titleFontHeight = dummyLabel.boundingRect().height
-    rowTitleOffsets = createObject("roArray", rowCount, false)
-
-    bottomPadding = 36
-    for i = 0 to rowCount - 1
-        row = content.getChild(i)
-        itemHeight = row.desiredHeight ?? 200
-        rowHeight = itemHeight + SectionConstants.SECTION_TOP_PADDING + bottomPadding
-        if strNotEmpty(row.title)
-            rowHeight += titleFontHeight + 36 ' a lil' extra padding below title
-        end if
-
-        decorations = row.customDecorations ?? []
-        for each decoration in decorations
-            rowHeight += decoration.height ?? 0
-        end for
-
-        rowHeights[i] = rowHeight
-        rowZoomHeights[i] = rowHeight + listTopPadding
-        rowItemHeights[i] = itemHeight
-        rowItemZoomHeights[i] = itemHeight
-
-        rowItemYOffsets[i] = rowHeight - itemHeight - bottomPadding
-        rowItemZoomYOffsets[i] = rowItemYOffsets[i] + listTopPadding
-    end for
-
-    rowList = m.rowList
-    rowList.rowHeight = rowHeights
-    rowList.rowZoomHeight = rowZoomHeights
-    rowList.rowItemHeight = rowItemHeights
-    rowList.rowItemZoomHeight = rowItemZoomHeights
-    rowList.rowItemYOffset = rowItemYOffsets
-    rowList.rowItemZoomYOffset = rowItemZoomYOffsets
-    rowList.rowTitleOffset = rowTitleOffsets
+    m.btnSearch.visible = true
 end sub
 
 ' Each "section" from the backend might end up being 0-n rows on the UI
@@ -406,3 +359,21 @@ sub dumpDecorations(row, decorations)
     row.update({ customDecorations: customDecorations }, true)
     decorations.clear()
 end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "up"
+            if m.rowList.IsInFocusChain()
+                m.btnSearch.setFocus(true)
+                handled = true
+            end if
+        else if key = "down"
+            if m.btnSearch.IsInFocusChain()
+                m.rowList.setFocus(true)
+                handled = true
+            end if
+        end if
+    end if
+    return handled
+end function

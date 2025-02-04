@@ -1,0 +1,176 @@
+import "pkg:/components/http/apis/PropertyApi.bs"
+import "pkg:/components/screens/property/CarouselHelpers.bs"
+import "pkg:/components/stores/permissions/PermissionsResolver.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+sub init()
+    m.dummyLabel = createObject("roSGNode", "TvLabel")
+    m.spinner = m.top.findNode("spinner")
+
+    m.rowList = m.top.findNode("rowList")
+    listLeftPadding = m.rowList.translation[0]
+    m.rowList.rowWidth = 1920 - listLeftPadding
+    m.rowList.itemClippingRect = { x: -listLeftPadding, y: 0, width: 1920, height: 1080 }
+    m.rowList.clippingRect = [-listLeftPadding, 0, 1920, 1080]
+    observe(m.rowList, "rowItemSelected", onSectionItemSelected)
+
+    m.searchBox = m.top.findNode("searchBox")
+    observe(m.searchBox, "focusedChild", onSearchBoxFocusChange)
+    m.searchBoxBorder = m.top.findNode("searchBoxBorder")
+    m.searchIcon = m.top.findNode("searchIcon")
+
+    m.propertyLogo = m.top.findNode("propertyLogo")
+    observe(m.propertyLogo, "loadStatus", onLogoLoadStatusChanged)
+
+    m.header = m.top.findNode("header")
+
+    m.underline = m.top.findNode("underline")
+    positionUnderline()
+
+    m.top.addFields({ queryString: "" })
+    observe(m.top, "queryString", onQueryChanged)
+    onQueryChanged()
+end sub
+
+sub onQueryChanged()
+    query = m.top.queryString
+    property = m.top.property
+    if strNotEmpty(query)
+        m.searchBox.color = "#FFFFFF"
+        m.searchBox.text = query
+    else
+        m.searchBox.color = "#9b9b9b"
+        m.searchBox.text = `Search ${property?.name ?? ""}`
+    end if
+
+    m.spinner.visible = true
+    m.rowList.content = invalid
+
+    if property?.id <> invalid
+        ' run query
+        promises.chain(PropertyApi.search(property.id, query)).then(onSectionsLoaded)
+    end if
+end sub
+
+sub onPropertyChanged()
+    property = m.top.property
+    logoUri = property.tv_header_logo ?? property.header_logo
+    m.propertyLogo.uri = UrlUtil.imageLinkToUrl(logoUri)
+    onQueryChanged()
+end sub
+
+sub onSearchBoxFocusChange()
+    m.searchBoxBorder.visible = m.searchBox.IsInFocusChain()
+end sub
+
+sub onSearchBoxClicked()
+    keyboard = m.top.createChild("StandardKeyboardDialog")
+    m.keyboard = keyboard
+    keyboard.title = `Search ${m.top.property.name}`
+    keyboard.text = m.top.queryString
+    keyboard.buttons = ["Search", "Cancel"]
+    keyboard.setFocus(true)
+
+    observe(keyboard, "wasClosed", sub ()
+        killDialog()
+    end sub)
+
+    observe(keyboard, "text", sub ()
+        ?
+    end sub)
+
+    observe(keyboard, "buttonSelected", sub()
+        if m.keyboard.buttonSelected = 0
+            m.top.queryString = m.keyboard.text
+        end if
+        killDialog()
+    end sub)
+end sub
+
+sub killDialog()
+    m.top.removechild(m.keyboard)
+    m.keyboard = invalid
+    m.searchBox.setFocus(true)
+end sub
+
+sub onLogoLoadStatusChanged()
+    logo = m.propertyLogo
+    if logo.loadStatus = "ready"
+        logo.width = cint(logo.height * (logo.bitmapWidth / logo.bitmapHeight))
+        m.header.translation = [48, m.header.boundingRect().height / 2 + 48]
+        positionUnderline()
+    end if
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "OK" and m.searchBox.IsInFocusChain()
+            onSearchBoxClicked()
+            handled = true
+        else if key = "down" and m.searchBox.IsInFocusChain()
+            m.rowList.setFocus(true)
+            handled = true
+        else if key = "up" and m.rowList.IsInFocusChain()
+            m.searchBox.setFocus(true)
+            handled = true
+        end if
+    end if
+    return handled
+end function
+
+sub positionUnderline()
+    rect = m.searchBox.sceneBoundingRect()
+    iconStart = m.searchIcon.sceneBoundingRect().x
+    x = iconStart - 48
+    m.underline.translation = [x, rect.y + rect.height + 24]
+    m.underline.width = 1920 - x - 48
+
+    x = iconStart - 12
+    m.searchBoxBorder.translation = [x, rect.y - 24]
+    m.searchBoxBorder.height = rect.height + 48
+    m.searchBoxBorder.width = 1920 - x - 72
+end sub
+
+sub onSectionsLoaded(sectionsResponse)
+    sections = sectionsResponse.json.contents ?? []
+    ? "got some sections"
+
+    ' Create a fake "SectionContainer" to hold the list of the returned sections, since PermissionResolver already handles that case
+    sectionContainer = {
+        id: "SearchResultsContainer"
+        sections_resolved: sections
+    }
+    property = m.top.property
+    PermissionResolver.resolvePermissions(sectionContainer, property.permissions?._search, property.permission_auth_state)
+
+    permissionContext = { propertyId: property.id }
+    content = createObject("roSGNode", "ContentNode")
+    for each section in sections
+        newRows = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel)
+        content.appendChildren(newRows)
+    end for
+    m.spinner.visible = false
+    m.rowList.content = content
+    CarouselHelpers.updateZoomRowListHeights(m.rowList, content, m.dummyLabel)
+end sub
+
+sub onSectionItemSelected(event)
+    index = m.rowList.rowItemSelected ' [rowIndex, itemIndex]
+    item = m.rowList.content.getChild(index[0]).getChild(index[1])
+    itemType = item.aa.type
+    if itemType = "CarouselItem"
+        CarouselHelpers.onSectionItemClicked(item.aa.item, m.top.property)
+    else if itemType = "TextItem"
+        Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
+    else if itemType = "Spacer"
+        ' No-Op
+    else if itemType = "ViewAllButton"
+        view = createObject("roSGNode", "MediaGrid")
+        view.property = m.top.property
+        view.page = m.page
+        view.section = item.aa.section
+        router()@.show({ view: view })
+    else
+        Toast.show(`to be impl: type=${itemType}`)
+    end if
+end sub

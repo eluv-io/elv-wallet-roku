@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ActionButton" extends="Poster">
+    <interface>
+        <field id="buttonSelected" type="integer" alwaysNotify="true" />
+
+        <field id="iconUri" type="string" alias="icon.uri" />
+        <field id="size" type="integer" onChange="onSizeChanged" />
+    </interface>
+
+    <children>
+        <Poster id="icon" />
+    </children>
+</component>

@@ -1,0 +1,46 @@
+import "pkg:/components/utils/NodeUtil.bs"
+
+sub init()
+    m.icon = m.top.findNode("icon")
+    
+    m.top.uri = "pkg:/images/rounded/HD.9.png"
+    m.bg = m.top
+
+    m.top.focusable = true
+    observe(m.top, "focusedChild", onFocusChange)
+    onFocusChange()
+end sub
+
+sub onFocusChange()
+    if m.top.isInFocusChain()
+        m.bg.blendColor = "#ffffff"
+        m.icon.blendColor = "#2d2d2d"
+    else
+        m.bg.blendColor = "#2d2d2d"
+        m.icon.blendColor = "#ffffff"
+    end if
+end sub
+
+sub onSizeChanged()
+    size = m.top.size
+
+    m.bg.width = size
+    m.bg.height = size
+
+    iconSize = size * 10 / 16
+    m.icon.width = iconSize
+    m.icon.height = iconSize
+    offset = (size - iconSize) / 2
+    m.icon.translation = [offset, offset]
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "OK"
+            m.top.buttonSelected = 1
+            handled = true
+        end if
+    end if
+    return handled
+end function
