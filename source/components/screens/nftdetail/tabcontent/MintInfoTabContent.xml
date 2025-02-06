@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="MintInfoTabContent" extends="Spacer">
+    <interface>
+        <field id="nft" type="node" onChange="onNftChanged" />
+    </interface>
+    <children>
+        <LayoutGroup layoutDirection="vert" itemSpacings="[9]">
+            <TvLabel text="Edition" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="edition" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Number Minted" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="minted" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Number in Circulation" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="totalSupply" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Number Burned" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="burned" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Maximum Possible in Circulation" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="capMinusBurned" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Cap" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="cap" fontStyle="24_regular" />
+            <Spacer height="12" />
+        </LayoutGroup>
+    </children>
+</component>

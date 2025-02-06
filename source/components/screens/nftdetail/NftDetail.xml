@@ -2,45 +2,50 @@
 <component name="NftDetail" extends="BaseView" initialFocus="rowList">
     <interface>
         <field id="nft" type="node" onChange="onNftItemChanged" />
+        <!-- For internal component use -->
+        <field id="_selectedTabIndex" type="integer" value="0" onChange="onSelectedTabChanged" />
     </interface>
     <children>
-        <Poster id="bgImage" width="1920" height="1080" />
-        <LayoutGroup layoutDirection="vert" translation="[80, 80]">
-            <TvLabel
-                id="title"
-                numLines="2"
-                width="1000"
-                wrap="true"
-                maxLines="2"
-            />
-            <TvLabel
-                id="subtitle"
-                maxLines="5"
-                wrap="true"
-                width="1300"
-                fontStyle="body_32"
-            >
-                <Animation id="subtitleAnimation"
-                    duration="0.05"
-                    repeat="false"
-                    easeFunction="linear">
-                    <Vector2DFieldInterpolator id="subtitleInterpolator"
-                        key="[0.0, 0.25, 0.5, 0.75, 1.0]"
-                        keyValue="[ [1.0, 0.0], [1.0, 0.25], [1.0, 0.5], [1.0, 0.75], [1.0, 1.0]]"
-                        fieldToInterp="subtitle.scale" />
-                </Animation>
-            </TvLabel>
-            <RowList id="rowlist"
-                rowTitleComponentName="NftDetailRowTitle"
-                itemComponentName="CardWrapper"
-                rowFocusAnimationStyle="fixedFocusWrap"
-                showRowLabel="[true]"
-                rowLabelOffset="[[0,21]]"
-                rowItemSize="[ [0, 300] ]"
-                itemSize="[1920, 300]"
-                variableWidthItems="[true]"
-                rowItemSpacing="[ [51, 0] ]"
-            />
+        <LayoutGroup
+            layoutDirection="vert"
+            translation="[504, 162]"
+            itemSpacings="[24]"
+            horizAlignment="center"
+        >
+            <NftCard id="card" width="426" height="654" />
+            <TvButton id="goToProperty" text="Go to Property" visible="false" />
         </LayoutGroup>
+        <LayoutGroup
+            id="tabTitleContainer"
+            itemSpacings="[60]"
+            layoutDirection="horiz"
+            translation="[810, 156]"
+        >
+            <TvLabel
+                id="descriptionTabTitle"
+                text="Description"
+                color="#7B7B7B"
+                fontStyle="body_32"
+                focusable="true" />
+            <TvLabel
+                id="mintInfoTabTitle"
+                text="Mint Info"
+                color="#7B7B7B"
+                fontStyle="body_32"
+                focusable="true" />
+            <TvLabel
+                id="nftTemplateInfoTabTitle"
+                text="Contract &amp; Version"
+                color="#7B7B7B"
+                fontStyle="body_32"
+                focusable="true" />
+        </LayoutGroup>
+        <Rectangle
+            id="tabContentContainer"
+            color="#00000000"
+            width="816"
+            height="698"
+            translation="[816, 246]"
+        />
     </children>
 </component>

@@ -1,0 +1,19 @@
+sub init()
+    m.contractAddress = m.top.findNode("contractAddress")
+    m.hash = m.top.findNode("hash")
+end sub
+
+sub onNftChanged()
+    nft = m.top.nft
+
+    m.contractAddress.width = m.top.width
+    m.hash.width = m.top.width
+
+    m.contractAddress.text = nft.contractAddress
+    for each part in nft.sourceNft.token_uri.split("/")
+        if part.startsWith("hq__")
+            m.hash.text = part
+            exit for
+        end if
+    end for
+end sub

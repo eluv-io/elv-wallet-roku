@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ContractTabContent" extends="Spacer">
+    <interface>
+        <field id="nft" type="node" onChange="onNftChanged" />
+    </interface>
+    <children>
+         <LayoutGroup layoutDirection="vert" itemSpacings="[9]">
+            <TvLabel text="Contract Address" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="contractAddress" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+            <TvLabel text="Hash" fontStyle="body_32" color="#9B9B9B" />
+            <TvLabel id="hash" fontStyle="24_regular" />
+            <Spacer height="12" />
+
+        </LayoutGroup>
+    </children>
+</component>

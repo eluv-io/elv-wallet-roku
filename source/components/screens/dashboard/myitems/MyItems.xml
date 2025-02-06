@@ -8,7 +8,7 @@
             numRows="2"
             itemSize="[480,736]"
             vertFocusAnimationStyle="fixed"
-            translation="[204, 30]"
+            translation="[204, 66]"
             itemSpacing="[ 36, 36 ]"
             drawFocusFeedback="false"
         />

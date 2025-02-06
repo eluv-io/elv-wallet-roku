@@ -1,0 +1,17 @@
+sub init()
+    m.title = m.top.findNode("title")
+    m.subtitle = m.top.findNode("subtitle")
+    m.description = m.top.findNode("description")
+end sub
+
+sub onNftChanged()
+    nft = m.top.nft
+
+    m.title.width = m.top.width
+    m.subtitle.width = m.top.width
+    m.description.width = m.top.width
+
+    m.title.text = nft.title
+    m.subtitle.text = `${nft.subtitle}    #${nft.tokenId}`
+    m.description.text = nft.description
+end sub

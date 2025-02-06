@@ -5,41 +5,36 @@ import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/RichText.bs"
 
-const ITEM_HEIGHT = 270
-' The space between rows if the rows don't have any titles.
-const DEFAULT_ROW_SPACING = 60
-
 sub init()
-    m.title = m.top.findNode("title")
-    m.subtitle = m.top.findNode("subtitle")
-    m.subtitleAnim = m.top.findNode("subtitleAnimation")
-    m.subtitleInterp = m.top.findNode("subtitleInterpolator")
-    m.rowList = m.top.findNode("rowList")
-    m.bgImage = m.top.findNode("bgImage")
+    m.card = m.top.findNode("card")
+    m.gotoProperty = m.top.findNode("gotoProperty")
+    m.tabTitleContainer = m.top.findNode("tabTitleContainer")
+    m.tabContentContainer = m.top.findNode("tabContentContainer")
+    m.descriptionTabTitle = m.top.findNode("descriptionTabTitle")
+    m.mintInfoTabTitle = m.top.findNode("mintInfoTabTitle")
+    m.nftTemplateInfoTabTitle = m.top.findNode("nftTemplateInfoTabTitle")
 
-    m.rowList.observeFieldScoped("currFocusRow", "onFocusedRowChanged")
-    m.rowList.observeFieldScoped("rowItemSelected", "onItemSelected")
-end sub
+    m.descriptionTabTitle.addFields({ tabContentName: "DescriptionTabContent" })
+    m.mintInfoTabTitle.addFields({ tabContentName: "MintInfoTabContent" })
+    m.nftTemplateInfoTabTitle.addFields({ tabContentName: "ContractTabContent" })
 
-sub onItemSelected()
-    itemIndex = m.rowList.rowItemSelected
-    item = m.rowList.content.getChild(itemIndex[0]).getChild(itemIndex[1]).aa
-    NftOps.launchMediaOrOffer(item)
-end sub
+    m.tabTitles = [m.descriptionTabTitle, m.mintInfoTabTitle, m.nftTemplateInfoTabTitle]
+    tabIndex = -1
+    for each tabTitle in m.tabTitles
+        tabIndex++
+        underline = createUnderline(tabTitle)
+        tabTitle.addFields({ underline: underline, tabIndex: tabIndex })
+        observe(tabTitle, "focusedChild", onTabFocusChanged)
+    end for
 
-sub onFocusedRowChanged()
-    ' Only show m.subtitle when first row is selected.
-    if m.subtitleAnim.state <> "running"
-        if m.rowList.itemFocused = 0 and m.rowList.currFocusRow > 0 and m.subtitle.scale[1] > 0
-            m.subtitleAnim.control = "stop"
-            m.subtitleInterp.reverse = true
-            m.subtitleAnim.control = "start"
-        else if m.rowList.itemFocused > 0 and m.rowList.currFocusRow < 1 and m.subtitle.scale[1] < 1
-            m.subtitleAnim.control = "stop"
-            m.subtitleInterp.reverse = false
-            m.subtitleAnim.control = "start"
-        end if
-    end if
+    observe(m.tabTitleContainer, "focusedChild", onSelectedTabChanged)
+
+    observe(m.gotoProperty, "buttonSelected", sub ()
+        view = CreateObject("roSGNode", "PropertyDetail")
+        ' Assume the button is only clickable because propertyId exists
+        view.linkData = { propertyId: m.propertyId }
+        router()@.show({ view: view })
+    end sub)
 end sub
 
 sub onNftItemChanged()
@@ -48,114 +43,101 @@ sub onNftItemChanged()
     ' This is fine because the NFT details shouldn't really change frequently, or as you're observing it.
     ' And also, Roku sucks and it's annoying and painful to do it, so I'll pass for now.
     nft = m.top.nft.sourceNft
-    m.title.text = nft._name
-    m.subtitle.text = RichText.stripFormatting(nft.nft_template.description_rich_text ?? nft.nft_template.description)
 
-    m.bgImage.uri = findBgImage(nft)
-    updateRowList(nft)
+    m.card.itemContent = NftOps.nftsToContentNode([nft]).getChild(0)
 
-    fetchRedeemableOffers(nft)
+    m.propertyId = nft.nft_template?.bundled_property_id
+    m.gotoProperty.visible = strNotEmpty(m.propertyId)
+
+    onSelectedTabChanged()
 end sub
 
-function findBgImage(nft) as dynamic
-    for each item in nft._featured_media
-        bgImage = item.background_image_tv
-        if bgImage <> invalid
-            return UrlUtil.imageLinkToUrl(bgImage, "1080")
+sub onTabFocusChanged(event)
+    node = event.getRoSGNode()
+    if node.IsInFocusChain()
+        m.top._selectedTabIndex = node.tabIndex
+    end if
+end sub
+
+sub onSelectedTabChanged()
+    index = m.top._selectedTabIndex
+    tabIndex = -1
+    nextTabContentName = invalid
+    for each tabTitle in m.tabTitles
+        tabIndex++
+        if tabIndex = index
+            nextTabContentName = tabTitle.tabContentName
         end if
+
+        if tabIndex = index and m.tabTitleContainer.IsInFocusChain()
+            tabTitle.color = "#ffffff"
+        else
+            tabTitle.color = "#7B7B7B"
+        end if
+
+        tabTitle.underline.visible = tabIndex = index
+        tabTitle.underline.color = tabTitle.color
     end for
-    return ""
+
+    currentTabName = m.tabContentContainer.getChild(0)?.subtype?()
+    if currentTabName <> nextTabContentName
+        m.tabContentContainer.removeChildIndex(0)
+        tabContent = CreateObject("roSGNode", nextTabContentName)
+        tabContent.width = m.tabContentContainer.width
+        tabContent.height = m.tabContentContainer.height
+        ' Set size before setting nft
+        if m.top.nft <> invalid
+            tabContent.nft = m.top.nft
+        end if
+        m.tabContentContainer.appendChild(tabContent)
+    end if
+end sub
+
+function createUnderline(labelNode)
+    rect = labelNode.boundingRect()
+    underline = labelNode.createChild("Rectangle")
+    underline.color = labelNode.color
+    underline.width = rect.width
+    underline.height = 3
+    underline.translation = [0, rect.height + 6]
+    underline.visible = false
+    return underline
 end function
 
-
-sub updateRowList(nft)
-    root = createObject("roSGNode", "ContentNode")
-    ' rowSpacings defines the vertical padding between row items, but doesn't consider the title height.
-    ' We need to keep track of the title height per row ourselves and add it to the rowSpacing value.
-    rowSpacings = []
-    createFeaturedMediaRow(nft, root, rowSpacings)
-    createSectionRows(nft, root, rowSpacings)
-    m.rowList.content = root
-    m.rowList.numrows = root.getChildCount()
-    m.rowList.rowSpacings = rowSpacings
-end sub
-
-sub createFeaturedMediaRow(nft, root, rowSpacings)
-    if nft._featured_media.count() = 0
-        rowSpacings.push(0)
-        return
-    end if
-
-    row = root.createChild("ContentNode")
-    NftOps.mediaItemsToNodes(nft._featured_media, row, ITEM_HEIGHT)
-    rowSpacings.push(DEFAULT_ROW_SPACING)
-end sub
-
-sub createSectionRows(nft, root, rowSpacings)
-    if nft._sections.count() = 0
-        return
-    end if
-
-    for each section in nft._sections
-        createSectionRow(section, root, rowSpacings)
-    end for
-end sub
-
-sub createSectionRow(section, root, rowSpacings)
-    row = root.createChild("ContentNode")
-    row.title = section.name
-    for each collection in section.collections
-        ' The first collection adds its items to the Section row itself. Subsequent collections add a new row to the root.
-        collectionRow = row.getChildCount() = 0 ? row : root.createChild("ContentNode")
-        populateCollectionRow(collection, collectionRow)
-        ' Assume title is 0-2 lines
-        if collectionRow.title = ""
-            titleLines = 0
-        else if collectionRow.title.inStr(`${chr(10)}`) = -1
-            titleLines = 1
-        else
-            titleLines = 2
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if m.initialFocusHandled = invalid
+            m.initialFocusHandled = true
+            m.descriptionTabTitle.setFocus(true)
+            handled = true
+        else if m.gotoProperty.IsInFocusChain()
+            if key = "up" or key = "right"
+                m.descriptionTabTitle.setFocus(true)
+                handled = true
+            end if
+        else if m.descriptionTabTitle.IsInFocusChain()
+            if key = "right"
+                m.mintInfoTabTitle.setFocus(true)
+                handled = true
+            else if (key = "left" or key = "down") and m.gotoProperty.visible
+                m.gotoProperty.setFocus(true)
+                handled = true
+            end if
+        else if m.mintInfoTabTitle.IsInFocusChain()
+            if key = "left"
+                m.descriptionTabTitle.setFocus(true)
+                handled = true
+            else if key = "right"
+                m.nftTemplateInfoTabTitle.setFocus(true)
+                handled = true
+            end if
+        else if m.nftTemplateInfoTabTitle.IsInFocusChain()
+            if key = "left"
+                m.mintInfoTabTitle.setFocus(true)
+                handled = true
+            end if
         end if
-        ' This is an arbitrary value. Looks ok with the current title font.
-        lineHeight = 36
-        rowSpacings.push(DEFAULT_ROW_SPACING + (titleLines * lineHeight))
-    end for
-end sub
-
-' Doesn't create new rows because the first Collection in a Section will add its items to the Section row itself.
-sub populateCollectionRow(collection, row)
-    name = collection.name
-    if name <> invalid and name <> ""
-        ' If the row already has a title, it's the Section title and we need to add a linebreak before appending the collection name
-        if row.title <> ""
-            row.title += chr(10)
-        end if
-        row.title += name
     end if
-    NftOps.mediaItemsToNodes(collection.media, row, ITEM_HEIGHT)
-end sub
-
-' Assumption: this is called after m.rowList is already populated.
-' Currently, cache isn't being used, every time we land here, we fetch offers from the BE.
-' Caching occurs in the store to support subsequent screens in the flow.
-sub fetchRedeemableOffers(nft)
-    promises.chain(stores.redeemableOffers()@.refreshRedeemedOffers(nft.contract_addr, nft.token_id_str)).then(sub (offers)
-        row = getOrMakeFeaturedMediaRow()
-        NftOps.offersToNodes(offers, row, ITEM_HEIGHT)
-    end sub)
-end sub
-
-' Returns the existing ContentNode for the featured media row, or creates
-function getOrMakeFeaturedMediaRow()
-    root = m.rowList.content
-    if root = invalid
-        root = createObject("roSGNode", "ContentNode")
-        m.rowList.content = root
-    end if
-    row = root.getChild(0)
-    if row = invalid
-        row = root.createChild("ContentNode")
-        m.rowList.numRows = 1
-    end if
-    return row
+    return handled
 end function

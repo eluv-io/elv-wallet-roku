@@ -1,0 +1,37 @@
+import "pkg:/components/http/http.bs"
+import "pkg:/components/http/apis/GatewayApi.bs"
+import "pkg:/components/utils/promise.bs"
+
+sub init()
+    m.edition = m.top.findNode("edition")
+    m.minted = m.top.findNode("minted")
+    m.totalSupply = m.top.findNode("totalSupply")
+    m.burned = m.top.findNode("burned")
+    m.capMinusBurned = m.top.findNode("capMinusBurned")
+    m.cap = m.top.findNode("cap")
+end sub
+
+sub onNftChanged()
+    nft = m.top.nft.sourceNft
+    m.edition.text = nft.nft_template.edition_name
+
+    ' m.totalSupply.text = `${nft.meta.total_supply}`
+    m.cap.text = `${nft.cap}`
+
+    m.minted.text = "..."
+    m.totalSupply.text = "..."
+    m.burned.text = "..."
+    m.capMinusBurned.text = "..."
+
+    ' Potential race-condition if we don't cancel previous promise while a new one is started.
+    context = {}
+    url = `${GatewayApi.baseUrl()}/nft/info/${nft.contract_addr}`
+    promises.chain(http.get(url), context).then(sub(response, context)
+        nftInfo = response.json
+        m.minted.text = `${nftInfo.minted}`
+        m.totalSupply.text = `${nftInfo.total_supply}`
+        m.burned.text = `${nftInfo.burned}`
+        m.capMinusBurned.text = `${nftInfo.cap - nftInfo.burned}`
+        m.cap.text = `${nftInfo.cap}`
+    end sub)
+end sub

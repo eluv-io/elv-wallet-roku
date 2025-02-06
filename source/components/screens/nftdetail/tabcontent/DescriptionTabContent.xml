@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="DescriptionTabContent" extends="Spacer">
+    <interface>
+        <field id="nft" type="node" onChange="onNftChanged" />
+    </interface>
+    <children>
+        <LayoutGroup layoutDirection="vert" itemSpacings="[12]">
+            <TvLabel id="title" fontStyle="carousel_48" />
+            <TvLabel id="subtitle" fontStyle="label_24" color="#7a7a7a" />
+            <TvLabel id="description" fontStyle="label_24" wrap="true" />
+        </LayoutGroup>
+    </children>
+</component>
