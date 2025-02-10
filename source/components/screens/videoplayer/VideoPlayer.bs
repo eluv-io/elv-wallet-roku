@@ -32,19 +32,33 @@ sub onPropertyMediaChanged()
         return
     end if
 
+    isLive = m.top.propertyMedia.isLive = true
+    if isLive
+        ' Start live video at live-edge.
+        playStartPosition = -0.1
+    else
+        ' Restore playback position, or start at 0.
+        playStartPosition = PlaybackStore.getPlaybackPosition(m.top.propertyMedia.mediaId)
+    end if
+    
+    context = {
+        title: m.top.propertyMedia.title,
+        isLive: isLive,
+        playStartPosition: playStartPosition
+    }
+
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     url = `${baseUrl}/mw/properties/${propertyId}/media_items/${mediaId}/offerings/any/playout_options`
-    promises.chain(http.get(url)).then(sub(result)
+    promises.chain(http.get(url), context).then(sub(result, context)
         playoutConfig = result.json["hls-clear"] ?? result.json["dash-clear"] ?? result.json["dash-widevine"]
         fabricUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
         m.videoPlayer.content.setFields({
             streamFormat: playoutConfig.properties.protocol,
             url: `${fabricUrl}/${playoutConfig.uri}`,
-            drmParams: buildDrm(playoutConfig.properties)
-            ' Makes live video start at live-edge.
-            ' Seems to have no effect on non-live streams (good).
-            playStart: -0.1
-            title: m.top.propertyMedia.title
+            drmParams: buildDrm(playoutConfig.properties),
+            title: context.title,
+            playStart: context.playStartPosition,
+            live: context.isLive,
         })
         m.videoPlayer.control = "play"
     end sub)
@@ -80,4 +94,12 @@ function buildDrm(properties) as dynamic
         KeySystem: properties.drm,
         licenseServerURL: properties.license_servers[0]
     }
+end function
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press and key = "back" and m.top.propertyMedia.isLive <> true
+        ' Store current playback position, but don't interfere with normal back behavior.
+        PlaybackStore.setPlaybackPosition(m.top.propertyMedia.mediaId, m.videoPlayer.position, m.videoPlayer.duration)
+    end if
+    return false
 end function

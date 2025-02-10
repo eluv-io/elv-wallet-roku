@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PlaybackStoreNode" extends="Node">
+    <interface>
+        <function name="setPlaybackPosition" />
+        <function name="getPlaybackPosition" />
+        <function name="getPlaybackProgress" />
+        <function name="wipe" />
+    </interface>
+</component>

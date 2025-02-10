@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="VideoPlayer" extends="BaseView" initialFocus="videoPlayer">
     <interface>
-        <!-- A dict with propertyId and mediaId keys. And optionally a title -->
+        <!-- A dict with propertyId and mediaId keys. And optionally a Title and isLive flag -->
         <field id="propertyMedia" type="assocArray" onChange="onPropertyMediaChanged" />
         <!-- Legacy MW v1 -->
         <field id="videoItem" type="assocArray" onChange="onVideoItemChanged" />

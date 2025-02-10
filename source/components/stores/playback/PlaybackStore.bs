@@ -1,0 +1,23 @@
+' Trying something new with Stores. Instead of accessing everything thru stores.foo(),
+' just make a namespace for the store and access it statically
+namespace PlaybackStore
+    function _instance() as roSGNode
+        return m.global.playbackStore
+    end function
+
+    sub wipe()
+        _instance()@.wipe()
+    end sub
+
+    sub setPlaybackPosition(contentId as string, position as float, totalDuration as float)
+        _instance()@.setPlaybackPosition(contentId, position, totalDuration)
+    end sub
+
+    function getPlaybackPosition(contentId as string) as float
+        return _instance()@.getPlaybackPosition(contentId)
+    end function
+
+    function getPlaybackProgress(contentId as string) as float
+        return _instance()@.getPlaybackProgress(contentId)
+    end function
+end namespace

@@ -1,3 +1,5 @@
+import "pkg:/components/stores/playback/PlaybackStore.bs"
+
 namespace stores
     sub init()
         ' Do this before any other store, so they can access it
@@ -11,6 +13,7 @@ namespace stores
             contentStore: CreateObject("roSGNode", "ContentStore")
             redeemableOfferStore: CreateObject("roSGNode", "RedeemableOfferStore")
             propertyStore: CreateObject("roSGNode", "PropertyStore")
+            playbackStore: CreateObject("roSGNode", "PlaybackStoreNode")
         })
     end sub
 
@@ -20,6 +23,7 @@ namespace stores
         m.global.contentStore.nfts = invalid
         m.global.redeemableOfferStore.offers = {}
         m.global.propertyStore.properties = invalid
+        PlaybackStore.wipe()
     end sub
 
     function envStore() as roSGNode

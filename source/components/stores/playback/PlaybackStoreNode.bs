@@ -1,0 +1,38 @@
+' Keep track of playback positions for video items
+sub init()
+    m.registry = createObject("roRegistrySection", "playbackPositions")
+end sub
+
+' Requests ignored if totalDuration is 0
+sub setPlaybackPosition(contentId as string, position as float, totalDuration as float)
+    if totalDuration = 0 then return
+    m.registry.Write(_positionKey(contentId), position.toStr())
+    m.registry.Write(_progressKey(contentId), (position / totalDuration).toStr())
+    m.registry.Flush()
+end sub
+
+function getPlaybackPosition(contentId as string) as float
+    ' This should be safe because roRegistrySection returns "" for missing keys, and "".toInt() returns 0
+    return m.registry.Read(_positionKey(contentId)).toFloat()
+end function
+
+function getPlaybackProgress(contentId as string) as float
+    ' This should be safe because roRegistrySection returns "" for missing keys, and "".toInt() returns 0
+    return m.registry.Read(_progressKey(contentId)).toFloat()
+end function
+
+function _positionKey(contentId as string) as string
+    return `${contentId}_position`
+end function
+
+function _progressKey(contentId as string) as string
+    return `${contentId}_progress`
+end function
+
+sub wipe(_ = invalid)
+    registry = m.registry
+    for each key in registry.getKeyList()
+        registry.delete(key)
+    end for
+    registry.flush()
+end sub

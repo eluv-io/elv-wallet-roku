@@ -68,6 +68,7 @@ namespace CarouselHelpers
             propertyId: property.id
             mediaId: media.id
             title: media.display_title ?? media.title
+            isLive: media.live_video
         }
         router()@.show({ view: videoPlayerView })
     end sub
