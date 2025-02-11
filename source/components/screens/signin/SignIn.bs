@@ -18,14 +18,14 @@ end sub
 sub onPropertyChanged()
     property = m.top.property
     login = property?.login
-    
+
     saveViewReferences()
-    
+
     if m.bgImage <> invalid
         uri = login?.styling?.background_image_tv ?? login?.styling?.background_image_desktop
         m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
     end if
-    
+
     ' Technically "ory" isn't the only possible provider, but it's the only one we are currently using,
     ' so we just assume it's "ory" all the time.
     m.loginProvider = new OryProvider(property)
@@ -102,10 +102,19 @@ sub checkStatus()
     end function).then(
     sub(result)
         if result <> "pending"
-            nextView = createObject("roSGNode", "PropertyDetail")
-            ' m.top.property doesn't have Permissions resolved because we fetched it before being logged in.
-            ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
-            nextView.linkData = { propertyId: m.top.property.id }
+            nextViewName = m.top.nextScreenName
+            if strNotEmpty(nextViewName)
+                args = m.top.nextScreenArgs
+            else
+                nextViewName = "PropertyDetail"
+                ' m.top.property doesn't have Permissions resolved because we fetched it before being logged in.
+                ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
+                args = {
+                    linkData: { propertyId: m.top.property.id }
+                }
+            end if
+            nextView = createObject("roSGNode", nextViewName)
+            nextView.update(args)
 
             router().removeStack = "signin"
             router()@.show({ view: nextView })

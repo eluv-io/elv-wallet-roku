@@ -2,6 +2,9 @@
 <component name="SignIn" extends="BaseView" initialFocus="btn_new_code">
     <interface>
         <field id="property" type="assocArray" onChange="onPropertyChanged" />
+        <!-- Optionally tell SignIn where to go to after a successful authentication -->
+        <field id="nextScreenName" type="string" />
+        <field id="nextScreenArgs" type="assocArray" value="{}" />
     </interface>
     <children>
         <Timer id="code_expiration_timer" repeat="false" />

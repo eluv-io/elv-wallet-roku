@@ -16,9 +16,50 @@ function Show(args)
 
     router().observeFieldScoped("activeStack", "onActiveStackChange")
     initAppStack()
+    handleDeeplink(args)
 
     m.top.signalBeacon("AppLaunchComplete")
 end function
+
+sub Input(args)
+    handleDeeplink(args)
+end sub
+
+sub handleDeeplink(args)
+    if args?.mediaType = invalid then return
+    if args?.contentId = invalid then return
+
+    content = args.contentId.split(" ")
+    if content.count() < 2 then return
+
+    propertyId = content[0]
+    mediaId = content[1]
+
+    videoPlayerArgs = {
+        propertyMedia: {
+            propertyId: propertyId
+            mediaId: mediaId
+        }
+    }
+
+    if strNotEmpty(stores.tokenStore().fabricToken)
+        ' Authenticated, launch the requested media
+        content = args.contentId.split(" ")
+        if content.count() < 2 then return
+        view = createObject("roSGNode", "VideoPlayer")
+        view.update(videoPlayerArgs)
+        router()@.show({ view: view })
+    else
+        ' Unauthenticated, launch SignIn and forward to VideoPlayer afterwards.
+        promises.chain(stores.propertyStore()@.getPropertyById(propertyId), videoPlayerArgs).then(sub(property, videoPlayerArgs)
+            view = CreateObject("roSGNode", "SignIn")
+            view.property = property
+            view.nextScreenName = "VideoPlayer"
+            view.nextScreenArgs = videoPlayerArgs
+            router()@.show({ view: view })
+        end sub)
+    end if
+end sub
 
 sub onActiveStackChange()
     if router().activeStack = "default"
