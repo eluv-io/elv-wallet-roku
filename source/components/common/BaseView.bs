@@ -27,6 +27,7 @@ sub onFocusedChildChanged()
             ' The view is becoming visible, restore focus to the last known focused child
             _ = m.lastFocusedChild?.setFocus?(true)
             m.shouldRestoreFocus = false
+            onResume()
         else
             ' Focused child changed, just save it for now
             m.lastFocusedChild = findFocusedNode(m.top.focusedChild)
@@ -34,5 +35,15 @@ sub onFocusedChildChanged()
     else
         ' The view is losing focus, save a flag to restore focus next time we come back
         m.shouldRestoreFocus = true
+        onPause()
     end if
+end sub
+
+' Sub-views can override this to get a callback when the view is brought back from the backstack.
+' This isn't called the first time the view is loaded
+sub onResume()
+end sub
+
+' Overridable callback for when the view loses focus (goes in the backstack)
+sub onPause()
 end sub
