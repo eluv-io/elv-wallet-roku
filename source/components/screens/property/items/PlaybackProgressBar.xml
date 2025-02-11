@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="PlaybackProgressBar" extends="Group">
+    <interface>
+        <field id="progress" type="float" onChange="onSizeChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+    </interface>
+    <children>
+        <Poster id="rightEdge" uri="pkg:/images/progress_bar_edge.png" />
+        <Poster id="leftEdge" uri="pkg:/images/progress_bar_edge.png" />
+        <Rectangle id="background" color="#5A5A5A" />
+        <Rectangle id="progress" color="#EBEBEB" />
+    </children>
+</component>

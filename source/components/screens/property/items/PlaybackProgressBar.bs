@@ -1,0 +1,53 @@
+const PROGRESS_COLOR = "#EBEBEB"
+const PROGRESS_BACKGROUND_COLOR = "#5A5A5A"
+
+sub init()
+    m.background = m.top.findNode("background")
+    m.progress = m.top.findNode("progress")
+    m.rightEdge = m.top.findNode("rightEdge")
+    m.leftEdge = m.top.findNode("leftEdge")
+end sub
+
+sub onSizeChanged()
+    width = m.top.width
+    height = m.top.height
+    if width < 0 or height < 0
+        return
+    end if
+    edgeDiameter = height
+
+    m.leftEdge.width = edgeDiameter
+    m.leftEdge.height = edgeDiameter
+
+    m.rightEdge.width = edgeDiameter
+    m.rightEdge.height = edgeDiameter
+    m.rightEdge.translation = [width - edgeDiameter, 0]
+
+    maxProgress = width - edgeDiameter
+    if maxProgress < 0 then maxProgress = 0
+
+    m.background.width = maxProgress
+    m.background.height = height
+    m.background.translation = [edgeDiameter / 2, 0]
+
+    currentProgress = m.top.progress ?? 0
+    if currentProgress > 1 then currentProgress = 1
+    if currentProgress < 0 then currentProgress = 0
+
+    m.progress.height = height
+    ' This is slightly off because of the edge diameter, but it's not noticeable
+    m.progress.width = currentProgress * maxProgress
+    m.progress.translation = [edgeDiameter / 2, 0]
+
+    if currentProgress = 1
+        m.rightEdge.blendColor = PROGRESS_COLOR
+    else
+        m.rightEdge.blendColor = PROGRESS_BACKGROUND_COLOR
+    end if
+
+    if currentProgress = 0
+        m.leftEdge.blendColor = PROGRESS_BACKGROUND_COLOR
+    else
+        m.leftEdge.blendColor = PROGRESS_COLOR
+    end if
+end sub

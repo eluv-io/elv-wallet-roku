@@ -58,6 +58,11 @@
             />
         </Rectangle>
 
+        <PlaybackProgressBar
+            id="playbackProgressBar"
+            height="9"
+        />
+
         <!-- Label settings (font, wrap, maxlines, etc) is passed in
         m.top.content.titleLabelSettings -->
         <!-- This helps make sure the settings are consistent between when calculating sizes in the

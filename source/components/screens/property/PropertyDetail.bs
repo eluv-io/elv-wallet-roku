@@ -386,3 +386,8 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
     return handled
 end function
+
+sub onResume()
+    ' Refresh all content. This will make sure playback progress is up to date
+    onPropertyChanged()
+end sub

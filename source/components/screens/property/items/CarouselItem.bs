@@ -23,6 +23,7 @@ sub init()
     m.purchaseOptionsLabel = m.top.findNode("purchaseOptionsLabel")
 
     m.video_icon = m.top.findNode("video_icon")
+    m.playbackProgressBar = m.top.findNode("playbackProgressBar")
 end sub
 
 sub onContentChanged()
@@ -65,6 +66,11 @@ sub onContentChanged()
         m.purchaseOptionsLabel.visible = false
         m.overlayBg.opacity = 0.0
     end if
+
+    progress = PlaybackStore.getPlaybackProgress(content?.item?.media?.id)
+    m.playbackProgressBar.progress = progress
+    m.playbackProgressBar.visible = progress > 0
+
     onFocusPercentChanged()
 end sub
 
@@ -135,16 +141,21 @@ sub updateOverlayTexts(display)
     m.metaHeaders.text = UCase(headers)
     m.metaTitle.text = display.title
     m.metaSubtitle.text = UCase(display.subtitle)
+
+    ' Setting visibility to false, so later we can update positions based on what's visible
+    for each label in [m.metaHeaders, m.metaTitle, m.metaSubtitle]
+        label.visible = strNotEmpty(label.text)
+    end for
 end sub
 
 sub updateOverlayTextPositions(cardWidth, textPadding)
     yOffset = m.overlay.height - textPadding
     ' Start placing labels from bottom to top
-    labels = [m.metaSubtitle, m.metaTitle, m.metaHeaders]
+    labels = [m.playbackProgressBar, m.metaSubtitle, m.metaTitle, m.metaHeaders]
     ' In the design, there's different spacing between headers/title/subtitle, but this is good enough for roku.
     labelSpacing = 6
     for each label in labels
-        if not strNotEmpty(label.text) then continue for
+        if not label.visible then continue for
         label.width = cardWidth - (textPadding * 2)
         height = label.boundingRect().height
         label.height = height

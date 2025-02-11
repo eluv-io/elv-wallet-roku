@@ -37,10 +37,14 @@ sub onPropertyMediaChanged()
         ' Start live video at live-edge.
         playStartPosition = -0.1
     else
-        ' Restore playback position, or start at 0.
-        playStartPosition = PlaybackStore.getPlaybackPosition(m.top.propertyMedia.mediaId)
+        ' Restore playback position if not more than 90% done, or start at 0.
+        if (PlaybackStore.getPlaybackProgress(m.top.propertyMedia.mediaId) ?? 0) < 0.9
+            playStartPosition = PlaybackStore.getPlaybackPosition(m.top.propertyMedia.mediaId)
+        else
+            playStartPosition = 0
+        end if
     end if
-    
+
     context = {
         title: m.top.propertyMedia.title,
         isLive: isLive,
