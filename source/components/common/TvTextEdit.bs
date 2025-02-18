@@ -1,0 +1,110 @@
+import "pkg:/components/utils/str.bs"
+import "pkg:/components/utils/Logger.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/NodeUtil.bs"
+
+sub init()
+    m.top.color = "#ff0000aa"
+    m.textBox = m.top.findNode("textBox")
+    m.border = m.top.findNode("border")
+    m.icon = m.top.findNode("icon")
+
+    m.top.focusable = true
+    observe(m.top, "width", onSizeChanged)
+    observe(m.top, "height", onSizeChanged)
+
+    observe(m.top, "focusedChild", sub ()
+        m.border.visible = m.top.IsInFocusChain()
+    end sub)
+end sub
+
+sub onSizeChanged()
+    width = m.top.width
+    height = m.top.height
+    if height = 0
+        height = m.textBox.boundingRect().height + 48
+    end if
+
+    m.border.width = width
+    m.border.height = height
+
+    contentXOffset = 24
+    contentYOffset = 24
+    contentHeight = height - 48
+    if strNotEmpty(m.icon.uri)
+        iconSize = contentHeight
+        m.icon.translation = [contentXOffset, contentYOffset]
+        m.icon.width = iconSize
+        m.icon.height = iconSize
+        contentXOffset += iconSize + 24
+    end if
+
+    m.textBox.translation = [contentXOffset, contentYOffset]
+    m.textBox.width = width - 48
+    m.textBox.height = contentHeight
+end sub
+
+sub onTextChanged()
+    text = m.top.text
+    if strNotEmpty(text)
+        if m.top.keyboardDomain = "password"
+            ' Hide password
+            text = String(Len(text), "•")
+        end if
+        m.textBox.text = text
+        m.textBox.color = "#FFFFFF"
+    else
+        m.textBox.text = m.top.hint
+        m.textBox.color = "#9b9b9b"
+    end if
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "OK" and m.top.openKeyboardOnEnter
+            onKeyboardOpenTriggered()
+            handled = true
+        end if
+    end if
+    return handled
+end function
+
+sub onKeyboardOpenTriggered()
+    if m.keyboard <> invalid
+        Logger.log(`Keyboard requested to open while already open..?!`)
+        return
+    end if
+
+    keyboard = createObject("rosgnode", "StandardKeyboardDialog")
+    m.keyboard = keyboard
+    keyboard.keyboardDomain = m.top.keyboardDomain
+    keyboard.textEditBox.secureMode = m.top.keyboardDomain = "password"
+    keyboard.title = m.top.hint
+    keyboard.text = m.top.text
+    keyboard.buttons = ["OK", "Clear", "Cancel"]
+    m.top.getScene().dialog = keyboard
+    keyboard.setFocus(true)
+
+    observe(keyboard, "wasClosed", sub ()
+        closeKeyboard()
+    end sub)
+
+    observe(keyboard, "buttonSelected", sub()
+        button = m.keyboard.buttonSelected
+        if button = 0
+            m.top.text = m.keyboard.text
+            closeKeyboard()
+        else if button = 1
+            m.keyboard.text = ""
+        else if button = 2
+            closeKeyboard()
+        end if
+    end sub)
+end sub
+
+sub closeKeyboard()
+    m.top.getScene().dialog = invalid
+    m.keyboard = invalid
+    m.textBox.setFocus(true)
+end sub

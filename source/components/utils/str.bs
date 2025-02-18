@@ -3,6 +3,10 @@ function strNotEmpty(s) as boolean
     return getInterface(s, "ifString") <> invalid and s <> ""
 end function
 
+function strNullOrEmpty(s) as boolean
+    return s = invalid or (getInterface(s, "ifString") <> invalid and s = "")
+end function
+
 function substringBefore(s, delimiter, missingDelimiterValue = s)
     if s = invalid then return missingDelimiterValue
     index = s.instr(delimiter)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An editable text field that will handle its own keyboard when [openKeyboardOnEnter] is set to
+true (default) -->
+<component name="TvTextEdit" extends="Rectangle">
+    <interface>
+        <field id="text" type="string" onChange="onTextChanged" value="" />
+        <field id="hint" type="string" onChange="onTextChanged" value="" />
+        <field id="iconUri" type="string" alias="icon.uri" />
+
+        <field id="openKeyboardOnEnter" type="boolean" value="true" />
+        <field id="openKeyboard" type="integer" alwaysNotify="true"
+            onChange="onKeyboardOpenTriggered" />
+
+        <!-- possible values: generic, email, numeric, alphanumeric, password -->
+        <field id="keyboardDomain" type="string" value="generic" />
+
+        <field id="fontStyle" type="string" alias="textBox.fontStyle" />
+    </interface>
+    <children>
+        <TvLabel id="textBox" wrap="true" maxLines="1" numLines="1" />
+        <Poster id="border" uri="pkg:/images/component_border.9.png" visible="false" />
+        <Poster id="icon" visible="false" />
+    </children>
+</component>
