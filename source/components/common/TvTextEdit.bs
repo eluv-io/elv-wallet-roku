@@ -8,6 +8,7 @@ sub init()
     m.textBox = m.top.findNode("textBox")
     m.border = m.top.findNode("border")
     m.icon = m.top.findNode("icon")
+    m.bg = m.top.findNode("bg")
 
     m.top.focusable = true
     observe(m.top, "width", onSizeChanged)
@@ -27,6 +28,8 @@ sub onSizeChanged()
 
     m.border.width = width
     m.border.height = height
+    m.bg.width = width
+    m.bg.height = height
 
     contentXOffset = 24
     contentYOffset = 24

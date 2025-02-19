@@ -15,8 +15,10 @@ true (default) -->
         <field id="keyboardDomain" type="string" value="generic" />
 
         <field id="fontStyle" type="string" alias="textBox.fontStyle" />
+        <field id="bgColor" type="color" alias="bg.blendColor" value="#4e4e4e" />
     </interface>
     <children>
+        <Poster id="bg" uri="pkg:/images/component_bg.9.png" />
         <TvLabel id="textBox" wrap="true" maxLines="1" numLines="1" />
         <Poster id="border" uri="pkg:/images/component_border.9.png" visible="false" />
         <Poster id="icon" visible="false" />
