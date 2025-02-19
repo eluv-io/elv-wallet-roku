@@ -1,0 +1,123 @@
+import "pkg:/components/utils/str.bs"
+import "pkg:/components/utils/promise.bs"
+import "pkg:/components/http/http.bs"
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/stores/OryErrors.bs"
+import "pkg:/components/screens/signin/SignInUtil.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    m.signInButton = m.top.findNode("signInButton")
+    observe(m.signInButton, "buttonSelected", sub ()
+        doAuth(false)
+    end sub)
+    m.signUpButton = m.top.findNode("signUpButton")
+    observe(m.signUpButton, "buttonSelected", sub()
+        doAuth(true)
+    end sub)
+
+    m.usernameTextBox = m.top.findNode("usernameTextBox")
+    m.usernameTextBox.openKeyboardOnEnter = false
+    m.pwTextBox = m.top.findNode("pwTextBox")
+    m.bgImage = m.top.findNode("bgImage")
+
+    m.channelStore = m.top.findNode("channelStore")
+    observe(m.channelStore, "userData", sub()
+        ?`user data change ${m.channelStore.userData?.email}`
+        m.usernameTextBox.openKeyboardOnEnter = true
+        email = m.channelStore.userData?.email
+        m.usernameTextBox.text = email
+        if strNullOrEmpty(email)
+            m.usernameTextBox.openKeyboard = 1
+        end if
+    end sub)
+
+    ' Set the width of the labels to be the same
+    emailLabel = m.top.findNode("emailLabel")
+    maxWidth = emailLabel.boundingRect().width
+    pwLabel = m.top.findNode("pwLabel")
+    if pwLabel.boundingRect().width > maxWidth
+        maxWidth = pwLabel.boundingRect().width
+    end if
+    emailLabel.width = maxWidth
+    pwLabel.width = maxWidth
+
+    m.buttonContainer = m.top.findNode("buttonContainer")
+    m.spinner = m.top.findNode("spinner")
+    observe(m.spinner.poster, "loadStatus", centerSpinner)
+end sub
+
+sub onPropertyChanged()
+    login = m.top.property?.login
+    uri = login?.styling?.background_image_tv ?? login?.styling?.background_image_desktop
+    m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
+end sub
+
+sub doAuth(isSignUp as boolean)
+    m.spinner.visible = true
+    m.buttonContainer.visible = false
+
+    loginPromise = stores.tokenStore()@.passwordAuth(m.usernameTextBox.text, m.pwTextBox.text, m.top.property, isSignUp)
+    promises.chain(loginPromise).then(function(result)
+        ' Re-fetch Properties before navigating away from sign-in
+        return stores.propertyStore()@.fetchDiscoverableProperties()
+    end function).then(sub (result)
+        SignInUtil.onAuthSuccess(m.top.property, m.top.nextScreenName, m.top.nextScreenArgs)
+    end sub).catch(sub(e)
+        if e.reason = OryErrors.WRONG_PASSWORD
+            Toast.show("Wrong email or password")
+        else if e.reason = OryErrors.ACCOUNT_ALREADY_EXISTS
+            Toast.show("An account with that email already exists")
+        else
+            Toast.show("Something went wrong, please try again")
+        end if
+    end sub).finally(sub()
+        m.spinner.visible = false
+        m.buttonContainer.visible = true
+    end sub)
+end sub
+
+sub centerSpinner()
+    if m.spinner.poster.loadStatus = "ready"
+        x = (m.buttonContainer.boundingRect().width - m.spinner.boundingRect().width) / 2
+        m.spinner.translation = [x, 0]
+    end if
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "back" and router().viewManager.viewCount = 1
+            router().removeStack = "signin"
+            handled = true
+        else if key = "down" and m.usernameTextBox.IsInFocusChain()
+            m.pwTextBox.setFocus(true)
+            handled = true
+        else if key = "up" and m.pwTextBox.IsInFocusChain()
+            m.usernameTextBox.setFocus(true)
+            handled = true
+        else if key = "down" and m.pwTextBox.IsInFocusChain()
+            m.signInButton.setFocus(true)
+            handled = true
+        else if key = "up" and (m.signInButton.IsInFocusChain() or m.signUpButton.IsInFocusChain())
+            m.pwTextBox.setFocus(true)
+            handled = true
+        else if key = "right" and m.signInButton.IsInFocusChain()
+            m.signUpButton.setFocus(true)
+            handled = true
+        else if key = "left" and m.signUpButton.IsInFocusChain()
+            m.signInButton.setFocus(true)
+            handled = true
+        else if key = "OK" and m.usernameTextBox.IsInFocusChain()
+            m.channelStore.requestedUserData = "email"
+            m.channelStore.command = "getUserData"
+            handled = true
+        else if key = "up" and m.pwTextBox.IsInFocusChain()
+            m.usernameTextBox.setFocus(true)
+            handled = true
+        end if
+    end if
+    return handled
+end function

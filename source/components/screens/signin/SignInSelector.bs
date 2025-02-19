@@ -1,0 +1,47 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+sub init()
+    m.bgImage = m.top.findNode("bgImage")
+
+    m.qrSignInButton = m.top.findNode("qrSignInButton")
+    observe(m.qrSignInButton, "buttonSelected", sub ()
+        navTo("QrSignIn")
+    end sub)
+
+    m.manualSignInButton = m.top.findNode("manualSignInButton")
+    observe(m.manualSignInButton, "buttonSelected", sub()
+        navTo("ManualSignIn")
+    end sub)
+end sub
+
+sub navTo(screenName as string)
+    view = CreateObject("roSGNode", screenName)
+    view.property = m.top.property
+    view.nextScreenName = m.top.nextScreenName
+    view.nextScreenArgs = m.top.nextScreenArgs
+    router()@.show({ view: view })
+end sub
+
+sub onPropertyChanged()
+    login = m.top.property?.login
+    uri = login?.styling?.background_image_tv ?? login?.styling?.background_image_desktop
+    m.bgImage.uri = UrlUtil.imageLinkToUrl(uri, m.bgImage.height)
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    handled = false
+    if press
+        if key = "back" and router().viewManager.viewCount = 1
+            ' We are the last view in the "signin" stack, remove the stack.
+            router().removeStack = "signin"
+            return true
+        else if key = "right" and m.qrSignInButton.IsInFocusChain()
+            m.manualSignInButton.setFocus(true)
+            handled = true
+        else if key = "left" and m.manualSignInButton.IsInFocusChain()
+            m.qrSignInButton.setFocus(true)
+            handled = true
+        end if
+    end if
+    return handled
+end function

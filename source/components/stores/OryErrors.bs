@@ -1,0 +1,4 @@
+namespace OryErrors
+    const WRONG_PASSWORD = 4000006
+    const ACCOUNT_ALREADY_EXISTS = 4000007
+end namespace

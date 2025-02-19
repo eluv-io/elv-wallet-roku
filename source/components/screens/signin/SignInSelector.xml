@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="SignInSelector" extends="BaseView" initialFocus="qrSignInButton">
+    <interface>
+        <field id="property" type="assocArray" onChange="onPropertyChanged" />
+
+        <!-- Optionally tell SignIn where to go to after a successful authentication -->
+        <field id="nextScreenName" type="string" />
+        <field id="nextScreenArgs" type="assocArray" value="{}" />
+    </interface>
+    <children>
+        <Poster id="bgImage" width="1920" height="1080" opacity="0.7" />
+        <LayoutGroup
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center"
+            translation="[960, 540]">
+            <Poster uri="pkg:/images/elv_logo.png" width="180" height="180" />
+            <Spacer height="30" />
+            <TvLabel text="How would you like to log in?" fontStyle="title_62" />
+            <Spacer height="30" />
+            <LayoutGroup layoutDirection="horiz">
+                <TvButton id="qrSignInButton" text="Use another device" />
+                <Spacer width="30" />
+                <TvButton id="manualSignInButton" text="Use this device" />
+            </LayoutGroup>
+        </LayoutGroup>
+    </children>
+</component>

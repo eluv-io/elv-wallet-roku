@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="ManualSignIn" extends="BaseView" initialFocus="usernameTextBox">
+    <interface>
+        <field id="property" type="assocArray" onChange="onPropertyChanged" />
+        <!-- Optionally tell SignIn where to go to after a successful authentication -->
+        <field id="nextScreenName" type="string" />
+        <field id="nextScreenArgs" type="assocArray" value="{}" />
+    </interface>
+    <children>
+        <!-- Not a UI node. Used to get user's email address  -->
+        <ChannelStore id="channelStore" />
+
+        <Poster id="bgImage" width="1920" height="1080" opacity="0.7" />
+
+        <LayoutGroup
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center"
+            translation="[960, 540]">
+
+            <LayoutGroup layoutDirection="horiz" vertAlignment="center">
+                <TvLabel id="emailLabel" text="Email / Username:" />
+                <Spacer width="12" />
+                <TvTextEdit
+                    id="usernameTextBox"
+                    width="600"
+                />
+            </LayoutGroup>
+
+            <Spacer height="30" />
+
+            <LayoutGroup layoutDirection="horiz" vertAlignment="center">
+                <TvLabel id="pwLabel" text="Password:" />
+                <Spacer width="12" />
+                <TvTextEdit
+                    id="pwTextBox"
+                    keyboardDomain="password"
+                    width="600"
+                />
+            </LayoutGroup>
+
+            <Spacer height="60" />
+
+            <Group>
+                <BusySpinner id="spinner" uri="pkg:/images/busyspinner_hd.png" visible="false" />
+                <LayoutGroup id="buttonContainer" layoutDirection="horiz">
+                    <TvButton text="Sign In" id="signInButton" />
+                    <Spacer width="30" />
+                    <TvButton text="Sign Up" id="signUpButton" />
+                </LayoutGroup>
+            </Group>
+        </LayoutGroup>
+    </children>
+</component>

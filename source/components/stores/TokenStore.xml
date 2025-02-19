@@ -13,5 +13,6 @@
         <function name="GetActivationData" />
         <function name="checkAuthorization" />
         <function name="fetchFabricToken" />
+        <function name="passwordAuth" />
     </interface>
 </component>

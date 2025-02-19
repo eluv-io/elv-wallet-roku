@@ -5,6 +5,7 @@ import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/Toast.bs"
 import "pkg:/components/screens/signin/providers/LoginProvider.bs"
 import "pkg:/components/screens/signin/UrlShortener.bs"
+import "pkg:/components/screens/signin/SignInUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -92,8 +93,6 @@ sub checkStatus()
             m.expirationTimer.control = "stop"
             m.statusTimer.control = "stop"
 
-            stores.tokenStore().loginProvider = m.providerName
-
             ' Re-fetch Properties before navigating away from sign-in
             return stores.propertyStore()@.fetchDiscoverableProperties()
         else
@@ -102,22 +101,7 @@ sub checkStatus()
     end function).then(
     sub(result)
         if result <> "pending"
-            nextViewName = m.top.nextScreenName
-            if strNotEmpty(nextViewName)
-                args = m.top.nextScreenArgs
-            else
-                nextViewName = "PropertyDetail"
-                ' m.top.property doesn't have Permissions resolved because we fetched it before being logged in.
-                ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
-                args = {
-                    linkData: { propertyId: m.top.property.id }
-                }
-            end if
-            nextView = createObject("roSGNode", nextViewName)
-            nextView.update(args)
-
-            router().removeStack = "signin"
-            router()@.show({ view: nextView })
+            SignInUtil.onAuthSuccess(m.top.property, m.top.nextScreenName, m.top.nextScreenArgs)
         end if
     end sub
     )

@@ -52,7 +52,7 @@ sub handleDeeplink(args)
     else
         ' Unauthenticated, launch SignIn and forward to VideoPlayer afterwards.
         promises.chain(stores.propertyStore()@.getPropertyById(propertyId), videoPlayerArgs).then(sub(property, videoPlayerArgs)
-            view = CreateObject("roSGNode", "SignIn")
+            view = CreateObject("roSGNode", "SignInSelector")
             view.property = property
             view.nextScreenName = "VideoPlayer"
             view.nextScreenArgs = videoPlayerArgs

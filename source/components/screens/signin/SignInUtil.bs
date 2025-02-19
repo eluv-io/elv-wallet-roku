@@ -1,0 +1,20 @@
+namespace SignInUtil
+    ' nextScreenName is optional. If not provided, we'll navigate to PropertyDetail.
+    sub onAuthSuccess(property, nextScreenName, nextScreenArgs)
+        nextViewName = nextScreenName
+        if strNotEmpty(nextViewName)
+            args = nextScreenArgs
+        else
+            nextViewName = "PropertyDetail"
+            ' m.top.property doesn't have Permissions resolved because we fetched it before being logged in.
+            ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
+            args = { linkData: { propertyId: property.id } }
+        end if
+        
+        nextView = createObject("roSGNode", nextViewName)
+        nextView.update(args)
+
+        router().removeStack = "signin"
+        router()@.show({ view: nextView })
+    end sub    
+end namespace

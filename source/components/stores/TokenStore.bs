@@ -7,6 +7,8 @@ const TOKEN_REGISTRY_SECTION = "tokens"
 
 const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken"]
 
+const ORY_API_URL = "https://eloquent-carson-yt726m2tf6.projects.oryapis.com"
+
 sub init()
     m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
     keepFieldsSyncedWithRegistry(PERSISTED_FIELDS)
@@ -79,4 +81,83 @@ function fetchFabricToken(tenantId as string)
         return "success"
     end function
     ).toPromise()
+end function
+
+function passwordAuth(email, password, property, isSignUp as boolean)
+    if strNullOrEmpty(email) then return promises.reject({ message: "Empty email/username" })
+    if strNullOrEmpty(password) then return promises.reject({ message: "Empty password" })
+
+    tenantId = property?.tenant?.tenant_id
+    if strNullOrEmpty(tenantId) then return promises.reject({ message: "invalid tenant_id" })
+
+    context = {
+        email: email
+        password: password
+        baseUrl: stores.fabricConfigStore()@.getAuthdBaseUrl()
+        tenantId: tenantId
+        isSignUp: isSignUp
+    }
+
+    if isSignUp
+        url = `${ORY_API_URL}/self-service/registration/api`
+    else
+        url = `${ORY_API_URL}/self-service/login/api`
+    end if
+    return promises.chain(http.get(url), context).then(function(initFlowResponse, context)
+        flowId = initFlowResponse.json.id
+        if strNullOrEmpty(flowId) then return promises.reject({ message: "fail to obtain ory-flow-id" })
+        if context.isSignUp
+            url = `${ORY_API_URL}/self-service/registration?flow=${flowId}`
+            body = {
+                "method": "password",
+                "traits": { "email": context.email },
+                "password": context.password
+            }
+        else
+            url = `${ORY_API_URL}/self-service/login?flow=${flowId}`
+            body = {
+                "method": "password",
+                "identifier": context.email,
+                "password": context.password
+            }
+        end if
+        return http.post(url, body)
+    end function).then(function(authResponse, context)
+        if strNullOrEmpty(authResponse.json.session_token)
+            return promises.reject({ message: "Failed to get session token from Ory", reason: authResponse.json?.ui?.messages?[0]?.id })
+        end if
+        m.top.idToken = authResponse.json.session_token
+        return http.get(`${ORY_API_URL}/sessions/whoami?tokenize_as=jwt_uefa_template1`)
+    end function).then(function(whoamiRepsonse, context)
+        if strNullOrEmpty(whoamiRepsonse.json.tokenized) then return promises.reject({ message: "Failed to get token from Ory" })
+        m.top.idToken = whoamiRepsonse.json.tokenized
+        body = {
+            ' We currently don't have tenant_id, and it would be nice to add it, but it's not required
+            ' "tid": context.tenantId '
+            "ext": { "share_email": true }
+        }
+        return http.post(`${context.baseUrl}/wlt/login/jwt`, body)
+    end function).then(function(jwtResponse, context)
+        if strNullOrEmpty(jwtResponse.json.token) or strNullOrEmpty(jwtResponse.json.addr) then return promises.reject({ message: "Failed to get JWT" })
+        m.top.clusterToken = jwtResponse.json.token
+        m.top.walletAddress = jwtResponse.json.addr
+        body = {
+            ' We currently don't have tenant_id, and it would be nice to add it, but it's not required
+            ' "tid": context.tenantId,
+            "nonce": createObject("roDeviceInfo").GetChannelClientId()
+        }
+        return http.post(`${context.baseUrl}/wlt/sign/csat`, body)
+    end function).then(function(csatResponse, context)
+        if strNullOrEmpty(csatResponse.json.token) then return promises.reject({ message: "Failed to sign JWT" })
+        m.top.fabricToken = csatResponse.json.token
+        return "success"
+    end function).catch(function(e, context)
+        Logger.log(`Sign up/in error: ${e}`)
+        ' Clear all fields we might have touched, and then send the same error forward
+        m.top.idToken = invalid
+        m.top.clusterToken = invalid
+        m.top.walletAddress = invalid
+        m.top.fabricToken = invalid
+        return promises.reject(e)
+    end function).toPromise()
 end function
