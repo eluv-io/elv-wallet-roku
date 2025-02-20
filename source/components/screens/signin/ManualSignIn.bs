@@ -18,19 +18,18 @@ sub init()
         doAuth(true)
     end sub)
 
-    m.usernameTextBox = m.top.findNode("usernameTextBox")
-    m.usernameTextBox.openKeyboardOnEnter = false
+    m.emailTextBox = m.top.findNode("emailTextBox")
+    m.emailTextBox.openKeyboardOnEnter = false
     m.pwTextBox = m.top.findNode("pwTextBox")
     m.bgImage = m.top.findNode("bgImage")
 
     m.channelStore = m.top.findNode("channelStore")
     observe(m.channelStore, "userData", sub()
-        ?`user data change ${m.channelStore.userData?.email}`
-        m.usernameTextBox.openKeyboardOnEnter = true
+        m.emailTextBox.openKeyboardOnEnter = true
         email = m.channelStore.userData?.email
-        m.usernameTextBox.text = email
+        m.emailTextBox.text = email
         if strNullOrEmpty(email)
-            m.usernameTextBox.openKeyboard = 1
+            m.emailTextBox.openKeyboard = 1
         end if
     end sub)
 
@@ -59,7 +58,7 @@ sub doAuth(isSignUp as boolean)
     m.spinner.visible = true
     m.buttonContainer.visible = false
 
-    loginPromise = stores.tokenStore()@.passwordAuth(m.usernameTextBox.text, m.pwTextBox.text, m.top.property, isSignUp)
+    loginPromise = stores.tokenStore()@.passwordAuth(m.emailTextBox.text, m.pwTextBox.text, m.top.property, isSignUp)
     promises.chain(loginPromise).then(function(result)
         ' Re-fetch Properties before navigating away from sign-in
         return stores.propertyStore()@.fetchDiscoverableProperties()
@@ -92,11 +91,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
         if key = "back" and router().viewManager.viewCount = 1
             router().removeStack = "signin"
             handled = true
-        else if key = "down" and m.usernameTextBox.IsInFocusChain()
+        else if key = "down" and m.emailTextBox.IsInFocusChain()
             m.pwTextBox.setFocus(true)
             handled = true
         else if key = "up" and m.pwTextBox.IsInFocusChain()
-            m.usernameTextBox.setFocus(true)
+            m.emailTextBox.setFocus(true)
             handled = true
         else if key = "down" and m.pwTextBox.IsInFocusChain()
             m.signInButton.setFocus(true)
@@ -110,12 +109,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
         else if key = "left" and m.signUpButton.IsInFocusChain()
             m.signInButton.setFocus(true)
             handled = true
-        else if key = "OK" and m.usernameTextBox.IsInFocusChain()
+        else if key = "OK" and m.emailTextBox.IsInFocusChain()
             m.channelStore.requestedUserData = "email"
             m.channelStore.command = "getUserData"
             handled = true
         else if key = "up" and m.pwTextBox.IsInFocusChain()
-            m.usernameTextBox.setFocus(true)
+            m.emailTextBox.setFocus(true)
             handled = true
         end if
     end if

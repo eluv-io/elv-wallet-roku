@@ -14,10 +14,10 @@
             horizAlignment="center"
             vertAlignment="center"
             translation="[960, 540]">
-            <Poster uri="pkg:/images/elv_logo.png" width="180" height="180" />
-            <Spacer height="30" />
+            <Poster uri="pkg:/images/elv_logo_nofill.png" width="180" height="180" />
+            <Spacer height="48" />
             <TvLabel text="How would you like to log in?" fontStyle="title_62" />
-            <Spacer height="30" />
+            <Spacer height="60" />
             <LayoutGroup layoutDirection="horiz">
                 <TvButton id="qrSignInButton" text="Use another device" />
                 <Spacer width="30" />

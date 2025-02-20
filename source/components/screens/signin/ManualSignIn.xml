@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="ManualSignIn" extends="BaseView" initialFocus="usernameTextBox">
+<component name="ManualSignIn" extends="BaseView" initialFocus="emailTextBox">
     <interface>
         <field id="property" type="assocArray" onChange="onPropertyChanged" />
         <!-- Optionally tell SignIn where to go to after a successful authentication -->
@@ -19,23 +19,25 @@
             translation="[960, 540]">
 
             <LayoutGroup layoutDirection="horiz" vertAlignment="center">
-                <TvLabel id="emailLabel" text="Email / Username:" />
-                <Spacer width="12" />
+                <TvLabel id="emailLabel" text="Email" horizAlign="right" fontStyle="42_regular" />
+                <Spacer width="18" />
                 <TvTextEdit
-                    id="usernameTextBox"
+                    id="emailTextBox"
                     width="600"
+                    fontStyle="carousel_36"
                 />
             </LayoutGroup>
 
             <Spacer height="30" />
 
             <LayoutGroup layoutDirection="horiz" vertAlignment="center">
-                <TvLabel id="pwLabel" text="Password:" />
-                <Spacer width="12" />
+                <TvLabel id="pwLabel" text="Password" horizAlign="right" fontStyle="42_regular" />
+                <Spacer width="18" />
                 <TvTextEdit
                     id="pwTextBox"
                     keyboardDomain="password"
                     width="600"
+                    fontStyle="carousel_36"
                 />
             </LayoutGroup>
 
