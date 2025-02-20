@@ -29,7 +29,7 @@ sub handleDeeplink(args)
     if args?.mediaType = invalid then return
     if args?.contentId = invalid then return
 
-    content = args.contentId.split(" ")
+    content = args.contentId.tokenize(" +")
     if content.count() < 2 then return
 
     propertyId = content[0]
@@ -44,8 +44,6 @@ sub handleDeeplink(args)
 
     if strNotEmpty(stores.tokenStore().fabricToken)
         ' Authenticated, launch the requested media
-        content = args.contentId.split(" ")
-        if content.count() < 2 then return
         view = createObject("roSGNode", "VideoPlayer")
         view.update(videoPlayerArgs)
         router()@.show({ view: view })
