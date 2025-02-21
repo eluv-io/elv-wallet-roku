@@ -5,6 +5,8 @@ import "pkg:/components/utils/NftOps.bs"
 sub init()
     m.bigImage = m.top.findNode("bigImage")
     m.rowList = m.top.findNode("rowList")
+    m.caption = m.top.findNode("caption")
+    m.captionBg = m.top.findNode("captionBg")
 
     m.rowList.observeFieldScoped("rowItemFocused", "onItemFocused")
 end sub
@@ -15,7 +17,9 @@ sub onGalleryItemChanged()
     if item.media_type = NftOps.MediaType.IMAGE
         assetLink = item.media_file ?? DisplaySettings.getThumbnailAndRatio(item).thumbnail
         setBigPicture(assetLink)
+        updateCaption(item.title)
     else if item.media_type = NftOps.MediaType.GALLERY
+        m.captionBg.visible = false
         root = createObject("roSGNode", "ContentNode")
         row = root.createChild("ContentNode")
         for each image in item.gallery
@@ -36,4 +40,16 @@ end sub
 
 sub setBigPicture(assetLink)
     m.bigImage.uri = UrlUtil.imageLinkToUrl(assetLink, 1080)
+end sub
+
+sub updateCaption(captionStr)
+    if strNotEmpty(captionStr)
+        m.caption.text = captionStr
+        labelHeight = m.caption.boundingRect().height
+        m.captionBg.height = labelHeight + (m.caption.translation[1] * 2)
+        m.captionBg.translation = [0, 1080 - m.captionBg.height]
+        m.captionBg.visible = true
+    else
+        m.captionBg.visible = false
+    end if
 end sub

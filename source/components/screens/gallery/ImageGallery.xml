@@ -10,6 +10,20 @@
             height="1080"
             loadDisplayMode="scaleToFit"
         />
+        <Rectangle
+            id="captionBg"
+            color="#000000B2"
+            visible="false"
+            width="1920"
+        >
+            <!-- Width is screenWidth - horizPadding = 1920 - (164*2) = 1592 -->
+            <TvLabel
+                id="caption"
+                width="1592"
+                wrap="true"
+                fontStyle="title_48"
+                translation="[164, 42]" />
+        </Rectangle>
         <RowList
             id="rowList"
             itemComponentName="ImageItem"
