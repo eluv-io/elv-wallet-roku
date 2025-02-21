@@ -3,6 +3,7 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/screens/property/DisplaySettings.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
+import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/RouterUtils.bs"
 namespace CarouselHelpers
     const SUPPORTED_ITEM_TYPES = {
@@ -63,14 +64,27 @@ namespace CarouselHelpers
             ' This is a LIVE video that's valid to view, continue normally
         end if
 
-        videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
-        videoPlayerView.propertyMedia = {
-            propertyId: property.id
-            mediaId: media.id
-            title: media.display_title ?? media.title
-            isLive: media.live_video
-        }
-        router()@.show({ view: videoPlayerView })
+        mediaType = media.media_type
+        if mediaType = NftOps.MediaType.VIDEO or mediaType = NftOps.MediaType.LIVE
+            videoPlayerView = CreateObject("roSGNode", "VideoPlayer")
+            videoPlayerView.propertyMedia = {
+                propertyId: property.id
+                mediaId: media.id
+                title: media.display_title ?? media.title
+                isLive: media.live_video
+            }
+            router()@.show({ view: videoPlayerView })
+        else if mediaType = NftOps.MediaType.IMAGE or mediaType = NftOps.MediaType.GALLERY
+            galleryView = CreateObject("roSGNode", "ImageGallery")
+            galleryView.galleryItem = media
+            router()@.show({ view: galleryView })
+        else if media.media_file <> invalid
+            qrView = createObject("roSGNode", "ExternalContentQrDialog")
+            qrView.link = UrlUtil.assetLinkToUrl(media.media_file)
+            createObject("roSGNode", "FullscreenDialog").showView = qrView
+        else
+            Toast.show("Unsupported media type")
+        end if
     end sub
 
     function createCarouselSection(section, parentPermissionContext, dummyLabel, ignoreDisplayLimit = false, forceDisplayFormat = invalid)
