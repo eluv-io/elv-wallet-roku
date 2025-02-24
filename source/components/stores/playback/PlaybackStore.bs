@@ -9,15 +9,15 @@ namespace PlaybackStore
         _instance()@.wipe()
     end sub
 
-    sub setPlaybackPosition(contentId as string, position as float, totalDuration as float)
+    sub setPlaybackPosition(contentId, position as float, totalDuration as float)
         _instance()@.setPlaybackPosition(contentId, position, totalDuration)
     end sub
 
-    function getPlaybackPosition(contentId as string) as float
+    function getPlaybackPosition(contentId) as float
         return _instance()@.getPlaybackPosition(contentId)
     end function
 
-    function getPlaybackProgress(contentId as string) as float
+    function getPlaybackProgress(contentId) as float
         return _instance()@.getPlaybackProgress(contentId)
     end function
 end namespace
