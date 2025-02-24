@@ -164,6 +164,7 @@ sub updateOverlayTextPositions(cardWidth, textPadding)
     end for
 
     m.purchaseOptionsLabel.translation = [textPadding, textPadding]
+    m.purchaseOptionsLabel.width = cardWidth - (textPadding * 2)
 end sub
 
 sub updateLiveVideoTag(media)

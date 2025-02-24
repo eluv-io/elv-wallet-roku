@@ -35,6 +35,7 @@
                 visible="false"
                 fontStyle="24_bold"
                 text="VIEW PURCHASE OPTIONS"
+                wrap="true"
             />
             <TvLabel
                 id="metaHeaders"
