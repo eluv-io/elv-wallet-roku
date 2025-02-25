@@ -201,14 +201,31 @@ function sectionToNodes(section, decorations)
 end function
 
 function shouldHideSection(section)
-    if section.permissions?._content?.authorized <> true then return true
+    if PermissionUtil.isHidden(section.permissions?._content) then return true
 
     if section.display.hide_on_tv = true then return true
 
-    hasNoItems = (section.content ?? []).count() = 0 and (section.hero_items ?? []).count() = 0 and (section.sections_resolved ?? []).count() = 0
-    if hasNoItems then return true
-
     if isContainerWithNoVisibleSubsections(section) then return true
+
+    if section.type = "hero"
+        children = section.hero_items ?? []
+    else if section.type = "container"
+        ' This is handled separately in [isContainerWithNoVisibleSubsections]
+        children = []
+    else
+        children = section.content ?? []
+    end if
+
+    if children.count() = 0 then return true
+    ' If has no visible children, hide the section
+    hasVisibleChildren = false
+    for each child in children
+        if not PermissionUtil.isHidden(child.permissions?._content)
+            hasVisibleChildren = true
+            exit for
+        end if
+    end for
+    if not hasVisibleChildren then return true
 
     return false
 end function

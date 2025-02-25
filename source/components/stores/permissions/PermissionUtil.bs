@@ -1,17 +1,23 @@
-' [p] in these functions should be a resolved permission object (e.g. media.permissions._content)
+' [p] in these functions should be a resolved permission object (e.g. media.permissions._content).
+' If p = invalid, the object is considered accessible/visible.
 namespace PermissionUtil
     function isHidden(p)
+        if p = invalid then return false
         return (p.authorized = false and p.behavior = "hide") or (p.authorized = true and p.behavior = "show_if_unauthorized")
     end function
 
     function isDisabled(p)
+        if p = invalid then return false
         return p.authorized = false and p.behavior = "disable"
     end function
+
     function showPurchaseOptions(p)
+        if p = invalid then return false
         return p.authorized = false and p.behavior = "show_purchase"
     end function
 
     function showAlternatePage(p)
+        if p = invalid then return false
         return p.authorized = false and p.behavior = "show_alternate_page" and p.alternate_page_id <> invalid
     end function
 end namespace
