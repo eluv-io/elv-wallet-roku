@@ -5,7 +5,7 @@ import "pkg:/components/http/http.bs"
 
 const TOKEN_REGISTRY_SECTION = "tokens"
 
-const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken"]
+const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken", "email", "clusterToken"]
 
 const ORY_API_URL = "https://eloquent-carson-yt726m2tf6.projects.oryapis.com"
 
@@ -57,6 +57,7 @@ function checkAuthorization(code, passcode) as object
             payload = parseJson(response.json.payload)
             m.top.fabricToken = payload.token
             m.top.walletAddress = payload.addr
+            m.top.userEmail = payload.email
         end if
         return response
     end function).toPromise()
@@ -131,6 +132,7 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     end function).then(function(whoamiRepsonse, context)
         if strNullOrEmpty(whoamiRepsonse.json.tokenized) then return promises.reject({ message: "Failed to get token from Ory" })
         m.top.idToken = whoamiRepsonse.json.tokenized
+        m.top.userEmail = _extractEmail(whoamiRepsonse.json.tokenized)
         body = {
             ' We currently don't have tenant_id, and it would be nice to add it, but it's not required
             ' "tid": context.tenantId '
@@ -155,9 +157,20 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         Logger.log(`Sign up/in error: ${e}`)
         ' Clear all fields we might have touched, and then send the same error forward
         m.top.idToken = invalid
+        m.top.userEmail = invalid
         m.top.clusterToken = invalid
         m.top.walletAddress = invalid
         m.top.fabricToken = invalid
         return promises.reject(e)
     end function).toPromise()
+end function
+
+function _extractEmail(idToken)
+    encodedId = idToken?.split?(".")?[1]
+    if strNotEmpty(encodedId)
+        ba = CreateObject("roByteArray")
+        ba.FromBase64String(encodedId)
+        idJson = parseJson(ba.ToAsciiString())
+        return idJson.email
+    end if
 end function

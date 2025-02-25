@@ -62,17 +62,18 @@ function buildPurchaseUrl(permissionContext, permissionSettings, pageOverride)
     tokenStore = stores.tokenStore()
     auth = {
         "address": tokenStore.walletAddress
-        ' "email": tokenStore.userEmail ?? extractEmail(tokenStore.idToken)
+        "email": tokenStore.userEmail
     }
     clusterToken = tokenStore.clusterToken
     if clusterToken <> invalid
-        auth.provider = "ory" ' Currently we only support ory.
-        auth.clusterToken = clusterToken
+        auth["provider"] = "ory" ' Currently we only support ory.
+        ' keys are case sensitive, so we need to use the same case as the server expects
+        auth["clusterToken"] = clusterToken
     else
         ' No cluster token only applies when logged in with Metamask
-        auth.provider = "metamask"
-        auth.fabricToken = tokenStore.fabricToken
-        auth.expiresAt = invalid ' TODO:
+        auth["provider"] = "metamask"
+        auth["fabricToken"] = tokenStore.fabricToken
+        auth["expiresAt"] = invalid ' TODO:
     end if
     encodedAuth = base58.encodeAscii(formatJson(auth))
 
