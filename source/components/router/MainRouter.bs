@@ -9,6 +9,13 @@ sub Init()
 
     http.init()
     stores.init()
+
+    palette = createObject("roSGNode", "RSGPalette")
+    palette.colors = {
+        DialogBackgroundColor: "#141414",
+        DialogInputFieldColor: "#202020",
+    }
+    m.top.palette = palette
 end sub
 
 function Show(args)
