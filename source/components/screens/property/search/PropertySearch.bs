@@ -65,7 +65,11 @@ end sub
 sub onSearchBoxClicked()
     keyboard = m.top.createChild("StandardKeyboardDialog")
     m.keyboard = keyboard
-    keyboard.title = `Search ${m.top.property.name}`
+    name = m.top.property.title
+    if strNullOrEmpty(name)
+        name = m.top.property.name
+    end if
+    keyboard.title = `Search ${name}`
     keyboard.text = m.top.queryString
     keyboard.buttons = ["Search", "Cancel"]
     keyboard.setFocus(true)
@@ -160,9 +164,7 @@ sub onSectionItemSelected(event)
     itemType = item.aa.type
     if itemType = "CarouselItem"
         CarouselHelpers.onSectionItemClicked(item.aa.item, m.top.property)
-    else if itemType = "TextItem"
-        Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
-    else if itemType = "Spacer"
+    else if itemType = "TextItem" or itemType = "Spacer"
         ' No-Op
     else if itemType = "ViewAllButton"
         view = createObject("roSGNode", "MediaGrid")
