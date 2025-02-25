@@ -365,7 +365,18 @@ sub onSectionItemSelected(event)
     if itemType = "CarouselItem"
         CarouselHelpers.onSectionItemClicked(item.aa.item, m.top.property)
     else if itemType = "TextItem"
-        Toast.show(`TODO: show dialog with text: ${left(item.aa.text, 10)}...`)
+        dialog = createObject("roSGNode", "StandardMessageDialog")
+        name = m.top.property.title
+        if strNullOrEmpty(name)
+            name = m.top.property.name
+        end if
+        dialog.title = name
+        dialog.message = [item.aa.text]
+        dialog.buttons = ["OK"]
+        observe(dialog, "buttonSelected", sub()
+            m.top.getScene().dialog = invalid
+        end sub)
+        m.top.getScene().dialog = dialog
     else if itemType = "Spacer"
         ' No-Op
     else if itemType = "ViewAllButton"
