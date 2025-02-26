@@ -57,7 +57,8 @@ sub onPropertySelected()
         return
     end if
 
-    if strNotEmpty(stores.tokenStore().fabricToken)
+    skipLogin = property?.login?.settings?.disable_login = true
+    if skipLogin or strNotEmpty(stores.tokenStore().fabricToken)
         view = CreateObject("roSGNode", "PropertyDetail")
         view.property = property
         router()@.show({ view: view })

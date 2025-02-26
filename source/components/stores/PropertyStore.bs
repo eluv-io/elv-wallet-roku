@@ -23,16 +23,12 @@ function fetchDiscoverableProperties(_ = invalid)
         propertyMap = {}
         pageMap = m.pageMap
 
-        ' Skip permission resolution if not logged in
-        shouldResolvePermissions = strNotEmpty(stores.tokenStore().fabricToken)
         for each item in properties
             propertyMap[item.id] = item
             pages = pageMap[item.id] ?? {}
             pages[item.main_page.id] = item.main_page
             pageMap[item.id] = pages
-            if shouldResolvePermissions
-                PermissionResolver.resolvePermissions(item, invalid, item.permission_auth_state)
-            end if
+            PermissionResolver.resolvePermissions(item, invalid, item.permission_auth_state)
         end for
 
         m.propertyMap = propertyMap
@@ -55,9 +51,7 @@ function getPropertyById(propertyId)
     return promises.chain(PropertyApi.getPropertyById(propertyId)).then(function(result)
         property = result.json
         Logger.log(`Fetched property from network (id=${property.id})`)
-        if strNotEmpty(stores.tokenStore().fabricToken)
-            PermissionResolver.resolvePermissions(property, invalid, property.permission_auth_state)
-        end if
+        PermissionResolver.resolvePermissions(property, invalid, property.permission_auth_state)
         propMap = m.propertyMap
         propMap[property.id] = property
         m.propertyMap = propMap
@@ -74,9 +68,7 @@ function getPageById(property, pageId)
 
     return promises.chain(PropertyApi.getPageById(property.id, pageId), property).then(function(result, property)
         page = result.json
-        if strNotEmpty(stores.tokenStore().fabricToken)
-            PermissionResolver.resolvePermissions(page, property.permissions._content, property.permission_auth_state)
-        end if
+        PermissionResolver.resolvePermissions(page, property.permissions._content, property.permission_auth_state)
         pages = m.pageMap[property.id] ?? {}
         pages[page.id] = page
         return page
