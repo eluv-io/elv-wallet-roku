@@ -1,6 +1,8 @@
 import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/screens/property/CarouselHelpers.bs"
+import "pkg:/components/http/apis/PropertyApi.bs"
+import "pkg:/components/stores/permissions/PermissionsResolver.bs"
 import "pkg:/components/utils/str.bs"
 sub init()
     m.grid = m.top.findNode("grid")
@@ -12,14 +14,56 @@ sub init()
     observe(m.grid, "itemSelected", onItemSelected)
 end sub
 
+sub onMediaContainerChanged()
+    mediaContainer = m.top.mediaContainer
+
+    if mediaContainer.media.count() = 0
+        Toast.show("Empty collection")
+        ' This happens before the view is attached to the ViewManager, so a slight delay is needed
+        time.setTimer(sub()
+            m.top.close = true
+        end sub, 0.001)
+        return
+    end if
+
+    promises.chain(PropertyApi.getMediaItems(m.top.property.id, mediaContainer.media)).then(sub(result)
+        mediaItems = result.json.contents ?? []
+        ' We have code that can convert SectionItems to Nodes, so just wrap the media items in a fake sectionItem and re-use that code
+        fakeSectionItems = []
+        for each item in mediaItems
+            fakeSectionItems.push({
+                id: `fake-section-item-${item.id}`,
+                "type": "media",
+                media: item
+                use_media_settings: true
+            })
+        end for
+        mediaContainer = m.top.mediaContainer
+        ' Wrap the fake sectionItems with a fake Section so we can resolve permissions easily
+        fakeSection = {
+            id: `fake-section-${mediaContainer.id}`,
+            content: fakeSectionItems,
+            display: {
+                title: mediaContainer.title
+            }
+        }
+        PermissionResolver.resolvePermissions(fakeSection, mediaContainer.permissions._content, m.top.property.permission_auth_state)
+        ' The ViewAll code path can already handle displaying a Section, so just set the section and let it do its thing
+        m.top.section = fakeSection
+    end sub).catch(sub(err)
+        Toast.show("Failed to fetch media items")
+        m.top.close = true
+    end sub)
+end sub
+
 sub onSectionChanged()
     property = m.top.property
-    page = m.top.page
+    pageId = m.top.pageId
     section = m.top.section
     m.title.text = section.display.title
     permissionContext = {
         propertyId: property.id,
-        pageId: page?.id,
+        pageId: pageId,
         sectionId: section.id
     }
     nodes = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel, true, "grid")

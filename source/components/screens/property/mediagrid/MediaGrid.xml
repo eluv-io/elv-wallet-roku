@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="MediaGrid" extends="BaseView" initialFocus="grid">
     <interface>
-        <!-- Set [property] and [page] before [section] -->
+        <!-- Set [property] and [pageId] before [section] / [mediaItemIds] -->
         <field id="property" type="assocArray" />
-        <field id="page" type="assocArray" />
+        <field id="pageId" type="string" />
+
+        <!-- Either provide a section to load all media items inside it-->
         <field id="section" type="assocArray" onChange="onSectionChanged" />
+        <!-- Or provide  -->
+        <field id="mediaContainer" type="assocArray" onChange="onMediaContainerChanged" />
     </interface>
     <children>
         <TvLabel
             id="title"
-            text="Le title"
-            fontStlye="body_32"
+            fontStyle="body_32"
             translation="[114, 60]"
         />
         <MarkupGrid

@@ -16,7 +16,7 @@ namespace CarouselHelpers
     sub onSectionItemClicked(sectionItem, property)
         permissionContext = sectionItem._permissionContext
         if sectionItem.media <> invalid
-            onMediaItemClicked(sectionItem.media, permissionContext, property)
+            onMediaItemClicked(sectionItem, permissionContext, property)
         else if sectionItem.type = "external_link"
             qrView = createObject("roSGNode", "ExternalContentQrDialog")
             qrView.showLinkText = true
@@ -36,7 +36,8 @@ namespace CarouselHelpers
         end if
     end sub
 
-    sub onMediaItemClicked(media, permissionContext, property)
+    sub onMediaItemClicked(sectionItem, permissionContext, property)
+        media = sectionItem.media
         permissions = media.permissions._content
         if PermissionUtil.showAlternatePage(permissions)
             _navigateToPage(property.id, permissions.alternate_page_id)
@@ -78,6 +79,13 @@ namespace CarouselHelpers
             galleryView = CreateObject("roSGNode", "ImageGallery")
             galleryView.galleryItem = media
             router()@.show({ view: galleryView })
+        else if media.type = "list"
+            ' Item is a collection/list of media items
+            grid = CreateObject("roSGNode", "MediaGrid")
+            grid.property = property
+            grid.pageId = sectionItem.page_id
+            grid.mediaContainer = media
+            router()@.show({ view: grid })
         else if media.media_file <> invalid
             qrView = createObject("roSGNode", "ExternalContentQrDialog")
             qrView.link = UrlUtil.assetLinkToUrl(media.media_file)

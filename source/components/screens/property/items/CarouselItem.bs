@@ -140,7 +140,7 @@ sub updateOverlayTexts(display)
     headers = display.headers?.join?(", ") ?? ""
     m.metaHeaders.text = UCase(headers)
     m.metaTitle.text = display.title
-    m.metaSubtitle.text = UCase(display.subtitle)
+    m.metaSubtitle.text = UCase(display.subtitle ?? "")
 
     ' Setting visibility to false, so later we can update positions based on what's visible
     for each label in [m.metaHeaders, m.metaTitle, m.metaSubtitle]

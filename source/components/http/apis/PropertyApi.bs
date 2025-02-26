@@ -35,4 +35,9 @@ namespace PropertyApi
         url = `${baseUrl()}/mw/properties/${propertyId}/search`
         return http.post(url, formatJson({ search_term: query }))
     end function
+
+    function getMediaItems(propertyId as string, mediaItemIds) as object
+        url = `${baseUrl()}/mw/properties/${propertyId}/media_items`
+        return http.post(url, formatJson(mediaItemIds))
+    end function
 end namespace

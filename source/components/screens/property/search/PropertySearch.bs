@@ -169,7 +169,7 @@ sub onSectionItemSelected(event)
     else if itemType = "ViewAllButton"
         view = createObject("roSGNode", "MediaGrid")
         view.property = m.top.property
-        view.page = m.page
+        view.pageId = m.page.id
         view.section = item.aa.section
         router()@.show({ view: view })
     else
