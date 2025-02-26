@@ -63,7 +63,7 @@ sub onPropertySelected()
         view.property = property
         router()@.show({ view: view })
     else
-        signIn = CreateObject("roSGNode", "SignInSelector")
+        signIn = CreateObject("roSGNode", "QrSignIn")
         signIn.property = property
         router().addStack = "signin"
         router()@.show({ view: signIn })
