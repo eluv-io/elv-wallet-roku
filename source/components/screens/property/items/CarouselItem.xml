@@ -36,6 +36,7 @@
                 fontStyle="24_bold"
                 text="VIEW PURCHASE OPTIONS"
                 wrap="true"
+                lineSpacing="0"
             />
             <TvLabel
                 id="metaHeaders"
