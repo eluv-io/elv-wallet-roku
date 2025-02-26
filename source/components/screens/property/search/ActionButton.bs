@@ -3,7 +3,7 @@ import "pkg:/components/utils/NodeUtil.bs"
 sub init()
     m.icon = m.top.findNode("icon")
     
-    m.top.uri = "pkg:/images/rounded/HD.9.png"
+    m.top.uri = "pkg:/images/rounded/$$RES$$.9.png"
     m.bg = m.top
 
     m.top.focusable = true
