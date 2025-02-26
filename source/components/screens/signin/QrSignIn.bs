@@ -79,7 +79,11 @@ sub getNewCode()
 end sub
 
 sub onBackClicked()
-    m.top.close = true
+    if router().viewManager.viewCount = 1
+        router().removeStack = "signin"
+    else
+        m.top.close = true
+    end if
 end sub
 
 sub checkStatus()
