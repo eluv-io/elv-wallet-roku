@@ -56,6 +56,7 @@ function checkAuthorization(code, passcode) as object
         if response.code = 200
             payload = parseJson(response.json.payload)
             m.top.fabricToken = payload.token
+            m.top.clusterToken = payload.clusterToken
             m.top.walletAddress = payload.addr
             m.top.userEmail = payload.email
         end if
