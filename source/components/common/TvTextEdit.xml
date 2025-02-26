@@ -12,7 +12,7 @@ true (default) -->
             onChange="onKeyboardOpenTriggered" />
 
         <!-- possible values: generic, email, numeric, alphanumeric, password -->
-        <field id="keyboardDomain" type="string" value="generic" />
+        <field id="keyboardDomain" type="string" value="generic" onChange="onTextChanged" />
 
         <field id="fontStyle" type="string" alias="textBox.fontStyle" />
         <field id="bgColor" type="color" alias="bg.blendColor" value="#4e4e4e" />
