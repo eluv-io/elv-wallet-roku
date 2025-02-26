@@ -210,8 +210,9 @@ function shouldHideSection(section)
     if section.type = "hero"
         children = section.hero_items ?? []
     else if section.type = "container"
-        ' This is handled separately in [isContainerWithNoVisibleSubsections]
-        children = []
+        ' This is handled separately in [isContainerWithNoVisibleSubsections],
+        ' just a fake child that isn't explicitly hidden.
+        children = [{}]
     else
         children = section.content ?? []
     end if
