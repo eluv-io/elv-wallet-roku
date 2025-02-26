@@ -41,6 +41,11 @@ end sub
 
 sub onConfigChange()
     m.registry.write("config", formatJson(m.top.config))
+    ' update static token
+    qspaceId = m.top.config?.qspace?.id
+    ba = CreateObject("roByteArray")
+    ba.fromAsciiString(`{"qspace_id": "${qspaceId}"}`)
+    m.top.staticToken = ba.toBase64String()
 end sub
 
 function getAuthdBaseUrl(_ = invalid) as string

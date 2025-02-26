@@ -41,6 +41,7 @@ sub handleDeeplink(args)
 
     propertyId = content[0]
     mediaId = content[1]
+    public = content[2] = "public"
 
     videoPlayerArgs = {
         propertyMedia: {
@@ -49,7 +50,7 @@ sub handleDeeplink(args)
         }
     }
 
-    if strNotEmpty(stores.tokenStore().fabricToken)
+    if public or strNotEmpty(stores.tokenStore().fabricToken)
         ' Authenticated, launch the requested media
         view = createObject("roSGNode", "VideoPlayer")
         view.update(videoPlayerArgs)

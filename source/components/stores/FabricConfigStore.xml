@@ -2,6 +2,8 @@
 <component name="FabricConfigStore" extends="Node">
     <interface>
         <field id="config" type="assocarray" />
+        <!-- Token that can be used for any authd/fabric calls when fabricToken is missing -->
+        <field id="staticToken" type="string" />
         <function name="getAuthdBaseUrl" />
         <function name="getFabricBaseUrl" />
         <function name="getNetworkName" />

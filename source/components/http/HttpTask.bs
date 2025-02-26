@@ -107,6 +107,8 @@ sub getDefaultHeaders(request) as object
         end if
     else if strNotEmpty(stores.tokenStore().fabricToken)
         headers["Authorization"] = `Bearer ${stores.tokenStore().fabricToken}`
+    else if strNotEmpty(stores.fabricConfigStore().staticToken)
+        headers["Authorization"] = `Bearer ${stores.fabricConfigStore().staticToken}`
     end if
 
     return headers

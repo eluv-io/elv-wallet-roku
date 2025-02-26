@@ -13,6 +13,10 @@ end sub
 
 sub onFabricTokenChanged()
     token = stores.tokenStore().fabricToken
+    if strNullOrEmpty(token)
+        ' Fallback to static token if no fabric token is available
+        token = stores.fabricConfigStore().staticToken
+    end if
 
     ' Header for DRM license requests
     m.videoPlayer.addHeader("Authorization", `Bearer ${token}`)
