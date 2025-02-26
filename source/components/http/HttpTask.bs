@@ -59,7 +59,7 @@ sub fireHttpRequest(promise)
 
     url = promise.request.url
     if m.top.staging and url.inStr("/as/mw") <> -1
-        url = UrlUtil.appendQuery(url, "staging", "true")
+        url = UrlUtil.appendQuery(url, "env", "staging")
     end if
     request.setUrl(url)
 
