@@ -48,6 +48,8 @@ sub onFabricTokenChanged()
 
         ' Automatically select the first tab
         m.top.selectedTab = availableTabs[0].screenName
+        ' Will cause drawer to recalculate size and position icons properly
+        onDrawerStateChanged()
     end if
 end sub
 
