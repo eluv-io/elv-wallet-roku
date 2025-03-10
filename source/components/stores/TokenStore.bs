@@ -98,6 +98,7 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         baseUrl: stores.fabricConfigStore()@.getAuthdBaseUrl()
         tenantId: tenantId
         isSignUp: isSignUp
+        property: property
     }
 
     if isSignUp
@@ -154,6 +155,8 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         if strNullOrEmpty(csatResponse.json.token) then return promises.reject({ message: "Failed to sign JWT" })
         m.top.fabricToken = csatResponse.json.token
         return "success"
+    end function).then(function(r, context)
+        return _sendWelcomeEmail(context.baseUrl, context.email, context.property, r)
     end function).catch(function(e, context)
         Logger.log(`Sign up/in error: ${e}`)
         ' Clear all fields we might have touched, and then send the same error forward
@@ -166,9 +169,29 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     end function).toPromise()
 end function
 
+' Asks the BE to send a welcome email to the user.
+' Returns a promise that will complete successfully and return [originalResponse] regardless of any errors that occured,
+' since we don't want to change the flow if this one step fails.
+function _sendWelcomeEmail(baseUrl, email, property, originalResponse)
+    url = `${baseUrl}/wlt/ory/send_welcome_email`
+    body = {
+        email: email,
+        media_property: property?.id
+    }
+    return promises.chain(http.post(url, body), originalResponse).then(function(r, originalResponse)
+        return promises.resolve(originalResponse)
+    end function).catch(function(e, originalResponse)
+        Logger.log(`Failed to send welcome email: ${e}`)
+        return promises.resolve(originalResponse)
+    end function).toPromise()
+end function
+
 function _extractEmail(idToken)
     encodedId = idToken?.split?(".")?[1]
     if strNotEmpty(encodedId)
+        size = encodedId.len()
+        ' Pad string until divisible by 4, otherwise FromBase64String will break
+        if size mod 4 <> 0 then encodedId += string(4 - (size mod 4), "=")      
         ba = CreateObject("roByteArray")
         ba.FromBase64String(encodedId)
         idJson = parseJson(ba.ToAsciiString())
