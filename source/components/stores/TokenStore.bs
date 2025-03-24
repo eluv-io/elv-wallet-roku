@@ -156,7 +156,11 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         m.top.fabricToken = csatResponse.json.token
         return "success"
     end function).then(function(r, context)
-        return _sendWelcomeEmail(context.baseUrl, context.email, context.property, r)
+        if context.isSignUp
+            return _sendWelcomeEmail(context.baseUrl, context.email, context.property, r)
+        else
+            return r
+        end if
     end function).catch(function(e, context)
         Logger.log(`Sign up/in error: ${e}`)
         ' Clear all fields we might have touched, and then send the same error forward
@@ -191,7 +195,7 @@ function _extractEmail(idToken)
     if strNotEmpty(encodedId)
         size = encodedId.len()
         ' Pad string until divisible by 4, otherwise FromBase64String will break
-        if size mod 4 <> 0 then encodedId += string(4 - (size mod 4), "=")      
+        if size mod 4 <> 0 then encodedId += string(4 - (size mod 4), "=")
         ba = CreateObject("roByteArray")
         ba.FromBase64String(encodedId)
         idJson = parseJson(ba.ToAsciiString())
