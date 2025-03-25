@@ -89,79 +89,31 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     if strNullOrEmpty(email) then return promises.reject({ message: "Empty email/username" })
     if strNullOrEmpty(password) then return promises.reject({ message: "Empty password" })
 
-    tenantId = property?.tenant?.tenant_id
-    if strNullOrEmpty(tenantId) then return promises.reject({ message: "invalid tenant_id" })
-
-    context = {
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    if isSignUp
+        url = `${baseUrl}/wlt/ory/sign_up`
+    else
+        url = `${baseUrl}/wlt/ory/sign_in`
+    end if
+    
+    body = {
         email: email
         password: password
-        baseUrl: stores.fabricConfigStore()@.getAuthdBaseUrl()
-        tenantId: tenantId
-        isSignUp: isSignUp
-        property: property
+        media_property: property.id
+        nonce: createObject("roDeviceInfo").GetChannelClientId()
     }
 
-    if isSignUp
-        url = `${ORY_API_URL}/self-service/registration/api`
-    else
-        url = `${ORY_API_URL}/self-service/login/api`
-    end if
-    return promises.chain(http.get(url), context).then(function(initFlowResponse, context)
-        flowId = initFlowResponse.json.id
-        if strNullOrEmpty(flowId) then return promises.reject({ message: "fail to obtain ory-flow-id" })
-        if context.isSignUp
-            url = `${ORY_API_URL}/self-service/registration?flow=${flowId}`
-            body = {
-                "method": "password",
-                "traits": { "email": context.email },
-                "password": context.password
-            }
+    return promises.chain(http.post(url, body)).then(function(response)
+        Logger.log(`Sign up/in response: ${response.json}`)
+        if response.code = 200
+            m.top.fabricToken = response.json.token
+            m.top.userEmail = response.json.email
+            m.top.walletAddress = response.json.user_addr
+            return "success"
         else
-            url = `${ORY_API_URL}/self-service/login?flow=${flowId}`
-            body = {
-                "method": "password",
-                "identifier": context.email,
-                "password": context.password
-            }
+            return promises.reject({ reason: response.json?.error?.messages?[0]?.id ?? response.json })
         end if
-        return http.post(url, body)
-    end function).then(function(authResponse, context)
-        if strNullOrEmpty(authResponse.json.session_token)
-            return promises.reject({ message: "Failed to get session token from Ory", reason: authResponse.json?.ui?.messages?[0]?.id })
-        end if
-        m.top.idToken = authResponse.json.session_token
-        return http.get(`${ORY_API_URL}/sessions/whoami?tokenize_as=jwt_uefa_template1`)
-    end function).then(function(whoamiRepsonse, context)
-        if strNullOrEmpty(whoamiRepsonse.json.tokenized) then return promises.reject({ message: "Failed to get token from Ory" })
-        m.top.idToken = whoamiRepsonse.json.tokenized
-        m.top.userEmail = _extractEmail(whoamiRepsonse.json.tokenized)
-        body = {
-            ' We currently don't have tenant_id, and it would be nice to add it, but it's not required
-            ' "tid": context.tenantId '
-            "ext": { "share_email": true }
-        }
-        return http.post(`${context.baseUrl}/wlt/login/jwt`, body)
-    end function).then(function(jwtResponse, context)
-        if strNullOrEmpty(jwtResponse.json.token) or strNullOrEmpty(jwtResponse.json.addr) then return promises.reject({ message: "Failed to get JWT" })
-        m.top.clusterToken = jwtResponse.json.token
-        m.top.walletAddress = jwtResponse.json.addr
-        body = {
-            ' We currently don't have tenant_id, and it would be nice to add it, but it's not required
-            ' "tid": context.tenantId,
-            "nonce": createObject("roDeviceInfo").GetChannelClientId()
-        }
-        return http.post(`${context.baseUrl}/wlt/sign/csat`, body)
-    end function).then(function(csatResponse, context)
-        if strNullOrEmpty(csatResponse.json.token) then return promises.reject({ message: "Failed to sign JWT" })
-        m.top.fabricToken = csatResponse.json.token
-        return "success"
-    end function).then(function(r, context)
-        if context.isSignUp
-            return _sendWelcomeEmail(context.baseUrl, context.email, context.property, r)
-        else
-            return r
-        end if
-    end function).catch(function(e, context)
+    end function).catch(function(e)
         Logger.log(`Sign up/in error: ${e}`)
         ' Clear all fields we might have touched, and then send the same error forward
         m.top.idToken = invalid
@@ -171,34 +123,4 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         m.top.fabricToken = invalid
         return promises.reject(e)
     end function).toPromise()
-end function
-
-' Asks the BE to send a welcome email to the user.
-' Returns a promise that will complete successfully and return [originalResponse] regardless of any errors that occured,
-' since we don't want to change the flow if this one step fails.
-function _sendWelcomeEmail(baseUrl, email, property, originalResponse)
-    url = `${baseUrl}/wlt/ory/send_welcome_email`
-    body = {
-        email: email,
-        media_property: property?.id
-    }
-    return promises.chain(http.post(url, body), originalResponse).then(function(r, originalResponse)
-        return promises.resolve(originalResponse)
-    end function).catch(function(e, originalResponse)
-        Logger.log(`Failed to send welcome email: ${e}`)
-        return promises.resolve(originalResponse)
-    end function).toPromise()
-end function
-
-function _extractEmail(idToken)
-    encodedId = idToken?.split?(".")?[1]
-    if strNotEmpty(encodedId)
-        size = encodedId.len()
-        ' Pad string until divisible by 4, otherwise FromBase64String will break
-        if size mod 4 <> 0 then encodedId += string(4 - (size mod 4), "=")
-        ba = CreateObject("roByteArray")
-        ba.FromBase64String(encodedId)
-        idJson = parseJson(ba.ToAsciiString())
-        return idJson.email
-    end if
 end function

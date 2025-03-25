@@ -65,9 +65,10 @@ sub doAuth(isSignUp as boolean)
     end function).then(sub (result)
         SignInUtil.onAuthSuccess(m.top.property, m.top.nextScreenName, m.top.nextScreenArgs)
     end sub).catch(sub(e)
-        if e.reason = OryErrors.WRONG_PASSWORD
+        reason = e?.reason?.toInt?()
+        if reason = OryErrors.WRONG_PASSWORD
             Toast.show("Wrong email or password")
-        else if e.reason = OryErrors.ACCOUNT_ALREADY_EXISTS
+        else if reason = OryErrors.ACCOUNT_ALREADY_EXISTS
             Toast.show("An account with that email already exists")
         else
             Toast.show("Something went wrong, please try again")
