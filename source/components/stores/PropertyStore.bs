@@ -14,6 +14,13 @@ sub init()
     m.pageMap = {}
 end sub
 
+sub wipe(_ = invalid)
+    m.top.properties = []
+    m.top.sections = {}
+    m.propertyMap = {}
+    m.pageMap = {}
+end sub
+
 function fetchDiscoverableProperties(_ = invalid)
     Logger.log("Starting Discover Property fetch")
     return promises.onThen(

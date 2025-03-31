@@ -22,7 +22,7 @@ namespace stores
         m.global.tokenStore@.wipe()
         m.global.contentStore.nfts = invalid
         m.global.redeemableOfferStore.offers = {}
-        m.global.propertyStore.properties = invalid
+        m.global.propertyStore@.wipe()
         PlaybackStore.wipe()
     end sub
 

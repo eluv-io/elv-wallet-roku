@@ -6,6 +6,7 @@
         <!-- A map of PropertyID_PageID to list of sections in the papge -->
         <field id="sections" type="assocArray" value="{}" />
 
+        <function name="wipe" />
         <function name="fetchDiscoverableProperties" />
         <function name="fetchSections" />
         <function name="getPropertyById" />
