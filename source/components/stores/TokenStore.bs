@@ -106,7 +106,8 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     return promises.chain(http.post(url, body)).then(function(response)
         Logger.log(`Sign up/in response: ${response.json}`)
         if response.code = 200
-            m.top.fabricToken = response.json.token
+            m.top.fabricToken = response.json.fabric_token
+            m.top.clusterToken = response.json.cluster_token
             m.top.userEmail = response.json.email
             m.top.walletAddress = response.json.user_addr
             return "success"
