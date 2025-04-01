@@ -54,7 +54,7 @@ end sub
 sub onPropertyChanged()
     property = m.top.property
     logoUri = property.tv_header_logo ?? property.header_logo
-    m.propertyLogo.uri = UrlUtil.imageLinkToUrl(logoUri)
+    m.propertyLogo.uri = UrlUtil.imageLinkToUrl(logoUri, m.propertyLogo.height)
     onQueryChanged()
 end sub
 

@@ -107,7 +107,7 @@ sub setBackgroundImage(permissionContext)
         bgImage = property.login?.styling?.background_image_tv ?? property.login?.styling?.background_image_desktop
         return bgImage ?? getPageBackgroundPromise(context, property)
     end function).then(sub (imageLink, context)
-        uri = UrlUtil.imageLinkToUrl(imageLink)
+        uri = UrlUtil.imageLinkToUrl(imageLink, m.bgImage.height)
         if uri <> invalid
             m.bgImage.uri = uri
         end if

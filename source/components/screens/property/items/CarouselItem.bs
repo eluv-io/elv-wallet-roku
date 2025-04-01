@@ -133,7 +133,7 @@ sub setupAsBanner(bannerImageLink)
     image = m.image
     image.width = m.top.width
     image.height = m.top.height
-    image.uri = UrlUtil.imageLinkToUrl(bannerImageLink)
+    image.uri = UrlUtil.imageLinkToUrl(bannerImageLink, image.height)
 end sub
 
 sub updateOverlayTexts(display)
