@@ -58,7 +58,7 @@ sub onPropertyMediaChanged()
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     url = `${baseUrl}/mw/properties/${propertyId}/media_items/${mediaId}/offerings/any/playout_options`
     promises.chain(http.get(url), context).then(sub(result, context)
-        playoutConfig = result.json["hls-clear"] ?? result.json["dash-clear"] ?? result.json["dash-widevine"]
+        playoutConfig = result.json["hls-clear"] ?? result.json["hls-widevine-cenc"] ?? result.json["dash-clear"] ?? result.json["dash-widevine"]
         fabricUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
         m.videoPlayer.content.setFields({
             streamFormat: playoutConfig.properties.protocol,
