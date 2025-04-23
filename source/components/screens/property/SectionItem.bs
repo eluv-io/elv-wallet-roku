@@ -9,6 +9,8 @@ sub onContentChanged()
     m.top.removeChild(m.itemNode)
 
     sectionItem = m.top.itemContent.aa
+    ' This is the magic sacue - we create the actual Node to be used, 
+    ' as defined by 'type' (e.g. "CarouselItem", "TextItem", "BannerItem", etc)
     itemNode = m.top.CreateChild(sectionItem.type)
 
     ' Dump all delegated fields before setting content.

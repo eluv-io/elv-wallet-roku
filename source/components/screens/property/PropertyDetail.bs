@@ -110,7 +110,16 @@ function getFirstAuthorizedPage(property, page, visitedPageIds)
         if pagePermissions.authorized = true
             Logger.log(`Authorized to view page '${page.id}'`)
             return promises.resolve(page)
-        else if redirectPageId = page.id or visitedPageIds.doesExist(redirectPageId)
+        else if PermissionUtil.showPurchaseOptions(pagePermissions)
+            view = createObject("roSGNode", "PurchasePrompt")
+            view.permissionData = {
+                context: { propertyId: property.id, pageId: page.id },
+                settings: pagePermissions,
+            }
+            m.top.close = true
+            router()@.show({ view: view })
+            return promises.reject("Redirecting to purchase options")
+        else if redirectPageId = page.id or visitedPageIds.doesExist(redirectPageId ?? "")
             ' We already checked this page id, or this is a self-reference.
             ' Either way we've completed a cycle without finding a page we are allowed to view.
             Logger.log(`FIXME: Circular page permission problem!`)
