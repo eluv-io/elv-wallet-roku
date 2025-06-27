@@ -65,6 +65,77 @@ namespace base58
         return result.toAsciiString()
     end function
 
+    ' Just let GPT convert the kotlin code. I don't know what it does
+    function decode(inputString as String) as Object
+        if Len(inputString) = 0
+            return []
+        end if
+    
+        ' Base58 alphabet
+        alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    
+        ' Build index map: ASCII -> base58 value
+        indexes = CreateObject("roArray", 128, true)
+        for i = 0 to 127
+            indexes[i] = -1
+        end for
+        for i = 0 to Len(alphabet) - 1
+            c = Mid(alphabet, i + 1, 1)
+            indexes[Asc(c)] = i
+        end for
+    
+        ' Convert ASCII characters to base58 digit values
+        input58 = []
+        for i = 0 to Len(inputString) - 1
+            c = Mid(inputString, i + 1, 1)
+            asciiVal = Asc(c)
+            if asciiVal >= 128 or indexes[asciiVal] < 0
+                print "Invalid character in Base58: "; c
+                return invalid
+            end if
+            input58.Push(indexes[asciiVal])
+        end for
+    
+        ' Count leading zeros
+        zeros = 0
+        while zeros < input58.Count() and input58[zeros] = 0
+            zeros += 1
+        end while
+    
+        ' Decode Base58 -> Base256
+        decoded = CreateObject("roArray", Len(inputString), true)
+        for i = 0 to Len(inputString) - 1
+            decoded[i] = 0
+        end for
+        outputStart = decoded.Count()
+    
+        inputStart = zeros
+        while inputStart < input58.Count()
+            digit = base58.internal.DivMod(input58, inputStart, 58, 256)
+            outputStart -= 1
+            decoded[outputStart] = digit
+            if input58[inputStart] = 0
+                inputStart += 1
+            end if
+        end while
+    
+        ' Skip extra leading zeroes
+        while outputStart < decoded.Count() and decoded[outputStart] = 0
+            outputStart += 1
+        end while
+    
+        ' Return decoded portion including original leading zeros
+        result = []
+        for i = 0 to zeros - 1
+            result.Push(0)
+        end for
+        for i = outputStart to decoded.Count() - 1
+            result.Push(decoded[i])
+        end for
+    
+        return result
+    end function
+
     namespace internal
         function divmod(number as roByteArray, firstDigit as integer, base as integer, divisor as integer) as integer
             ' This function performs long division, accounting for the base of the input digits

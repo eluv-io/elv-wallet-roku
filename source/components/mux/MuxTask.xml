@@ -1,0 +1,16 @@
+<component name="MuxTask" extends="Task">
+    <interface>
+        <field id="video" type="node" alwaysNotify="true" />
+        <field id="config" type="assocarray" alwaysNotify="true" />
+        <field id="rafEvent" type="assocarray" alwaysNotify="true" />
+        <field id="error" type="assocarray" alwaysNotify="true" />
+        <field id="view" type="String" alwaysNotify="true" />
+        <field id="exit" type="Boolean" alwaysNotify="true" />
+        <field id="exitType" type="String" alwaysNotify="true" value="hard" />
+        <field id="useRenderStitchedStream" type="Boolean" alwaysNotify="true" value="false" />
+        <field id="useSSAI" type="Boolean" alwaysNotify="true" value="false" />
+        <field id="disableAutomaticErrorTracking" type="Boolean" alwaysNotify="true" value="false" />
+        <field id="randomMuxViewerId" type="Boolean" value="false" />
+    </interface>
+    <script type="text/brightscript" uri="mux-analytics.brs" />
+</component>

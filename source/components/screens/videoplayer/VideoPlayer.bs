@@ -1,11 +1,14 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/http/http.bs"
 
 sub init()
     m.videoPlayer = m.top.findNode("VideoPlayer")
     m.videoPlayer.content = createobject("roSGNode", "ContentNode")
+
+    initMux()
 
     stores.tokenStore().observeFieldScoped("fabricToken", "onFabricTokenChanged")
     onFabricTokenChanged()
@@ -49,17 +52,22 @@ sub onPropertyMediaChanged()
         end if
     end if
 
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     context = {
         title: m.top.propertyMedia.title,
         isLive: isLive,
         playStartPosition: playStartPosition
+        playoutApi: `${baseUrl}/mw/properties/${propertyId}/media_items/${mediaId}/offerings/any/playout_options`
     }
 
-    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-    url = `${baseUrl}/mw/properties/${propertyId}/media_items/${mediaId}/offerings/any/playout_options`
-    promises.chain(http.get(url), context).then(sub(result, context)
+    promises.chain(stores.propertyStore()@.getPropertyById(propertyId), context).then(function(property, context)
+        context.property = property
+        return http.get(context.playoutApi)
+    end function).then(sub(result, context)
         playoutConfig = result.json["hls-clear"] ?? result.json["hls-widevine-cenc"] ?? result.json["dash-clear"] ?? result.json["dash-widevine"]
         fabricUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
+        tenantId = context.property?.tenant?.tenant_id
+        updateMuxConfig(fabricUrl, playoutConfig, tenantId, context.title)
         m.videoPlayer.content.setFields({
             streamFormat: playoutConfig.properties.protocol,
             url: `${fabricUrl}/${playoutConfig.uri}`,
@@ -102,6 +110,79 @@ function buildDrm(properties) as dynamic
         KeySystem: properties.drm,
         licenseServerURL: properties.license_servers[0]
     }
+end function
+
+sub initMux()
+    envKey = stores.envStore().currentEnv?.muxEnvKey
+    if strNullOrEmpty(envKey)
+        ' Only init mux if envKey is set
+        Logger.log("No MUX environment key set, skipping MUX initialization.")
+        return
+    end if
+
+    m.mux = m.top.CreateChild("MuxTask")
+    m.mux.setField("video", m.videoPlayer)
+    m.muxConfig = {
+        env_key: envKey,
+        player_name: "Roku Video Player",
+    }
+    m.mux.setField("config", m.muxConfig)
+    m.mux.control = "RUN"
+end sub
+
+sub updateMuxConfig(fabricUrl as string, playoutConfig as dynamic, tenantId as string, mediaTitle as string)
+    muxConfig = m.muxConfig
+    mux = m.mux
+    if mux = invalid or muxConfig = invalid
+        ' Mux not initialized. Do nothing.
+        return
+    end if
+
+    urlPattern = CreateObject("roRegex", "^https?://([^/?#]+)(?:/.*)?", "i")
+    host = urlPattern.Match(fabricUrl)[1]
+    urlPattern = CreateObject("roRegex", "/(hq__[^/]+)(?:/[^/]+)*/rep/(?:playout|channel)/([^/]+)", "i")
+    match = urlPattern.Match(playoutConfig.uri)
+    versionHash = match[1]
+    offering = match[2]
+
+    muxConfig.sub_property_id = tenantId
+    muxConfig.viewer_user_id = sha256(stores.tokenStore().walletAddress)
+    muxConfig.video_id = objectIdFromHash(versionHash)
+    muxConfig.video_variant_id = versionHash
+    muxConfig.video_variant_name = offering
+    muxConfig.video_title = mediaTitle
+    muxConfig.video_cdn = host
+    muxConfig.view_session_id = playoutConfig.sid
+
+    mux.setField("config", muxConfig)
+end sub
+
+function objectIdFromHash(versionHash = "hq__GWa4etjVmXtKGj3GRe2zHx2rqcFA2vrD5oCY7wMgWEVn4YYpJfCRymj1b9cf4HEG1A3BLvrcmK")
+    if strNullOrEmpty(versionHash) or versionHash.inStr("q__") <> 1
+        return invalid
+    end if
+
+    bytes = base58.decode(versionHash.Mid(4))
+    ' The first 32 bytes are the "digest", skip it
+    start = 32
+    
+    ' Next skip the "size" bytes
+    while bytes[start] >= 128
+        start++
+    end while
+    start++
+
+    ' Now we are left with the ObjectId
+    bytes = bytes.Slice(start)
+    return "iq__" + base58.encodeBytes(bytes)
+end function
+
+function sha256(input as string) as string
+    bytes = createObject("roByteArray")
+    bytes.fromAsciiString(input)
+    digest = CreateObject("roEVPDigest")
+    digest.Setup("sha256")
+    return digest.Process(bytes)
 end function
 
 function onKeyEvent(key as string, press as boolean) as boolean
