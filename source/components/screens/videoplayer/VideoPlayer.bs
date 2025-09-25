@@ -130,7 +130,7 @@ sub initMux()
     m.mux.control = "RUN"
 end sub
 
-sub updateMuxConfig(fabricUrl as string, playoutConfig as dynamic, tenantId as string, mediaTitle as string)
+sub updateMuxConfig(fabricUrl as string, playoutConfig as dynamic, tenantId as string, mediaTitle as dynamic)
     muxConfig = m.muxConfig
     mux = m.mux
     if mux = invalid or muxConfig = invalid
