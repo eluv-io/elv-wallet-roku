@@ -7,19 +7,20 @@ namespace http
         task.control = "run"
     end sub
 
-    function get(url as string, printResponseBody = false) as object
-        return request("GET", url, invalid, printResponseBody)
+    function get(url as string, skipAuthHandling = false, printResponseBody = false) as object
+        return request("GET", url, invalid, skipAuthHandling, printResponseBody)
     end function
 
-    function post(url as string, body = invalid, printResponseBody = false) as object
-        return request("POST", url, body, printResponseBody)
+    function post(url as string, body = invalid, skipAuthHandling = false, printResponseBody = false) as object
+        return request("POST", url, body, skipAuthHandling, printResponseBody)
     end function
 
-    function request(method as string, url as string, body = invalid, printResponseBody = false) as object
+    function request(method as string, url as string, body = invalid, skipAuthHandling = false, printResponseBody = false) as object
         promise = promises.create()
         requestNode = CreateObject("roSGNode", "HttpRequest")
         requestNode.method = method
         requestNode.url = url
+        requestNode.skipAuthHandling = skipAuthHandling
         requestNode.printResponseBody = printResponseBody
         if body <> invalid
             if type(body) = "roAssociativeArray" body = formatJson(body)
@@ -33,7 +34,7 @@ namespace http
     sub setStaging(staging as boolean)
         m.global.httpTask.staging = staging
     end sub
-    
+
     function getStaging() as boolean
         return m.global.httpTask.staging
     end function

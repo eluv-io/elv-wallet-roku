@@ -1,11 +1,12 @@
 import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/stores/Env.bs"
+import "pkg:/components/screens/signin/SignInUtil.bs"
 import "pkg:/components/http/http.bs"
 
 const TOKEN_REGISTRY_SECTION = "tokens"
 
-const PERSISTED_FIELDS = ["fabricToken", "walletAddress", "refreshToken", "email", "clusterToken"]
+const PERSISTED_FIELDS = ["fabricToken", "loginProvider", "walletAddress", "refreshToken", "email", "clusterToken"]
 
 const ORY_API_URL = "https://eloquent-carson-yt726m2tf6.projects.oryapis.com"
 
@@ -40,17 +41,47 @@ sub onTrackedFieldChange(message)
     m.registry.flush()
 end sub
 
-function GetActivationData(_ = invalid) as object
-    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-    return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
-        op: "create",
-        ' This is hardcoded to the Main network, will not work on Demo
-        dest: `${Env.walletUrl()}?action=login&mode=login&response=code&source=code#/login`
-    })
+function GetActivationData(loginSettings) as object
+    provider = SignInUtil.getAuthProvider(loginSettings)
+    if provider = "auth0"
+        ' Assume that domain and client id are set if provider is "auth0"
+        return http.post(`${loginSettings.auth0_domain}/oauth/device/code`, {
+            client_id: loginSettings.auth0_native_client_id,
+            scope: "openid profile email offline_access"
+        })
+    else
+        baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+        return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
+            op: "create",
+            ' This is hardcoded to the Main network, will not work on Demo
+            dest: `${Env.walletUrl()}?action=login&mode=login&response=code&source=code#/login`
+        })
+    end if
 end function
 
-' checks if auth has completed for the given code and passcode.
-function checkAuthorization(code, passcode) as object
+' Poll Auth0 to see if user completed activation and there's an id/access/refresh token waiting for us
+function checkDeviceAuthorization(deviceCode, loginSettings) as object
+    skipAuthHandling = true
+    ' Assume that domain and client id are set if provider is "auth0"
+    httpPromise = http.post(`${loginSettings?.auth0_domain}/oauth/token`, {
+        client_id: loginSettings?.auth0_native_client_id,
+        grant_type: "urn:ietf:params:oauth:grant-type:device_code"
+        device_code: deviceCode
+    }, skipAuthHandling)
+
+    return promises.chain(httpPromise).then(sub(response) as object
+        if response.code = 200
+            m.top.idToken = response.json.id_token
+            m.top.accessToken = response.json.access_token
+            m.top.refreshToken = response.json.refresh_token
+        end if
+        return response
+    end sub).toPromise()
+end function
+
+' Same as [checkDeviceAuthorization] but for metamask - skips a step and give FabricToken directly.
+' However - token can never be refreshed
+function checkMetamaskAuthorization(code, passcode) as object
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
     return promises.chain(http.get(`${baseUrl}/wlt/login/redirect/metamask/${code}/${passcode}`)).then(function(response)
         if response.code = 200
@@ -95,7 +126,7 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     else
         url = `${baseUrl}/wlt/ory/sign_in`
     end if
-    
+
     body = {
         email: email
         password: password

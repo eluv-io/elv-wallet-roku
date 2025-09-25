@@ -144,8 +144,7 @@ sub handleHttpResponse(response as roUrlEvent)
     end if
     result.json = json
     responseCode = response.getResponseCode()
-    if url.inStr("auth0") < 0
-        ' auth0 will give 403 regularly while activation is pending
+    if not request.promise.request.skipAuthHandling
         signOutOnError(responseCode)
     end if
     result.code = responseCode

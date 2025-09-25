@@ -1,3 +1,5 @@
+import "pkg:/components/utils/RouterUtils.bs"
+
 namespace SignInUtil
     ' nextScreenName is optional. If not provided, we'll navigate to PropertyDetail.
     sub onAuthSuccess(property, nextScreenName, nextScreenArgs)
@@ -10,11 +12,24 @@ namespace SignInUtil
             ' Pass property ID instead of object, so PropDetail will use the new Property object that has permissions resolved
             args = { linkData: { propertyId: property.id } }
         end if
-        
+
         nextView = createObject("roSGNode", nextViewName)
         nextView.update(args)
 
         router().removeStack = "signin"
         router()@.show({ view: nextView })
-    end sub    
+    end sub
+
+    function getAuthProvider(loginSettings)
+        provider = loginSettings?.provider
+
+        ' Default to ory if auth0 client id/domain aren't set
+        if provider = "auth0"
+            if strNullOrEmpty(loginSettings?.auth0_domain) or strNullOrEmpty(loginSettings?.auth0_native_client_id)
+                provider = "ory"
+            end if
+        end if
+
+        return provider ?? "ory"
+    end function
 end namespace
