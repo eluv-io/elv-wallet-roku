@@ -185,6 +185,10 @@ function sha256(input as string) as string
     return digest.Process(bytes)
 end function
 
+sub onPause()
+    m.videoPlayer.control = "stop"
+end sub
+
 function onKeyEvent(key as string, press as boolean) as boolean
     if press and key = "back" and m.top.propertyMedia.isLive <> true
         ' Store current playback position, but don't interfere with normal back behavior.

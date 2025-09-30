@@ -25,7 +25,7 @@ namespace time
     ' date.FromISO8601String() assumes the string is in UTC, so we need to manually calculate the timezone offset
     function _getTimezoneOffsetSeconds(isoString)
         if isoString.len() < 24
-            Logger.log(`ISO 8601 without timezone indicator`)
+            Logger.log(`ISO 8601 without timezone indicator: ${isoString}`)
             return 0
         end if
 
