@@ -113,6 +113,9 @@ function buildDrm(properties) as dynamic
 end function
 
 sub initMux()
+    ' Disable mux for now
+    return
+
     envKey = stores.envStore().currentEnv?.muxEnvKey
     if strNullOrEmpty(envKey)
         ' Only init mux if envKey is set
@@ -131,6 +134,9 @@ sub initMux()
 end sub
 
 sub updateMuxConfig(fabricUrl as string, playoutConfig as dynamic, tenantId as string, mediaTitle as dynamic)
+    ' Disable mux for now
+    return
+
     muxConfig = m.muxConfig
     mux = m.mux
     if mux = invalid or muxConfig = invalid
@@ -165,7 +171,7 @@ function objectIdFromHash(versionHash = "hq__GWa4etjVmXtKGj3GRe2zHx2rqcFA2vrD5oC
     bytes = base58.decode(versionHash.Mid(4))
     ' The first 32 bytes are the "digest", skip it
     start = 32
-    
+
     ' Next skip the "size" bytes
     while bytes[start] >= 128
         start++
@@ -186,7 +192,8 @@ function sha256(input as string) as string
 end function
 
 sub onPause()
-    m.videoPlayer.control = "stop"
+    ' When mux is enabled, video doesn't stop after going Back, so we need to manually stop it
+    ' m.videoPlayer.control = "stop"
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
