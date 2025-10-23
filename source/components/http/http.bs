@@ -7,20 +7,19 @@ namespace http
         task.control = "run"
     end sub
 
-    function get(url as string, skipAuthHandling = false, printResponseBody = false) as object
-        return request("GET", url, invalid, skipAuthHandling, printResponseBody)
+    function get(url as string, printResponseBody = false) as object
+        return request("GET", url, invalid, printResponseBody)
     end function
 
-    function post(url as string, body = invalid, skipAuthHandling = false, printResponseBody = false) as object
-        return request("POST", url, body, skipAuthHandling, printResponseBody)
+    function post(url as string, body = invalid, printResponseBody = false) as object
+        return request("POST", url, body, printResponseBody)
     end function
 
-    function request(method as string, url as string, body = invalid, skipAuthHandling = false, printResponseBody = false) as object
+    function request(method as string, url as string, body = invalid, printResponseBody = false) as object
         promise = promises.create()
         requestNode = CreateObject("roSGNode", "HttpRequest")
         requestNode.method = method
         requestNode.url = url
-        requestNode.skipAuthHandling = skipAuthHandling
         requestNode.printResponseBody = printResponseBody
         if body <> invalid
             if type(body) = "roAssociativeArray" body = formatJson(body)

@@ -1,5 +1,6 @@
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/screens/signin/SignInUtil.bs"
 import "pkg:/components/stores/stores.bs"
 
 sub init()
@@ -58,17 +59,17 @@ sub onPropertySelected()
     end if
 
     skipLogin = property?.login?.settings?.disable_login = true
-    loginProvider = property.login?.settings?.provider ?? "ory"
+    loginProvider = SignInUtil.getLoginProvider(property)
     if skipLogin or (stores.tokenStore().loginProvider = loginProvider)
         view = CreateObject("roSGNode", "PropertyDetail")
         view.property = property
         router()@.show({ view: view })
     else
-        if loginProvider = "auth0"
+        if loginProvider = "ory"
+            signIn = CreateObject("roSGNode", "SignInSelector")
+        else
             ' Don't offer manual sign-in for auth0
             signIn = CreateObject("roSGNode", "QrSignIn")
-        else
-            signIn = CreateObject("roSGNode", "SignInSelector")
         end if
         signIn.property = property
         router().addStack = "signin"

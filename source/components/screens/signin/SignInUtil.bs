@@ -20,16 +20,12 @@ namespace SignInUtil
         router()@.show({ view: nextView })
     end sub
 
-    function getAuthProvider(loginSettings)
-        provider = loginSettings?.provider
-
-        ' Default to ory if auth0 client id/domain aren't set
-        if provider = "auth0"
-            if strNullOrEmpty(loginSettings?.auth0_domain) or strNullOrEmpty(loginSettings?.auth0_native_client_id)
-                provider = "ory"
-            end if
+    function getLoginProvider(property) as string
+        loginSettings = property?.login?.settings
+        if loginSettings?.use_auth0 = true
+            return `auth0_${loginSettings.auth0_domain}`
+        else
+            return "ory"
         end if
-
-        return provider ?? "ory"
     end function
 end namespace

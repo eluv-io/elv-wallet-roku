@@ -66,7 +66,7 @@ sub fireHttpRequest(promise)
     method = promise.request.method
     body = promise.request.body
     request.SetRequest(method)
-    headers = getDefaultHeaders(request)
+    headers = getDefaultHeaders()
     request.SetHeaders(headers)
 
     printRequest(request, body, headers)
@@ -87,28 +87,14 @@ sub fireHttpRequest(promise)
     end if
 end sub
 
-sub getDefaultHeaders(request) as object
+sub getDefaultHeaders() as object
     headers = {
         "User-Agent": m.userAgent,
         "Content-Type": "application/json",
     }
-    url = request.getUrl()
-    if url.inStr("wlt/login/jwt") <> -1
-        if strNotEmpty(stores.tokenStore().idToken)
-            headers["Authorization"] = `Bearer ${stores.tokenStore().idToken}`
-        end if
-    else if url.inStr("wlt/sign/") <> -1 ' this captures both wlt/sign/eth and wlt/sign/csat. currently there are no other /sign endpoints that we use, but this check is still brittle
-        if strNotEmpty(stores.tokenStore().clusterToken)
-            headers["Authorization"] = `Bearer ${stores.tokenStore().clusterToken}`
-        end if
-    else if url.inStr("sessions/whoami") <> -1
-        if strNotEmpty(stores.tokenStore().idToken)
-            headers["X-Session-Token"] = stores.tokenStore().idToken
-        end if
-    else if strNotEmpty(stores.tokenStore().fabricToken)
-        headers["Authorization"] = `Bearer ${stores.tokenStore().fabricToken}`
-    else if strNotEmpty(stores.fabricConfigStore().staticToken)
-        headers["Authorization"] = `Bearer ${stores.fabricConfigStore().staticToken}`
+    token = stores.tokenStore().fabricToken ?? stores.fabricConfigStore().staticToken
+    if strNotEmpty(token)
+        headers["Authorization"] = `Bearer ${token}`
     end if
 
     return headers
@@ -144,9 +130,7 @@ sub handleHttpResponse(response as roUrlEvent)
     end if
     result.json = json
     responseCode = response.getResponseCode()
-    if not request.promise.request.skipAuthHandling
-        signOutOnError(responseCode)
-    end if
+    signOutOnError(responseCode)
     result.code = responseCode
     result.headers = response.getResponseHeaders()
     print `

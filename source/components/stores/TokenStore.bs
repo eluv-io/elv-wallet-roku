@@ -6,13 +6,17 @@ import "pkg:/components/http/http.bs"
 
 const TOKEN_REGISTRY_SECTION = "tokens"
 
-const PERSISTED_FIELDS = ["fabricToken", "loginProvider", "walletAddress", "refreshToken", "email", "clusterToken"]
-
-const ORY_API_URL = "https://eloquent-carson-yt726m2tf6.projects.oryapis.com"
+const PERSISTED_FIELDS = ["fabricToken", "tokenExpiration", "refreshToken", "loginProvider", "walletAddress", "email", "clusterToken"]
 
 sub init()
     m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
     keepFieldsSyncedWithRegistry(PERSISTED_FIELDS)
+
+    if m.top.loginProvider = "auth0"
+        ' Incompatible data from previous versions - wipe all persisted tokens.
+        ' Currently only "ory" and "auth0_${domain}" are supported.
+        wipe()
+    end if
 end sub
 
 sub wipe(_ = invalid)
@@ -41,79 +45,56 @@ sub onTrackedFieldChange(message)
     m.registry.flush()
 end sub
 
-function GetActivationData(loginSettings) as object
-    provider = SignInUtil.getAuthProvider(loginSettings)
-    if provider = "auth0"
-        ' Assume that domain and client id are set if provider is "auth0"
-        return http.post(`${loginSettings.auth0_domain}/oauth/device/code`, {
-            client_id: loginSettings.auth0_native_client_id,
-            scope: "openid profile email offline_access"
-        })
-    else
-        baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-        return http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
-            op: "create",
-            ' This is hardcoded to the Main network, will not work on Demo
-            dest: `${Env.walletUrl()}?action=login&mode=login&response=code&source=code#/login`
-        })
-    end if
-end function
-
-' Poll Auth0 to see if user completed activation and there's an id/access/refresh token waiting for us
-function checkDeviceAuthorization(deviceCode, loginSettings) as object
-    skipAuthHandling = true
-    ' Assume that domain and client id are set if provider is "auth0"
-    httpPromise = http.post(`${loginSettings?.auth0_domain}/oauth/token`, {
-        client_id: loginSettings?.auth0_native_client_id,
-        grant_type: "urn:ietf:params:oauth:grant-type:device_code"
-        device_code: deviceCode
-    }, skipAuthHandling)
-
-    return promises.chain(httpPromise).then(sub(response) as object
-        if response.code = 200
-            m.top.idToken = response.json.id_token
-            m.top.accessToken = response.json.access_token
-            m.top.refreshToken = response.json.refresh_token
-        end if
-        return response
-    end sub).toPromise()
-end function
-
-' Same as [checkDeviceAuthorization] but for metamask - skips a step and give FabricToken directly.
-' However - token can never be refreshed
-function checkMetamaskAuthorization(code, passcode) as object
+function GetActivationData(property) as object
+    loginProvider = SignInUtil.getLoginProvider(property)
     baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-    return promises.chain(http.get(`${baseUrl}/wlt/login/redirect/metamask/${code}/${passcode}`)).then(function(response)
-        if response.code = 200
-            payload = parseJson(response.json.payload)
-            m.top.fabricToken = payload.token
-            m.top.clusterToken = payload.clusterToken
-            m.top.walletAddress = payload.addr
-            m.top.userEmail = payload.email
-        end if
-        return response
+    deviceInfo = createObject("roDeviceInfo")
+    dest = Env.walletUrl()
+    dest += `?action=login&mode=login&response=code&source=code`
+    dest += `&pid=${property.id}`
+    ' TODO: veryify that this is different across devices
+    dest += `&install_id=${sha512(deviceInfo.GetChannelClientId())}`
+    dest += `&origin=${deviceInfo.GetModelDisplayName()}`
+    if loginProvider <> "ory" then dest += `&clear=`
+    ' dest += "&ttl=0.008" ' For testing: 30 seconds token expiry
+    dest += "#/login"
+    req = http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
+        op: "create",
+        dest: dest
+    })
+    context = { loginProvider: loginProvider }
+    return promises.chain(req, context).then(function(response, context)
+        activationData = response.json
+        activationData.loginProvider = context.loginProvider
+        return activationData
     end function).toPromise()
 end function
 
-' Called after id token is set
-function fetchFabricToken(tenantId as string)
-    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
-    context = { baseUrl: baseUrl, tid: tenantId }
-    return promises.chain(http.post(`${baseUrl}/wlt/login/jwt`, { ext: { share_email: true } }), context).then(
-    function(response, context)
-        m.top.clusterToken = response.json.token
-        m.top.walletAddress = response.json.addr
-        print "saved cluster token", m.top.clusterToken
-        print "saved wallet address", m.top.walletAddress
+function sha512(input as string) as string
+    bytes = createObject("roByteArray")
+    bytes.fromAsciiString(input)
+    digest = CreateObject("roEVPDigest")
+    digest.Setup("sha512")
+    return digest.Process(bytes)
+end function
 
-        ' Get fabricToken from server. "clusterToken" will be embedded in the headers by HttpTask.
-        channelId = createObject("roDeviceInfo").GetChannelClientId()
-        return http.post(`${context.baseUrl}/wlt/sign/csat`, { tid: context.tid, nonce: channelId, force: true })
-    end function).then(function(response, context)
-        m.top.fabricToken = response.json.token
-        return "success"
-    end function
-    ).toPromise()
+function checkDeviceAuthorization(activation) as object
+    baseUrl = stores.fabricConfigStore()@.getAuthdBaseUrl()
+    context = { loginProvider: activation.loginProvider }
+    url = `${baseUrl}/wlt/login/redirect/metamask/${activation.id}/${activation.passcode}`
+    return promises.chain(http.get(url), context).then(function(response, context)
+        if response.code = 200
+            payload = parseJson(response.json.payload)
+            m.top.fabricToken = payload.token
+            m.top.tokenExpiration = payload.expiresAt
+            m.top.refreshToken = payload.refreshToken
+            m.top.clusterToken = payload.clusterToken
+            m.top.walletAddress = payload.addr
+            m.top.userEmail = payload.email
+            m.top.loginProvider = context.loginProvider
+        end if
+        return response
+    end function).toPromise()
 end function
 
 function passwordAuth(email, password, property, isSignUp as boolean)
@@ -148,7 +129,6 @@ function passwordAuth(email, password, property, isSignUp as boolean)
     end function).catch(function(e)
         Logger.log(`Sign up/in error: ${e}`)
         ' Clear all fields we might have touched, and then send the same error forward
-        m.top.idToken = invalid
         m.top.userEmail = invalid
         m.top.clusterToken = invalid
         m.top.walletAddress = invalid

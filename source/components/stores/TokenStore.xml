@@ -2,8 +2,7 @@
 <component name="TokenStore" extends="Node">
     <interface>
         <field id="fabricToken" type="string" />
-        <field id="idToken" type="string" />
-        <field id="accessToken" type="string" />
+        <field id="tokenExpiration" type="string" />
         <field id="refreshToken" type="string" />
         <field id="clusterToken" type="string" />
         <field id="walletAddress" type="string" />
@@ -15,8 +14,6 @@
         <function name="wipe" />
         <function name="GetActivationData" />
         <function name="checkDeviceAuthorization" />
-        <function name="checkMetamaskAuthorization" />
-        <function name="fetchFabricToken" />
         <function name="passwordAuth" />
     </interface>
 </component>
