@@ -53,7 +53,7 @@ function GetActivationData(property) as object
     dest += `?action=login&mode=login&response=code&source=code`
     dest += `&pid=${property.id}`
     ' TODO: veryify that this is different across devices
-    dest += `&install_id=${sha512(deviceInfo.GetChannelClientId())}`
+    dest += `&installId=${sha512(deviceInfo.GetChannelClientId())}`
     dest += `&origin=${deviceInfo.GetModelDisplayName()}`
     if loginProvider <> "ory" then dest += `&clear=`
     ' dest += "&ttl=0.008" ' For testing: 30 seconds token expiry

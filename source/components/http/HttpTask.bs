@@ -117,9 +117,11 @@ sub handleHttpResponse(response as roUrlEvent)
         print `[HTTP] Got an unexpected response. Discarding. (Request ID: ${key})`
         return
     end if
+    responseCode = response.getResponseCode()
+    skipResolution = handleErrors(request, response)
+
     url = request.request.getUrl()
     rawResponse = response.getString()
-    result = createObject("roSGNode", "HttpResponse")
     if rawResponse = ""
         json = {}
     else
@@ -129,24 +131,60 @@ sub handleHttpResponse(response as roUrlEvent)
             json = { "arr": json }
         end if
     end if
+    result = createObject("roSGNode", "HttpResponse")
     result.json = json
-    responseCode = response.getResponseCode()
-    signOutOnError(responseCode)
     result.code = responseCode
     result.headers = response.getResponseHeaders()
     print `
-[HTTP] Response ${result.code} ${url} (Request ID: ${key})
-       Headers: ${formatJson(result.headers)}
-       Payload: ${request.promise.request.printResponseBody ? rawResponse : "TRIMMED"}
+    [HTTP] Response ${result.code} ${url} (Request ID: ${key})
+    Headers: ${formatJson(result.headers)}
+    Payload: ${request.promise.request.printResponseBody ? rawResponse : "TRIMMED"}
     `
     m.pendingRequests.Delete(key)
-    promises.resolve(result, request.promise)
+    if not skipResolution then promises.resolve(result, request.promise)
 end sub
 
 ' Assumes 401/403 happen because of an expired token and signs out
-sub signOutOnError(responseCode)
-    ' TODO: retry if refreshToken is available
-    if responseCode = 401 or responseCode = 403
-        signOutApp("Token expired. Please sign in again.")
+' Returns true if we should skip resolving the original request promise (because we're refreshing the token)
+function handleErrors(request, response) as boolean
+    responseCode = response.getResponseCode()
+    if responseCode = 401 and stores.tokenStore().refreshToken <> invalid
+        refreshPromise = promises.create()
+        requestNode = CreateObject("roSGNode", "HttpRequest")
+        requestNode.method = "POST"
+        requestNode.url = stores.fabricConfigStore()@.getAuthdBaseUrl() + "/wlt/refresh/csat"
+        requestNode.body = formatJson({
+            refresh_token: stores.tokenStore().refreshToken
+            nonce: createObject("roDeviceInfo").GetChannelClientId()
+            last_csat: stores.tokenStore().fabricToken
+            ' exp: 20 ' Force new token expiration in seconds. Only for testing
+        })
+        refreshPromise.addFields({ request: requestNode })
+
+        context = { originalRequest: request }
+        ' On refresh complete, retry original request
+        promises.chain(refreshPromise, context).then(sub(response, context)
+            if response.code = 200
+                result = response.json
+                stores.tokenStore().fabricToken = result.token
+                stores.tokenStore().tokenExpiration = result.expires_at
+                stores.tokenStore().refreshToken = result.refresh_token
+                Logger.log("Token refresh done. Retrying original request.")
+                fireHttpRequest(context.originalRequest.promise)
+            else
+                Logger.log("Token refresh failed. Signing out.")
+                signOutApp("Session expired. Please sign in again.")
+            end if
+        end sub)
+
+        ' Kick off refresh request
+        Logger.log("Starting token refresh")
+        fireHttpRequest(refreshPromise)
+        return true
     end if
-end sub
+
+    if responseCode = 401 or responseCode = 403
+        signOutApp("Session expired. Please sign in again.")
+    end if
+    return false
+end function
