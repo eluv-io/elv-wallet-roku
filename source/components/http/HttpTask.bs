@@ -90,6 +90,7 @@ end sub
 sub getDefaultHeaders() as object
     headers = {
         "User-Agent": m.userAgent,
+        "Eluvio-User-Agent": m.userAgent,
         "Content-Type": "application/json",
     }
     token = stores.tokenStore().fabricToken ?? stores.fabricConfigStore().staticToken
