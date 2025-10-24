@@ -2,11 +2,14 @@ import "pkg:/components/stores/stores.bs"
 import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/stores/Env.bs"
 import "pkg:/components/screens/signin/SignInUtil.bs"
+import "pkg:/components/utils/Time.bs"
 import "pkg:/components/http/http.bs"
 
 const TOKEN_REGISTRY_SECTION = "tokens"
 
 const PERSISTED_FIELDS = ["fabricToken", "tokenExpiration", "refreshToken", "loginProvider", "walletAddress", "email", "clusterToken"]
+
+const PREEMPTIVE_REFRESH_THRESHOLD_SECONDS = 5 * 60 ' 5 minutes
 
 sub init()
     m.registry = createObject("roRegistrySection", TOKEN_REGISTRY_SECTION)
@@ -17,7 +20,54 @@ sub init()
         ' Currently only "ory" and "auth0_${domain}" are supported.
         wipe()
     end if
+
+    queuePreemptiveRefresh()
 end sub
+
+sub queuePreemptiveRefresh()
+    if m.preemtiveRefreshTimer <> invalid
+        m.preemtiveRefreshTimer.control = "stop"
+    end if
+    ' We're using formatJson/ParseJson to force conversion between string and longint
+    ' Otherwise we'll get a Float, which loses precision for large epoch times
+    expiry = ParseJson(m.top.tokenExpiration ?? "")
+    if expiry = invalid or strNullOrEmpty(m.top.refreshToken)
+        Logger.log("No token expiration or refresh token set; skipping preemptive refresh scheduling.")
+        return
+    end if
+
+    timeTillExpire = expiry / 1000 - time.now()
+    timeout = Max(timeTillExpire - PREEMPTIVE_REFRESH_THRESHOLD_SECONDS, 0)
+    Logger.log(`Scheduling preemptive token refresh in ${timeout} seconds (token expires in ${timeTillExpire} seconds).`)
+    m.preemtiveRefreshTimer = time.setTimer(function()
+        Logger.log("Preemtive token refresh triggered.")
+        refreshTokens()
+    end function, timeout)
+end sub
+
+' Assumes m.top.refreshToken is set
+function refreshTokens(_ = invalid) as object
+    Logger.log("Starting token refresh")
+    request = http.post(stores.fabricConfigStore()@.getAuthdBaseUrl() + "/wlt/refresh/csat", {
+        refresh_token: m.top.refreshToken
+        nonce: createObject("roDeviceInfo").GetChannelClientId()
+        last_csat: m.top.fabricToken
+        ' Time in seconds the new token is valid for. Only include for testing short expiry.
+        ' exp: PREEMPTIVE_REFRESH_THRESHOLD_SECONDS + 20
+    })
+    return promises.chain(request).then(sub(response)
+        if response.code = 200
+            result = response.json
+            m.top.fabricToken = result.token
+            m.top.tokenExpiration = FormatJson(result.expires_at)
+            m.top.refreshToken = result.refresh_token
+            queuePreemptiveRefresh()
+            Logger.log("[TokenStore] Token refresh done.")
+        else
+            Logger.log("[TokenStore] Token refresh failed.")
+        end if
+    end sub).toPromise()
+end function
 
 sub wipe(_ = invalid)
     for each field in PERSISTED_FIELDS
@@ -31,7 +81,7 @@ end sub
 sub keepFieldsSyncedWithRegistry(trackedFields as roArray)
     values = m.registry.readMulti(trackedFields)
     for each field in trackedFields
-        print `[TokenStore] restore token: ${field}=${values[field]}`
+        print `[TokenStore] restore field: ${field}=${values[field]}`
         m.top[field] = values[field]
         m.top.observeField(field, "onTrackedFieldChange")
     end for
@@ -40,7 +90,7 @@ end sub
 sub onTrackedFieldChange(message)
     field = message.getField()
     data = message.getData()
-    print `[TokenStore] Detected token change. Persisting ${field}=${data}`
+    print `[TokenStore] Detected field change. Persisting ${field}=${data}`
     m.registry.write(field, data)
     m.registry.flush()
 end sub
@@ -56,7 +106,8 @@ function GetActivationData(property) as object
     dest += `&installId=${sha512(deviceInfo.GetChannelClientId())}`
     dest += `&origin=${deviceInfo.GetModelDisplayName()}`
     if loginProvider <> "ory" then dest += `&clear=`
-    ' dest += "&ttl=0.008" ' For testing: 30 seconds token expiry
+    ' For testing: expire 20 seconds after preemptive refresh threshold (ttl is in hours)
+    ' dest += `&ttl=${(PREEMPTIVE_REFRESH_THRESHOLD_SECONDS + 20) / 60 / 60}`
     dest += "#/login"
     req = http.post(`${baseUrl}/wlt/login/redirect/metamask`, {
         op: "create",
@@ -86,12 +137,13 @@ function checkDeviceAuthorization(activation) as object
         if response.code = 200
             payload = parseJson(response.json.payload)
             m.top.fabricToken = payload.token
-            m.top.tokenExpiration = payload.expiresAt
+            m.top.tokenExpiration = FormatJson(payload.expiresAt) ' convert longint to string without scientific notation
             m.top.refreshToken = payload.refreshToken
             m.top.clusterToken = payload.clusterToken
             m.top.walletAddress = payload.addr
             m.top.userEmail = payload.email
             m.top.loginProvider = context.loginProvider
+            queuePreemptiveRefresh()
         end if
         return response
     end function).toPromise()
@@ -135,4 +187,12 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         m.top.fabricToken = invalid
         return promises.reject(e)
     end function).toPromise()
+end function
+
+function Max(a as dynamic, b as dynamic)
+    if a > b
+        return a
+    else
+        return b
+    end if
 end function

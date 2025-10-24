@@ -15,5 +15,6 @@
         <function name="GetActivationData" />
         <function name="checkDeviceAuthorization" />
         <function name="passwordAuth" />
+        <function name="refreshTokens" />
     </interface>
 </component>

@@ -149,26 +149,11 @@ end sub
 function handleErrors(request, response) as boolean
     responseCode = response.getResponseCode()
     if responseCode = 401 and stores.tokenStore().refreshToken <> invalid
-        refreshPromise = promises.create()
-        requestNode = CreateObject("roSGNode", "HttpRequest")
-        requestNode.method = "POST"
-        requestNode.url = stores.fabricConfigStore()@.getAuthdBaseUrl() + "/wlt/refresh/csat"
-        requestNode.body = formatJson({
-            refresh_token: stores.tokenStore().refreshToken
-            nonce: createObject("roDeviceInfo").GetChannelClientId()
-            last_csat: stores.tokenStore().fabricToken
-            ' exp: 20 ' Force new token expiration in seconds. Only for testing
-        })
-        refreshPromise.addFields({ request: requestNode })
-
         context = { originalRequest: request }
         ' On refresh complete, retry original request
-        promises.chain(refreshPromise, context).then(sub(response, context)
+        promises.chain(stores.tokenStore()@.refreshTokens(), context).then(sub(response, context)
             if response.code = 200
                 result = response.json
-                stores.tokenStore().fabricToken = result.token
-                stores.tokenStore().tokenExpiration = result.expires_at
-                stores.tokenStore().refreshToken = result.refresh_token
                 Logger.log("Token refresh done. Retrying original request.")
                 fireHttpRequest(context.originalRequest.promise)
             else
@@ -176,10 +161,6 @@ function handleErrors(request, response) as boolean
                 signOutApp("Session expired. Please sign in again.")
             end if
         end sub)
-
-        ' Kick off refresh request
-        Logger.log("Starting token refresh")
-        fireHttpRequest(refreshPromise)
         return true
     end if
 
