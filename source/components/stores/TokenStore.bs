@@ -140,7 +140,7 @@ function checkDeviceAuthorization(activation) as object
             m.top.tokenExpiration = FormatJson(payload.expiresAt) ' convert longint to string without scientific notation
             m.top.refreshToken = payload.refreshToken
             m.top.clusterToken = payload.clusterToken
-            m.top.walletAddress = payload.addr
+            m.top.walletAddress = lcase(payload.addr)
             m.top.userEmail = payload.email
             m.top.loginProvider = context.loginProvider
             queuePreemptiveRefresh()
@@ -173,7 +173,7 @@ function passwordAuth(email, password, property, isSignUp as boolean)
             m.top.fabricToken = response.json.fabric_token
             m.top.clusterToken = response.json.cluster_token
             m.top.userEmail = response.json.email
-            m.top.walletAddress = response.json.user_addr
+            m.top.walletAddress = lcase(response.json.user_addr)
             return "success"
         else
             return promises.reject({ reason: response.json?.error?.messages?[0]?.id ?? response.json })
