@@ -171,6 +171,7 @@ function passwordAuth(email, password, property, isSignUp as boolean)
         Logger.log(`Sign up/in response: ${response.json}`)
         if response.code = 200
             m.top.fabricToken = response.json.fabric_token
+            m.top.refreshToken = response.json.refresh_token
             m.top.clusterToken = response.json.cluster_token
             m.top.userEmail = response.json.email
             m.top.walletAddress = lcase(response.json.user_addr)
