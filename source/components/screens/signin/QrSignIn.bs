@@ -86,9 +86,7 @@ sub checkStatus()
             m.expirationTimer.control = "stop"
             m.statusTimer.control = "stop"
 
-            ' Re-fetch Properties before navigating away from sign-in
-            ' TODO: optimize this to only fetch the current property.
-            return stores.propertyStore()@.fetchDiscoverableProperties()
+            return fetchPropertyAndSections()
         else
             return "pending"
         end if
@@ -99,6 +97,16 @@ sub checkStatus()
         end if
     end sub)
 end sub
+
+function fetchPropertyAndSections()
+    return promises.chain(stores.propertyStore()@.getPropertyById(m.top.property.id, true)).then(function(_)
+        ' Assume we'll land on property.main_page.
+        ' This isn't always going to cache the right thing, but should be correct most of the time.
+        return stores.propertyStore()@.fetchSections(m.top.property, m.top.property.main_page)
+    end function).then(function(_)
+        return "success"
+    end function).toPromise()
+end function
 
 sub centerSpinner()
     if(m.spinner.poster.loadStatus = "ready")

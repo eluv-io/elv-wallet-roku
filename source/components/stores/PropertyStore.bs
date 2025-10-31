@@ -47,11 +47,13 @@ end function
 
 ' Returns a Promise that will resolve to a Property object.
 ' Property is only fetched from network if it's not in cache.
-function getPropertyById(propertyId)
-    cachedProperty = m.propertyMap?.lookup?(propertyId)
-    if cachedProperty <> invalid
-        Logger.log(`Property found in cache, not fetching from network. (id=${propertyId})`)
-        return promises.resolve(cachedProperty)
+function getPropertyById(propertyId, skipCache = false)
+    if not skipCache
+        cachedProperty = m.propertyMap?.lookup?(propertyId)
+        if cachedProperty <> invalid
+            Logger.log(`Property found in cache, not fetching from network. (id=${propertyId})`)
+            return promises.resolve(cachedProperty)
+        end if
     end if
 
     ' Property not in cache - fetch it from network
@@ -105,5 +107,5 @@ function fetchSections(property, page)
         allSections = m.top.sections
         allSections[context.key] = sections
         m.top.sections = allSections
-    end sub)
+    end sub).toPromise()
 end function
