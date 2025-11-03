@@ -93,7 +93,12 @@ sub getDefaultHeaders() as object
         "Eluvio-User-Agent": m.userAgent,
         "Content-Type": "application/json",
     }
-    token = stores.tokenStore().fabricToken ?? stores.fabricConfigStore().staticToken
+
+    token = stores.tokenStore().fabricToken
+    if strNullOrEmpty(token)
+        token = stores.fabricConfigStore().staticToken
+    end if
+
     if strNotEmpty(token)
         headers["Authorization"] = `Bearer ${token}`
     end if
