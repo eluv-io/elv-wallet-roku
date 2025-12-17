@@ -2,7 +2,7 @@ import "pkg:/components/utils/Time.bs"
 
 namespace MediaItemUtils
     function isEndedLive(media, now = time.now())
-        return (time.fromISO8601String(media.end_time)?.asSeconds?() ?? (now + 1)) < now
+        return (time.fromISO8601String(media.end_time, true)?.asSeconds?() ?? (now + 1)) < now
     end function
 
     ' Checks if we are after the start time. Returns true even after we passed the End time
