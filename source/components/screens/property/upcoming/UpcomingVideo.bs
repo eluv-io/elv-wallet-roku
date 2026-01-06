@@ -1,4 +1,6 @@
 import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
@@ -31,34 +33,50 @@ sub onContentChanged()
         poster.uri = UrlUtil.imageLinkToUrl(icon.icon, poster.height)
     end for
 
-    if m.timer <> invalid
-        m.timer.control = "stop"
-        m.timer = invalid
-    end if
-    updateTime()
-    m.timer = time.setTimer(updateTime, 1, true)
+    stopTimer()
+    ' Only update text for now. Navigating away too quickly will cause issues, so wait for the first timer tick.
+    updateCountdownText()
+    m.timer = time.setTimer(updateLiveState, 1, true)
 end sub
 
-sub updateTime()
+' Navigates to video if live has started, otherwise updates countdown text.
+sub updateLiveState()
+    media = m.top.media
+    if MediaItemUtils.isStartedLive(media)
+        view = createObject("roSGNode", "VideoPlayer")
+        view.propertyMedia = {
+            propertyId: m.top.property.id
+            mediaId: media.id
+            title: media.display_title ?? media.title
+            isLive: media.live_video
+        }
+        router()@.show({ view: view })
+        m.top.close = true
+        return
+    end if
+
+    updateCountdownText()
+end sub
+
+sub updateCountdownText()
     secondsToStart = time.fromISO8601String(m.top.media.start_time, true).asSeconds() - time.now()
 
     if secondsToStart <= 0
-        'TODO: forward to video player?
         m.countdown.text = "LIVE NOW!"
         return
     end if
-    
+
     days = int(secondsToStart / (24 * 60 * 60))
     hours = (secondsToStart / 60 / 60) mod 24
     minutes = (secondsToStart / 60) mod 60
     seconds = secondsToStart mod 60
-    
+
     hasDays = days <> 0
     hasHours = hours <> 0
     hasMinutes = minutes <> 0
     hasSeconds = seconds <> 0
     components = 0
-    
+
     text = ""
     if hasDays
         text += `${days}`
@@ -111,6 +129,10 @@ sub updateTime()
 end sub
 
 sub onViewClosed()
+    stopTimer()
+end sub
+
+sub stopTimer()
     if m.timer <> invalid
         m.timer.control = "stop"
         m.timer = invalid
