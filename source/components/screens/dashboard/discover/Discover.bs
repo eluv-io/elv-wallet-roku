@@ -35,6 +35,10 @@ sub initAfterParenting()
     end if
 end sub
 
+sub onResume()
+    onParentTranslationChanged()
+end sub
+
 sub onParentTranslationChanged()
     offset = m.top.getParent?()?.translation?[0] ?? 0
     padding = m.root.translation[0]
