@@ -1,7 +1,10 @@
 sub init()
-    m.MUX_SDK_VERSION = "2.0.2"
+    m.MUX_SDK_VERSION = "2.6.3"
     m.top.id = "mux"
     m.top.functionName = "runBeaconLoop"
+
+    ' Store randomMuxViewerId in m scope to avoid rendezvous in task thread
+    m.randomMuxViewerId = m.top.randomMuxViewerId
 end sub
 
 function runBeaconLoop()
@@ -15,11 +18,14 @@ function runBeaconLoop()
     m.POSITION_TIMER_INTERVAL = 250 '250
     m.SEEK_THRESHOLD = 1250 'ms jump in position before a seek is considered'
     m.HTTP_RETRIES = 10 'number of times to reattempt http call'
+    m.MAX_VIDEO_POSITION_JUMP = 2000000000
 
     m.pollTimer = CreateObject("roSGNode", "Timer")
-    m.pollTimer.id = "pollTimer"
-    m.pollTimer.repeat = true
-    m.pollTimer.duration = m.POSITION_TIMER_INTERVAL / 1000
+    m.pollTimer.setFields({
+        id: "pollTimer",
+        repeat: true,
+        duration: m.POSITION_TIMER_INTERVAL / 1000
+    })
 
     ' m.heartbeatTimer = m.top.findNode("heartbeatTimer")
     m.heartbeatTimer = CreateObject("roSGNode", "Timer")
@@ -36,8 +42,8 @@ function runBeaconLoop()
     m.httpPort = _createPort()
 
     useRandomMuxViewerId = false
-    if m.top.randomMuxViewerId <> invalid
-        useRandomMuxViewerId = m.top.randomMuxViewerId
+    if m.randomMuxViewerId <> invalid
+        useRandomMuxViewerId = m.randomMuxViewerId
     end if
 
     m.mxa = muxAnalytics()
@@ -48,6 +54,7 @@ function runBeaconLoop()
     systemConfig = {
         MAX_BEACON_SIZE: m.MAX_BEACON_SIZE,
         MAX_QUEUE_LENGTH: m.MAX_QUEUE_LENGTH,
+        MAX_VIDEO_POSITION_JUMP: m.MAX_VIDEO_POSITION_JUMP,
         HTTP_RETRIES: m.HTTP_RETRIES,
         BASE_TIME_BETWEEN_BEACONS: m.BASE_TIME_BETWEEN_BEACONS,
         HEARTBEAT_INTERVAL: m.HEARTBEAT_INTERVAL,
@@ -70,7 +77,8 @@ function runBeaconLoop()
         m.top.video.ObserveField("contentIndex", m.messagePort)
         m.top.video.ObserveField("downloadedSegment", m.messagePort)
         m.top.video.ObserveField("streamingSegment", m.messagePort)
-        if m.top.video.enableDecoderStats <> invalid
+        m.top.video.ObserveField("position", m.messagePort)
+        if m.top.disableDecoderStats <> true and m.top.video.enableDecoderStats <> invalid
             m.top.video.enableDecoderStats = true
             m.top.video.ObserveField("decoderStats", m.messagePort)
         end if
@@ -106,9 +114,61 @@ function runBeaconLoop()
     end if
     m.top.ObserveField("error", m.messagePort)
 
+    if m.top.cdn <> invalid
+        m.mxa.cdnChangeHandler(m.top.cdn)
+    end if
+    m.top.ObserveField("cdn", m.messagePort)
+
+    if m.top.disablePlayheadRebufferTracking <> invalid
+        m.mxa.disablePlayheadRebufferTrackingHandler(m.top.disablePlayheadRebufferTracking)
+    end if
+    m.top.ObserveField("disablePlayheadRebufferTracking", m.messagePort)
+
+    m.top.ObserveField("rebufferstart", m.messagePort)
+    m.top.ObserveField("rebufferend", m.messagePort)
+
+    if m.top.playback_mode <> invalid
+        m.mxa.playbackModeHandler(m.top.playback_mode)
+    end if
+    m.top.ObserveField("playback_mode", m.messagePort)
+
+    m.top.ObserveField("request", m.messagePort)
+
     m.pollTimer.ObserveField("fire", m.messagePort)
     m.beaconTimer.ObserveField("fire", m.messagePort)
     m.heartbeatTimer.ObserveField("fire", m.messagePort)
+
+    ' Try to enable network events - these methods are available on Roku OS 10+
+    firmwareVersion = m.mxa._sessionProperties.viewer_os_version
+    ' Parse major version from firmware string (e.g., "10.1" -> 10, "9.2" -> 9)
+    majorVersion = 0
+    if firmwareVersion <> invalid and Type(firmwareVersion) = "String" and firmwareVersion <> ""
+        firmwareParts = firmwareVersion.Tokenize(".")
+        if firmwareParts.Count() > 0
+            majorVersion = Val(firmwareParts[0])
+        end if
+    end if
+
+    linkEventEnabled = invalid
+    internetEventEnabled = invalid
+
+    if majorVersion >= 10
+        m.mxa.deviceInfo.SetMessagePort(m.messagePort)
+        linkEventEnabled = m.mxa.deviceInfo.EnableLinkStatusEvent(true)
+        internetEventEnabled = m.mxa.deviceInfo.EnableInternetStatusEvent(true)
+
+        if linkEventEnabled = true and internetEventEnabled = true
+            print "[mux-analytics] Network status events enabled successfully"
+            m.mxa._networkEventsSupported = true
+        else
+            print "[mux-analytics] WARNING: Network event methods returned false, falling back to polling"
+            print "[mux-analytics] EnableLinkStatusEvent: " ; linkEventEnabled ; ", EnableInternetStatusEvent: " ; internetEventEnabled
+            m.mxa._networkEventsSupported = false
+        end if
+    else
+        print "[mux-analytics] Roku OS " ; firmwareVersion ; " detected. Network events require OS 10+, using polling instead"
+        m.mxa._networkEventsSupported = false
+    end if
 
     ' Track exit on a separate port per Roku's guidance
     m.exitPort = _createPort()
@@ -144,7 +204,8 @@ function runBeaconLoop()
                         m.top.video.ObserveField("contentIndex", m.messagePort)
                         m.top.video.ObserveField("downloadedSegment", m.messagePort)
                         m.top.video.ObserveField("streamingSegment", m.messagePort)
-                        if m.top.video.enableDecoderStats <> invalid
+                        m.top.video.ObserveField("position", m.messagePort)
+                        if m.top.disableDecoderStats <> true and m.top.video.enableDecoderStats <> invalid
                             m.top.video.enableDecoderStats = true
                             m.top.video.ObserveField("decoderStats", m.messagePort)
                         end if
@@ -178,6 +239,8 @@ function runBeaconLoop()
                     if msgData <> invalid and type(msgData) = "roString"
                         m.mxa.videoStateChangeHandler(msgData)
                     end if
+                else if field = "position"
+                    m.mxa.videoPositionChangeHandler(msg.getData())
                 else if field = "rafEvent"
                     m.mxa.rafEventHandler(msg)
                 else if field = "fire"
@@ -189,7 +252,21 @@ function runBeaconLoop()
                     else if node = "heartbeatTimer"
                         m.mxa.heartbeatIntervalHandler(msg)
                     end if
+                else if field = "cdn"
+                    m.mxa.cdnChangeHandler(msg.getData())
+                else if field = "disablePlayheadRebufferTracking"
+                    m.mxa.disablePlayheadRebufferTrackingHandler(msg.getData())
+                else if field = "rebufferstart"
+                    m.mxa.rebufferStartHandler()
+                else if field = "rebufferend"
+                    m.mxa.rebufferEndHandler()
+                else if field = "playback_mode"
+                    m.mxa.playbackModeHandler(msg.getData())
+                else if field = "request"
+                    m.mxa.requestHandler(msg.getData())
                 end if
+            else if msgType = "roDeviceInfoEvent"
+                m.mxa.networkStatusEventHandler(msg)
             end if
         end if
 
@@ -198,19 +275,30 @@ function runBeaconLoop()
     end while
     m.beaconTimer.control = "stop"
     m.heartbeatTimer.control = "stop"
+    m.mxa._Flag_heartbeatTimerRunning = false
     m.pollTimer.control = "stop"
 
     m.beaconTimer.UnobserveField("fire")
     m.heartbeatTimer.UnobserveField("fire")
     m.pollTimer.UnobserveField("fire")
 
+    m.top.UnobserveField("rafEvent")
     m.top.UnobserveField("video")
     m.top.UnobserveField("config")
-    m.top.UnobserveField("control")
     m.top.UnobserveField("view")
     m.top.UnobserveField("useRenderStitchedStream")
     m.top.UnobserveField("useSSAI")
     m.top.UnobserveField("disableAutomaticErrorTracking")
+    m.top.UnobserveField("error")
+    m.top.UnobserveField("cdn")
+    m.top.UnobserveField("disablePlayheadRebufferTracking")
+    m.top.UnobserveField("rebufferstart")
+    m.top.UnobserveField("rebufferend")
+    m.top.UnobserveField("playback_mode")
+    m.top.UnobserveField("request")
+    if m.top.video <> invalid
+        m.top.video.UnobserveField("position")
+    end if
 
     if m.top.exitType = "soft"
         while not m.mxa.isQueueEmpty()
@@ -277,15 +365,69 @@ function _firmwareVersionNumber(deviceInfo as object)
 end function
 
 function _getConnectionType(deviceInfo as object)
+    if deviceInfo = invalid
+        return "no_connection"
+    end if
+
     connectionType = deviceInfo.GetConnectionType()
+    if connectionType = invalid or connectionType = ""
+        return "no_connection"
+    end if
     if connectionType = "WiFiConnection"
         return "wifi"
     end if
     if connectionType = "WiredConnection"
-        return "ethernet"
+        return "wired"
     end if
 
-    return "none"
+    return "other"
+end function
+
+function _statusToBool(status as dynamic) as dynamic
+    if status = invalid then return invalid
+    statusType = Type(status)
+    if statusType = "Boolean" or statusType = "roBoolean"
+        return status
+    end if
+    if statusType = "String" or statusType = "roString"
+        normalized = LCase(status)
+        if normalized = "true" or normalized = "up" or normalized = "connected" or normalized = "available"
+            return true
+        end if
+        if normalized = "false" or normalized = "down" or normalized = "disconnected" or normalized = "unavailable"
+            return false
+        end if
+    end if
+    return invalid
+end function
+
+function _getEffectiveConnectionType(deviceInfo as object, internetStatusOverride = invalid as dynamic, linkStatusOverride = invalid as dynamic) as dynamic
+    baseConnectionType = _getConnectionType(deviceInfo)
+    if baseConnectionType = "no_connection"
+        return "no_connection"
+    end if
+
+    internetStatus = _statusToBool(internetStatusOverride)
+    linkStatus = _statusToBool(linkStatusOverride)
+
+    if deviceInfo <> invalid
+        if internetStatus = invalid and FindMemberFunction(deviceInfo, "GetInternetStatus") <> invalid
+            internetStatus = _statusToBool(deviceInfo.GetInternetStatus())
+        end if
+        if linkStatus = invalid and FindMemberFunction(deviceInfo, "GetLinkStatus") <> invalid
+            linkStatus = _statusToBool(deviceInfo.GetLinkStatus())
+        end if
+    end if
+
+    if internetStatus = false
+        return "no_connection"
+    end if
+
+    if internetStatus = invalid and linkStatus = false
+        return "no_connection"
+    end if
+
+    return baseConnectionType
 end function
 
 function muxAnalytics() as object
@@ -346,13 +488,19 @@ function muxAnalytics() as object
 
         m.MAX_BEACON_SIZE = systemConfig.MAX_BEACON_SIZE
         m.MAX_QUEUE_LENGTH = systemConfig.MAX_QUEUE_LENGTH
+        m.MAX_VIDEO_POSITION_JUMP = systemConfig.MAX_VIDEO_POSITION_JUMP
         m.HTTP_RETRIES = systemConfig.HTTP_RETRIES
         m.BASE_TIME_BETWEEN_BEACONS = systemConfig.BASE_TIME_BETWEEN_BEACONS
         m.HEARTBEAT_INTERVAL = systemConfig.HEARTBEAT_INTERVAL
         m.POSITION_TIMER_INTERVAL = systemConfig.POSITION_TIMER_INTERVAL
         m.SEEK_THRESHOLD = systemConfig.SEEK_THRESHOLD
+        m.MAX_API_ENCRYPTION_REQUESTS_PER_VIEW = 5
 
-        m._configProperties = customerConfig
+        if customerConfig <> invalid
+            m._configProperties = customerConfig
+        else
+            m._configProperties = {}
+        end if
 
         m._eventQueue = []
         m._seekThreshold = m.SEEK_THRESHOLD / 1000
@@ -381,8 +529,16 @@ function muxAnalytics() as object
         m._viewAdPlayedCount = invalid
         m._viewPrerollPlayedCount = invalid
         m._videoSourceFormat = invalid
+        m._audioSourceFormat = invalid
         m._videoSourceDuration = invalid
+        m._videoCurrentCdn = invalid
         m._viewPrerollPlayedCount = invalid
+        m._totalAdWatchTime = invalid
+        m._adWatchTime = invalid
+        m._cumulativePlayingTime = invalid
+        m._lastAdResumeTime = invalid
+        ' Specifically means playhead when the video node sent a 'paused' state, not synthetic pause events we trigger
+        m._playheadAtLastPause = invalid
 
         m._lastSourceWidth = invalid
         m._lastSourceHeight = invalid
@@ -400,10 +556,17 @@ function muxAnalytics() as object
         m._viewMinRequestThroughput = invalid
         m._viewAverageRequestThroughput = invalid
         m._viewRequestCount = invalid
+        m._viewApiEncryptionRequestCount = invalid
+
+        ' Latency tracking variables
+        m._totalLatency = invalid
+        m._requestCompletedCount = invalid
+        m._viewMaxRequestLatency = invalid
+        m._viewAverageRequestLatency = invalid
 
         ' Calculate player width and height
-        deviceInfo = m._getDeviceInfo()
-        videoMode = deviceInfo.GetVideoMode()
+        m.deviceInfo = m._getDeviceInfo()
+        videoMode = m.deviceInfo.GetVideoMode()
         m._lastPlayerWidth = Val(m._getVideoPlaybackMetric(videoMode, "width"))
         m._lastPlayerHeight = Val(m._getVideoPlaybackMetric(videoMode, "height"))
 
@@ -417,6 +580,7 @@ function muxAnalytics() as object
         m._Flag_FailedAdsErrorSet = false
         m._Flag_useSSAI = false
         m._Flag_automaticErrorTracking = true
+        m._Flag_automaticRebufferTracking = true
 
         ' Flags specifically for when renderStitchedStream is used
         m._Flag_useRenderStitchedStream = false
@@ -424,11 +588,19 @@ function muxAnalytics() as object
         m._Flag_rssAdEnded = false
         m._Flag_rssContentPlayingAfterAds = false
 
-        ' Flag for a beacon currently being retried
+        ' Keep a copy of the current beacon so we can preserve it if retries are exhausted.
         m._Flag_beaconRequestInProgress = false
+        m._beaconInFlight = invalid
 
         ' Flag for whether or not to use a random mux viewer ID
         m._Flag_useRandomMuxViewerId = systemConfig.USE_RANDOM_MUX_VIEWER_ID
+
+        ' Flag to track heartbeat timer state to avoid rendezvous
+        m._Flag_heartbeatTimerRunning = false
+
+        ' Network monitoring
+        m._lastConnectionType = invalid
+        m._networkEventsSupported = false
 
         ' kick off analytics
         date = m._getDateTime()
@@ -441,6 +613,46 @@ function muxAnalytics() as object
     prototype.beaconIntervalHandler = sub(beaconIntervalEvent)
         data = beaconIntervalEvent.getData()
         m.LIGHT_THE_BEACONS()
+
+        ' If network events are not supported, poll network status
+        if m._networkEventsSupported = false
+            m.networkStatusEventHandler(invalid)
+        end if
+    end sub
+
+    ' Handler for roDeviceInfoEvent network status changes (or polling)
+    ' event can be Invalid when called from polling
+    prototype.networkStatusEventHandler = sub(event as dynamic)
+        eventInternetStatus = invalid
+        eventLinkStatus = invalid
+        if event <> invalid and FindMemberFunction(event, "GetInfo") <> invalid
+            eventInfo = event.GetInfo()
+            if eventInfo <> invalid
+                if eventInfo.internetStatus <> invalid
+                    eventInternetStatus = eventInfo.internetStatus
+                end if
+                if eventInfo.linkStatus <> invalid
+                    eventLinkStatus = eventInfo.linkStatus
+                end if
+            end if
+        end if
+
+        currentConnectionType = _getEffectiveConnectionType(m.deviceInfo, eventInternetStatus, eventLinkStatus)
+        ' Check if connection type has changed
+        if currentConnectionType <> m._lastConnectionType
+            m._fireNetworkChangeEvent(currentConnectionType)
+            m._lastConnectionType = currentConnectionType
+            ' Update session properties with new connection type
+            if m._sessionProperties <> invalid
+                m._sessionProperties.viewer_connection_type = currentConnectionType
+            end if
+        end if
+    end sub
+
+    prototype._fireNetworkChangeEvent = sub(connectionType as dynamic)
+        props = {}
+        props.viewer_connection_type = connectionType
+        m._addEventToQueue(m._createEvent("networkchange", props))
     end sub
 
     prototype.heartbeatIntervalHandler = sub(heartbeatIntervalEvent)
@@ -459,6 +671,13 @@ function muxAnalytics() as object
         end if
         m.video = video
 
+        ' Initialize player playhead time
+        if video <> invalid and video.position <> invalid
+            m._playerPlayheadTime = video.position
+        else
+            m._playerPlayheadTime = 0
+        end if
+
         if video <> invalid
             maximumPossiblePositionChange = ((video.notificationInterval * 1000) + m.POSITION_TIMER_INTERVAL) / 1000
             if m._seekThreshold < maximumPossiblePositionChange
@@ -467,19 +686,37 @@ function muxAnalytics() as object
         end if
     end sub
 
+    prototype.videoPositionChangeHandler = sub(position as double)
+        if position < m.MAX_VIDEO_POSITION_JUMP
+            m._playerPlayheadTime = position
+        end if
+    end sub
+
     prototype.videoStateChangeHandler = sub(videoState as string)
         m.video_state = videoState
         previouslyLastReportedPosition = m._Flag_lastReportedPosition
-        m._playerPlayheadTime = m.video.position
-        m._Flag_lastReportedPosition = m._playerPlayheadTime
+        ' Position is now handled by videoPositionChangeHandler to avoid rendezvous
+        ' if m.video.position < m.MAX_VIDEO_POSITION_JUMP
+        '   m._playerPlayheadTime = m.video.position
+        ' end if
+        if m._playerPlayheadTime <> invalid
+            m._Flag_lastReportedPosition = m._playerPlayheadTime
+        else if m._Flag_lastReportedPosition = invalid
+            m._Flag_lastReportedPosition = 0
+        end if
 
         ' Need to actually infer seek all the way out here
         if m._Flag_isSeeking <> true
             ' If we've gone backwards at all or forwards by more than the threshold
-            if (m._playerPlayheadTime < previouslyLastReportedPosition) or (m._playerPlayheadTime > (previouslyLastReportedPosition + m._seekThreshold))
+            if m._playerPlayheadTime <> invalid and previouslyLastReportedPosition <> invalid and ((m._playerPlayheadTime < previouslyLastReportedPosition) or (m._playerPlayheadTime > (previouslyLastReportedPosition + m._seekThreshold)))
                 if videoState = "buffering"
                     m._addEventToQueue(m._createEvent("pause"))
                 end if
+
+                if m._playheadAtLastPause <> invalid
+                    m._endPlaybackRange(m._playheadAtLastPause)
+                end if
+
                 m._addEventToQueue(m._createEvent("seeking"))
                 date = m._getDateTime()
                 m._viewSeekStartTimeStamp = 0# + date.AsSeconds() * 1000.0# + date.GetMilliseconds()
@@ -493,6 +730,9 @@ function muxAnalytics() as object
         m._Flag_isPaused = (videoState = "paused")
 
         if videoState = "buffering"
+            ' Bail out if we aren't supposed to track automatic rebuffer events
+            if not m._Flag_automaticRebufferTracking then return
+
             if m._Flag_atLeastOnePlayEventForContent = true
                 m._addEventToQueue(m._createEvent("rebufferstart"))
                 m._Flag_RebufferingStarted = true
@@ -504,12 +744,15 @@ function muxAnalytics() as object
                 end if
             end if
         else if videoState = "paused"
+            m._playheadAtLastPause = m._playerPlayheadTime
+
             m._addEventToQueue(m._createEvent("pause"))
         else if videoState = "playing"
             m._videoProperties = m._getVideoProperties(m.video)
 
-            if m._Flag_lastVideoState = "buffering"
+            if m._Flag_lastVideoState = "buffering" and m._Flag_automaticRebufferTracking
                 if m._Flag_RebufferingStarted = true
+
                     m._addEventToQueue(m._createEvent("rebufferend"))
                     m._Flag_RebufferingStarted = false
                 end if
@@ -525,6 +768,7 @@ function muxAnalytics() as object
                 if m._viewSeekDuration <> invalid
                     m._viewSeekDuration = m._viewSeekDuration + (now - seekStartTs)
                 end if
+
                 m._addEventToQueue(m._createEvent("seeked"))
                 m._Flag_isSeeking = false
 
@@ -546,7 +790,14 @@ function muxAnalytics() as object
             if m._Flag_lastVideoState = "paused"
                 m._addEventToQueue(m._createEvent("play"))
             end if
+
+            ' if we haven't gotten any playhead updates yet, don't try to start a range
+            if m._playerPlayheadTime <> invalid
+                m._startPlaybackRange(m._playerPlayheadTime)
+            end if
+
             m._addEventToQueue(m._createEvent("playing"))
+
             m._Flag_isSeeking = false
             m._Flag_atLeastOnePlayEventForContent = true
         else if videoState = "stopped"
@@ -555,6 +806,8 @@ function muxAnalytics() as object
             completedStreamInfo = m.video.completedStreamInfo
             if completedStreamInfo <> invalid
                 if completedStreamInfo.isFullResult
+
+                    m._endPlaybackRange(m._playerPlayheadTime)
                     m._addEventToQueue(m._createEvent("ended"))
                 end if
             end if
@@ -594,6 +847,18 @@ function muxAnalytics() as object
             m._endView(true)
         else if view = "start"
             m._startView(true)
+        end if
+    end sub
+
+    prototype.cdnChangeHandler = sub(cdn as string)
+        previousCdn = ""
+        if m._videoCurrentCdn <> invalid
+            previousCdn = m._videoCurrentCdn
+        end if
+
+        if cdn <> invalid and cdn <> previousCdn
+            m._addEventToQueue(m._createEvent("cdnchange", { video_cdn: cdn, video_previous_cdn: previousCdn }))
+            m._videoCurrentCdn = cdn
         end if
     end sub
 
@@ -642,6 +907,8 @@ function muxAnalytics() as object
                     end if
                 end if
             end if
+
+            m._startPlaybackRange(m._playerPlayheadTime)
             m._addEventToQueue(m._createEvent("playing"))
         end if
     end sub
@@ -666,7 +933,7 @@ function muxAnalytics() as object
                 end if
                 if videoSegment.width <> invalid and videoSegment.height <> invalid and videoSegment.segBitrateBps <> invalid
                     if m._lastSourceWidth <> invalid and m._lastSourceWidth <> videoSegment.width or m._lastSourceHeight <> invalid and m._lastSourceHeight <> videoSegment.height or m._lastVideoSegmentBitrate <> invalid and m._lastVideoSegmentBitrate <> videoSegment.segBitrateBps
-                        details = { video_source_width: videoSegment.width, video_source_height: videoSegment.height, video_source_bitrate: videoSegment.segBitrateBps }
+                        details = { video_source_width: videoSegment.width, video_source_height: videoSegment.height, video_source_bitrate: videoSegment.segBitrateBps, video_codec: m._videoSourceFormat, video_source_codec: m._videoSourceFormat, video_audio_codec: m._audioSourceFormat }
                         m._addEventToQueue(m._createEvent("renditionchange", details))
                     end if
                 end if
@@ -682,6 +949,23 @@ function muxAnalytics() as object
         if m._segmentRequestCount = invalid then m._segmentRequestCount = 0
         m._segmentRequestCount++
         if videoSegment <> invalid
+            ' Validate that request belongs to current view by comparing timestamps
+            ' If request_start < view_start, the request was initiated before the current view started
+            ' This means it's a stale request from a previous video during view transitions
+            if m._viewStartTimestamp <> invalid and videoSegment.downloadDuration <> invalid
+                date = m._getDateTime()
+                now = 0# + date.AsSeconds() * 1000.0# + date.GetMilliseconds()
+                requestStartTime = now - videoSegment.downloadDuration
+                if requestStartTime < m._viewStartTimestamp
+                    ' Request started before current view - it's from a previous video
+                    print "[mux-analytics] DISCARDING stale request from previous view"
+                    print "  request_start: " + Str(requestStartTime)
+                    print "  view_start: " + Str(m._viewStartTimestamp)
+                    print "  difference_ms: " + Str(m._viewStartTimestamp - requestStartTime)
+                    return
+                end if
+            end if
+
             props = {}
             if videoSegment.segType <> invalid
                 if videoSegment.segType = 0
@@ -706,6 +990,7 @@ function muxAnalytics() as object
             end if
             if videoSegment.segUrl <> invalid
                 props.request_hostname = m._getHostname(videoSegment.segUrl)
+                props.request_url = videoSegment.segUrl
             end if
             if videoSegment.status <> invalid
                 if videoSegment.status = 0
@@ -751,14 +1036,19 @@ function muxAnalytics() as object
     end sub
 
     prototype.configChangeHandler = sub(config as object)
-        m._configProperties = config
+        ' convert property_key to env_key
+        if config.property_key <> invalid and config.property_key <> ""
+            print "[mux-analytics] warning: 'property_key' is deprecated. Please use 'env_key' instead."
+            config.env_key = config.property_key
+            config.Delete("property_key")
+        end if
         if config.beaconCollectionDomain <> invalid and config.beaconCollectionDomain <> ""
             m.beaconUrl = "https://" + config.beaconCollectionDomain
         else if config.env_key <> invalid and config.env_key <> ""
             m.beaconUrl = m._createBeaconUrl(config.env_key)
-        else if config.property_key <> invalid and config.property_key <> ""
-            m.beaconUrl = m._createBeaconUrl(config.property_key)
         end if
+
+        m._configProperties = config
     end sub
 
     prototype.useRenderStitchedStreamHandler = sub(useRenderStitchedStream as boolean)
@@ -789,25 +1079,254 @@ function muxAnalytics() as object
             if error.errorCode <> invalid
                 errorCode = error.errorCode
             end if
+            if error.player_error_code <> invalid
+                errorCode = error.player_error_code
+            end if
+
             if error.errorMsg <> invalid
                 errorMessage = error.errorMsg
             end if
             if error.errorMessage <> invalid
                 errorMessage = error.errorMessage
             end if
+            if error.player_error_message <> invalid
+                errorMessage = error.player_error_message
+            end if
+            ' legacy support for a typo
+            if error.player_error_messsage <> invalid
+                errorMessage = error.player_error_message
+            end if
+
             if error.errorContext <> invalid
                 errorContext = error.errorContext
             end if
+            if error.player_error_context <> invalid
+                errorContext = error.player_error_context
+            end if
+
             if error.errorSeverity <> invalid
                 if error.errorSeverity = "warning"
                     errorSeverity = "warning"
                 end if
             end if
+            if error.player_error_severity <> invalid
+                if error.player_error_severity = "warning"
+                    errorSeverity = "warning"
+                end if
+            end if
+
             if error.isBusinessException <> invalid
-                isBusinessException = (error.isBusinessException = "true" or error.isBusinessException)
+                isBusinessException = error.isBusinessException
+            end if
+            if error.player_error_business_exception <> invalid
+                isBusinessException = error.player_error_business_exception
             end if
         end if
         m._addEventToQueue(m._createEvent("error", { player_error_code: errorCode, player_error_message: errorMessage, player_error_context: errorContext, player_error_severity: errorSeverity, player_error_business_exception: isBusinessException }))
+    end sub
+
+    prototype.disablePlayheadRebufferTrackingHandler = sub(disablePlayheadRebufferTracking as boolean)
+        if disablePlayheadRebufferTracking <> invalid
+            m._Flag_automaticRebufferTracking = (not disablePlayheadRebufferTracking)
+        end if
+    end sub
+
+    prototype.rebufferStartHandler = sub()
+        m._addEventToQueue(m._createEvent("rebufferstart"))
+    end sub
+
+    prototype.rebufferEndHandler = sub()
+        m._addEventToQueue(m._createEvent("rebufferend"))
+    end sub
+
+    prototype.playbackModeHandler = sub(playbackMode as object)
+        props = {}
+
+        if playbackMode.player_playback_mode = invalid
+            print "[mux-analytics] warning: playback_mode player_playback_mode property not set."
+            return
+        end if
+        props.player_playback_mode = playbackMode.player_playback_mode
+        ' Remember the playback mode for future events in the config
+        if m._configProperties <> invalid
+            m._configProperties.player_playback_mode = playbackMode.player_playback_mode
+        end if
+
+        if playbackMode.player_playback_mode_data <> invalid
+            ' ParseJson returns invalid if provided string is not parse-able JSON
+            parsedData = ParseJson(playbackMode.player_playback_mode_data)
+            if parsedData = invalid
+                print "[mux-analytics] warning: player_playback_mode_data is not valid JSON"
+                return
+            end if
+            props.player_playback_mode_data = playbackMode.player_playback_mode_data
+        end if
+
+        props.view_playing_time_ms_cumulative = m._cumulativePlayingTime
+        props.ad_playing_time_ms_cumulative = m._totalAdWatchTime
+
+        m._addEventToQueue(m._createEvent("playbackmodechange", props))
+    end sub
+
+    prototype.requestHandler = sub(message as object)
+        ' Require type field as it becomes the event type (e property)
+        if message.type = invalid
+            print "[mux-analytics] warning: request handler called without required 'type' field"
+            return
+        end if
+
+        requestVariant = message.type
+
+        ' Used for throughput and latency metrics
+        requestStartNum = 0
+        responseStartNum = invalid
+        responseEndNum = 0
+        bytesLoaded = invalid
+
+        props = {}
+        if message.request_start <> invalid
+            props.request_start = message.request_start
+            msgType = Type(message.request_start)
+            if msgType = "roString" or msgType = "String"
+                ' String: set in props but don't use for calculations
+                print "[mux-analytics] warning: request_start received as string, only numeric values are supported for metric calculations"
+            else
+                ' Number: use for calculations and convert to string for props
+                requestStartNum = message.request_start
+            end if
+        end if
+        if message.request_hostname <> invalid
+            props.request_hostname = message.request_hostname
+        end if
+        if message.request_type <> invalid
+            props.request_type = message.request_type
+        end if
+        if message.request_id <> invalid
+            props.request_id = message.request_id
+        end if
+
+        if requestVariant = "completed"
+            if message.request_bytes_loaded <> invalid
+                props.request_bytes_loaded = message.request_bytes_loaded
+                bytesLoaded = message.request_bytes_loaded
+            end if
+            if message.request_response_start <> invalid
+                props.request_response_start = message.request_response_start
+                msgType = Type(message.request_response_start)
+                if msgType = "roString" or msgType = "String"
+                    ' String: set in props but don't use for calculations
+                    print "[mux-analytics] warning: request_response_start received as string, only numeric values are supported for metric calculations"
+                else
+                    ' Number: use for calculations and convert to string for props
+                    responseStartNum = message.request_response_start
+                end if
+            end if
+            if message.request_response_end <> invalid
+                props.request_response_end = message.request_response_end
+                msgType = Type(message.request_response_end)
+                if msgType = "roString" or msgType = "String"
+                    ' String: set in props but don't use for calculations
+                    print "[mux-analytics] warning: request_response_end received as string, only numeric values are supported for metric calculations"
+                else
+                    ' Number: use for calculations and convert to string for props
+                    responseEndNum = message.request_response_end
+                end if
+            end if
+            if message.request_url <> invalid
+                props.request_url = message.request_url
+            end if
+            if message.request_labeled_bitrate <> invalid
+                props.request_labeled_bitrate = message.request_labeled_bitrate
+            end if
+            if message.request_response_headers <> invalid
+                props.request_response_headers = message.request_response_headers
+            end if
+            if message.request_media_duration <> invalid
+                props.request_media_duration = message.request_media_duration
+            end if
+            if message.request_video_width <> invalid
+                props.request_video_width = message.request_video_width
+            end if
+            if message.request_video_height <> invalid
+                props.request_video_height = message.request_video_height
+            end if
+            ' Calculate request_duration for api and encryption request types
+            ' Limit api/encryption requestcompleted events per view to prevent abuse
+            if props.request_type <> invalid and (props.request_type = "api" or props.request_type = "encryption")
+                if m._viewApiEncryptionRequestCount = invalid then m._viewApiEncryptionRequestCount = 0
+                if m._viewApiEncryptionRequestCount >= m.MAX_API_ENCRYPTION_REQUESTS_PER_VIEW
+                    ' Drop event if limit exceeded
+                    return
+                end if
+                m._viewApiEncryptionRequestCount++
+                if props.request_start <> invalid and props.request_response_end <> invalid
+                    duration = responseEndNum - requestStartNum
+                    props.request_duration = duration
+                end if
+            end if
+
+            latency = invalid
+            loadTime = invalid
+
+            if responseStartNum <> invalid
+                latency = responseStartNum - requestStartNum
+                loadTime = responseEndNum - responseStartNum
+            else
+                loadTime = responseEndNum - requestStartNum
+            end if
+
+            if loadTime > 0 and bytesLoaded <> invalid and bytesLoaded > 0
+                throughput = (bytesLoaded / loadTime) * 8000 ' in bits/sec
+
+                if m._requestCompletedCount = invalid
+                    m._requestCompletedCount = 0
+                end if
+
+                m._requestCompletedCount++
+                m._totalBytes = m._safeAdd(m._totalBytes, bytesLoaded)
+                m._totalLoadTime = m._safeAdd(m._totalLoadTime, loadTime)
+
+                if m._viewMinRequestThroughput = invalid
+                    m._viewMinRequestThroughput = throughput
+                else
+                    m._viewMinRequestThroughput = m._min(m._viewMinRequestThroughput, throughput)
+                end if
+
+                m._viewAverageRequestThroughput = (m._totalBytes / m._totalLoadTime) * 8000
+
+                ' if we have latency data, then let's add these metrics
+                if latency <> invalid and latency > 0
+                    m._totalLatency = m._safeAdd(m._totalLatency, latency)
+
+                    if m._viewMaxRequestLatency = invalid
+                        m._viewMaxRequestLatency = latency
+                    else
+                        m._viewMaxRequestLatency = m._max(m._viewMaxRequestLatency, latency)
+                    end if
+
+                    m._viewAverageRequestLatency = m._totalLatency / m._requestCompletedCount
+                end if
+
+            end if
+
+            m._addEventToQueue(m._createEvent("requestcompleted", props))
+        else if requestVariant = "failed"
+            if message.request_url <> invalid
+                props.request_url = message.request_url
+            end if
+            if message.request_error <> invalid
+                props.request_error = message.request_error
+            end if
+            if message.request_error_code <> invalid
+                props.request_error_code = message.request_error_code
+            end if
+            if message.request_error_text <> invalid
+                props.request_error_text = message.request_error_text
+            end if
+            m._addEventToQueue(m._createEvent("requestfailed", props))
+        else if requestVariant = "canceled"
+            m._addEventToQueue(m._createEvent("requestcanceled", props))
+        end if
     end sub
 
     prototype.rafEventHandler = sub(rafEvent)
@@ -819,6 +1338,11 @@ function muxAnalytics() as object
         ' Only pull the pieces of data we care about
         ' Previous instructions passed the full adIface in, which has a circular reference in some cases
         adMetadata = {}
+        ' copy over the `mux` object so we can pull the values later
+        adMetadata.mux = {}
+        if ctx.mux <> invalid
+            adMetadata.mux = ctx.mux
+        end if
         if obj <> invalid
             if obj.adurl <> invalid
                 adMetadata.adTagUrl = obj.adurl
@@ -836,14 +1360,29 @@ function muxAnalytics() as object
     end sub
 
     prototype._rafEventhandler = sub(eventType, ctx, adMetadata)
+        date = m._getDateTime()
+        now = 0# + date.AsSeconds() * 1000.0# + date.GetMilliseconds()
+
+        ' If we're handling ad events, we'll need these eventually, so guarantee they're initialized
+        if m._adWatchTime = invalid
+            m._adWatchTime = 0
+        end if
+        if m._totalAdWatchTime = invalid
+            m._totalAdWatchTime = 0
+        end if
+
         m._Flag_isPaused = (eventType = "Pause")
         if eventType = "PodStart"
             m._advertProperties = m._getAdvertProperties(adMetadata)
             m._addEventToQueue(m._createEvent("adbreakstart"))
             ' In the case that this is SSAI, we need to signal an adplay and adplaying event
             if m._Flag_useSSAI = true
+                m._lastAdResumeTime = now
                 m._addEventToQueue(m._createEvent("adplay"))
                 m._addEventToQueue(m._createEvent("adplaying"))
+            else
+                ' For CSAI, end the playback range, since CSAI ads have their own playhead
+                m._endPlaybackRange(m._playerPlayheadTime)
             end if
         else if eventType = "PodComplete"
             m._addEventToQueue(m._createEvent("adbreakend"))
@@ -852,11 +1391,21 @@ function muxAnalytics() as object
             if m._Flag_useSSAI = true
                 m._Flag_isPaused = false
                 m._triggerPlayEvent()
+
                 m._addEventToQueue(m._createEvent("playing"))
+            else
+                ' for CSAI, we need to restart the playback range
+                if m._Flag_isPaused <> false
+                    m._startPlaybackRange(m._playerPlayheadTime)
+                end if
             end if
         else if eventType = "Impression"
             m._addEventToQueue(m._createEvent("adimpression"))
         else if eventType = "Pause"
+            if m._lastAdResumeTime <> invalid
+                m._adWatchTime += m._max(0, now - m._lastAdResumeTime)
+                m._lastAdResumeTime = invalid
+            end if
             m._addEventToQueue(m._createEvent("adpause"))
         else if eventType = "Start"
             if m._viewTimeToFirstFrame = invalid
@@ -875,13 +1424,24 @@ function muxAnalytics() as object
                 m._viewPrerollPlayedCount++
             end if
             m._advertProperties = m._getAdvertProperties(ctx)
+            m._adWatchTime = 0
+            m._lastAdResumeTime = now
+
             m._addEventToQueue(m._createEvent("adplay"))
             m._addEventToQueue(m._createEvent("adplaying"))
         else if eventType = "Resume"
+            m._lastAdResumeTime = now
             m._advertProperties = m._getAdvertProperties(ctx)
+
             m._addEventToQueue(m._createEvent("adplay"))
             m._addEventToQueue(m._createEvent("adplaying"))
         else if eventType = "Complete"
+            if m._lastAdResumeTime <> invalid
+                m._adWatchTime += m._max(0, now - m._lastAdResumeTime)
+                m._lastAdResumeTime = invalid
+            end if
+
+            m._totalAdWatchTime += m._adWatchTime
             m._addEventToQueue(m._createEvent("adended"))
         else if eventType = "NoAdsError"
             if m._Flag_FailedAdsErrorSet <> true
@@ -907,12 +1467,28 @@ function muxAnalytics() as object
         else if eventType = "ThirdQuartile"
             m._addEventToQueue(m._createEvent("adthirdquartile"))
         else if eventType = "Skip"
+            if m._lastAdResumeTime <> invalid
+                m._adWatchTime += m._max(0, now - m._lastAdResumeTime)
+                m._lastAdResumeTime = invalid
+            end if
+            m._totalAdWatchTime += m._adWatchTime
             m._addEventToQueue(m._createEvent("adskipped"))
             m._addEventToQueue(m._createEvent("adended"))
         end if
     end sub
 
     prototype._renderStitchedStreamRafEventHandler = sub(eventType, ctx, adMetadata)
+        date = m._getDateTime()
+        now = 0# + date.AsSeconds() * 1000.0# + date.GetMilliseconds()
+
+        ' If we're handling ad events, we'll need these eventually, so guarantee they're initialized
+        if m._adWatchTime = invalid
+            m._adWatchTime = 0
+        end if
+        if m._totalAdWatchTime = invalid
+            m._totalAdWatchTime = 0
+        end if
+
         if eventType = "AdStateChange"
             state = ctx.state
             m._advertProperties = m._getAdvertProperties(adMetadata)
@@ -921,21 +1497,31 @@ function muxAnalytics() as object
                 ' our ad break here if we're not already in one
                 if not m._Flag_rssInAdBreak
                     m._Flag_rssInAdBreak = true
+
                     m._addEventToQueue(m._createEvent("adbreakstart"))
                 end if
 
                 ' and always trigger adplay
                 m._Flag_isPaused = false
+
                 m._addEventToQueue(m._createEvent("adplay"))
             else if state = "playing"
-                ' in the playing state, if we either resuming, we need adplay first
+                ' in the playing state, if we are resuming, we need adplay first
                 if m._Flag_isPaused
                     m._Flag_isPaused = false
                     m._addEventToQueue(m._createEvent("adplay"))
+                else
+                    ' starting fresh: reset watch time
+                    m._adWatchTime = 0
                 end if
                 ' and always emit adplaying
+                m._lastAdResumeTime = now
                 m._addEventToQueue(m._createEvent("adplaying"))
             else if state = "paused"
+                if m._lastAdResumeTime <> invalid
+                    m._adWatchTime += m._max(0, now - m._lastAdResumeTime)
+                    m._lastAdResumeTime = invalid
+                end if
                 m._Flag_isPaused = true
                 m._addEventToQueue(m._createEvent("adpause"))
             end if
@@ -943,15 +1529,24 @@ function muxAnalytics() as object
             ' Need to handle PodStart for non-pre-rolls
             if not m._Flag_rssInAdBreak
                 m._Flag_rssInAdBreak = true
+                m._adWatchTime = 0
+                m._lastAdResumeTime = now
                 if not m._Flag_isPaused
                     m._Flag_isPaused = true
                     m._addEventToQueue(m._createEvent("pause"))
                 end if
+
                 m._addEventToQueue(m._createEvent("adbreakstart"))
             end if
         else if eventType = "Complete"
             ' Complete signals an ad has finished playback
             m._Flag_rssAdEnded = true
+            if m._lastAdResumeTime <> invalid
+                m._adWatchTime += m._max(0, now - m._lastAdResumeTime)
+                m._lastAdResumeTime = invalid
+            end if
+
+            m._totalAdWatchTime += m._adWatchTime
             m._addEventToQueue(m._createEvent("adended"))
         else if eventType = "Impression"
             ' When an additional ad is played within an ad pod, we do not get
@@ -959,12 +1554,16 @@ function muxAnalytics() as object
             ' event to know that a new ad was played
             if m._Flag_rssAdEnded
                 m._Flag_rssAdEnded = false
+                m._adWatchTime = 0
+                m._lastAdResumeTime = now
+
                 m._addEventToQueue(m._createEvent("adplay"))
                 m._addEventToQueue(m._createEvent("adplaying"))
             end if
         else if eventType = "PodComplete"
             m._Flag_rssInAdBreak = false
             m._Flag_isPaused = true
+
             m._addEventToQueue(m._createEvent("adbreakend"))
         else if eventType = "ContentPosition"
             ' we have a special case here to track the start of content after an ad break
@@ -972,6 +1571,8 @@ function muxAnalytics() as object
                 if m._Flag_isPaused
                     m._Flag_isPaused = false
                     m._triggerPlayEvent()
+
+                    m._startPlaybackRange(m._playerPlayheadTime)
                     m._addEventToQueue(m._createEvent("playing"))
                 end if
             end if
@@ -992,6 +1593,8 @@ function muxAnalytics() as object
                         m._Flag_isPaused = false
                         m._triggerPlayEvent()
                     end if
+
+                    m._startPlaybackRange(m._playerPlayheadTime)
                     m._addEventToQueue(m._createEvent("playing"))
                 else if state = "paused"
                     m._Flag_isPaused = true
@@ -1005,7 +1608,10 @@ function muxAnalytics() as object
         if m.video = invalid then return
         if m._Flag_isPaused = true then return
 
-        m._playerPlayheadTime = m.video.position
+        ' Position is now handled by videoPositionChangeHandler to avoid rendezvous
+        ' if m.video.position < m.MAX_VIDEO_POSITION_JUMP
+        '   m._playerPlayheadTime = m.video.position
+        ' end if
 
         m._setBufferingMetrics()
         m._updateContentPlaybackTime()
@@ -1020,15 +1626,23 @@ function muxAnalytics() as object
 
     prototype._updateLastReportedPositionFlag = sub()
         if m._playerPlayheadTime = m._Flag_lastReportedPosition then return
-        m._Flag_lastReportedPosition = m._playerPlayheadTime
+        if m._playerPlayheadTime <> invalid
+            m._Flag_lastReportedPosition = m._playerPlayheadTime
+        end if
     end sub
 
     prototype._updateContentPlaybackTime = sub()
+        if m._playerPlayheadTime = invalid then return
         if m._playerPlayheadTime <= m._Flag_lastReportedPosition then return
         if m.video_state <> "playing" then return
         if m._contentPlaybackTime = invalid then return
 
-        m._contentPlaybackTime = m._contentPlaybackTime + ((m._playerPlayheadTime - m._Flag_lastReportedPosition) * 1000)
+        timeDelta = m._playerPlayheadTime - m._Flag_lastReportedPosition
+
+        ' Guard against suspiciously large jumps
+        if timeDelta > 100 then return
+
+        m._contentPlaybackTime = m._contentPlaybackTime + (timeDelta * 1000)
     end sub
 
     prototype._updateTotalWatchTime = sub()
@@ -1040,6 +1654,7 @@ function muxAnalytics() as object
         if m._contentPlaybackTime = invalid then return
 
         m._viewWatchTime = m._viewTimeToFirstFrame + m._viewRebufferDuration + m._contentPlaybackTime
+        m._cumulativePlayingTime = m._viewWatchTime + m._totalAdWatchTime
     end sub
 
     prototype._setBufferingMetrics = sub()
@@ -1056,7 +1671,7 @@ function muxAnalytics() as object
     prototype._addEventToQueue = sub(_event as object)
         m._logEvent(_event)
         ' If the heartbeat is running restart it.
-        if m.heartbeatTimer.control = "start"
+        if m._Flag_heartbeatTimerRunning
             m.heartbeatTimer.control = "stop"
             m.heartbeatTimer.control = "start"
         end if
@@ -1099,6 +1714,8 @@ function muxAnalytics() as object
         else
             if beacon.count() > 0
                 m._logBeacon(beacon, "BEACON")
+                ' This is the batch currently governed by the existing backoff retry flow.
+                m._beaconInFlight = beacon
                 m._minifiedBeacon = []
                 for each b in beacon
                     m._minifiedBeacon.push(m._minify(b))
@@ -1136,6 +1753,7 @@ function muxAnalytics() as object
         ' Successful exit if a 2xx is returned
         statusCode = event.GetResponseCode()
         if statusCode >= 200 and statusCode < 300
+            m._beaconInFlight = invalid
             m._Flag_beaconRequestInProgress = false
             return
         end if
@@ -1143,6 +1761,9 @@ function muxAnalytics() as object
         ' Otherwise clean it up and set our delay and timer if we're not done
         if m._retryCountdown <= 0
             print "[mux-analytics] Retries exceeded for beacon, giving up"
+            ' Preserve the exhausted batch so the next normal beacon send attempt includes it.
+            m._requeueFailedBeacon()
+            m._beaconInFlight = invalid
             m._Flag_beaconRequestInProgress = false
             return
         end if
@@ -1162,6 +1783,18 @@ function muxAnalytics() as object
         end if
     end sub
 
+    prototype._requeueFailedBeacon = sub()
+        if m._beaconInFlight = invalid or m._beaconInFlight.count() = 0 then return
+        ' Requeue ahead of newer events to preserve ordering as much as possible.
+        requeued = []
+        requeued.Append(m._beaconInFlight)
+        requeued.Append(m._eventQueue)
+        while requeued.count() > m.MAX_QUEUE_LENGTH
+            requeued.Pop()
+        end while
+        m._eventQueue = requeued
+    end sub
+
     prototype._startView = sub(setByClient = false as boolean)
         if setByClient = true
             m._clientOperatedStartAndEnd = true
@@ -1169,6 +1802,7 @@ function muxAnalytics() as object
         if m._clientOperatedStartAndEnd = true and setByClient = false then return
         if m._inView = false
             m.heartbeatTimer.control = "start"
+            m._Flag_heartbeatTimerRunning = true
             m.pollTimer.control = "start"
             m._viewSequence = 0
             if m._playerViewCount <> invalid
@@ -1176,6 +1810,9 @@ function muxAnalytics() as object
             end if
             m._viewId = m._generateGUID()
             m._viewWatchTime = 0
+            m._adWatchTime = 0
+            m._totalAdWatchTime = 0
+            m._cumulativePlayingTime = 0
             m._contentPlaybackTime = 0
             m._viewRebufferCount = 0
             m._viewRebufferDuration = 0
@@ -1190,6 +1827,12 @@ function muxAnalytics() as object
             m._totalLoadTime = 0
             m._segmentRequestCount = 0
             m._segmentRequestFailedCount = 0
+            m._viewApiEncryptionRequestCount = 0
+            m._requestCompletedCount = 0
+            m._totalLatency = 0
+
+            m._playbackRanges = []
+            m._currentPlaybackRangeStart = invalid
 
             m._Flag_lastReportedPosition = 0
             m._Flag_atLeastOnePlayEventForContent = false
@@ -1208,6 +1851,18 @@ function muxAnalytics() as object
                 m._videoProperties = m._getVideoProperties(m.video)
             end if
 
+            ' Send playbackmodechange event
+            props = {}
+            props.player_playback_mode = "standard"
+            props.view_playing_time_ms_cumulative = m._cumulativePlayingTime
+            props.ad_playing_time_ms_cumulative = m._totalAdWatchTime
+            m._addEventToQueue(m._createEvent("playbackmodechange", props))
+
+            ' Fire initial networkchange event
+            initialConnectionType = _getEffectiveConnectionType(m.deviceInfo)
+            m._lastConnectionType = initialConnectionType
+            m._fireNetworkChangeEvent(initialConnectionType)
+
             m._addEventToQueue(m._createEvent("viewstart"))
 
             m._inView = true
@@ -1219,7 +1874,10 @@ function muxAnalytics() as object
         if m._clientOperatedStartAndEnd = false and setByClient = true then return
         if m._inView = true
             m.heartbeatTimer.control = "stop"
+            m._Flag_heartbeatTimerRunning = false
             m.pollTimer.control = "stop"
+
+            m._endPlaybackRange(m._playerPlayheadTime)
             m._addEventToQueue(m._createEvent("viewend"))
             m._inView = false
             m._viewId = invalid
@@ -1230,6 +1888,10 @@ function muxAnalytics() as object
             m._playerTimeToFirstFrame = invalid
             m._contentPlaybackTime = invalid
             m._viewWatchTime = invalid
+            m._adWatchTime = invalid
+            m._lastAdResumeTime = invalid
+            m._totalAdWatchTime = invalid
+            m._cumulativePlayingTime = invalid
             m._viewRebufferCount = invalid
             m._viewRebufferDuration = invalid
             m._viewRebufferFrequency! = invalid
@@ -1240,6 +1902,7 @@ function muxAnalytics() as object
             m._viewPrerollPlayedCount = invalid
             m._videoSourceFormat = invalid
             m._videoSourceDuration = invalid
+            m._videoCurrentCdn = invalid
             m.drmType = invalid
             m.droppedFrames = invalid
 
@@ -1259,6 +1922,12 @@ function muxAnalytics() as object
             m._viewAverageRequestThroughput = invalid
             m._viewRequestCount = invalid
             m._segmentRequestFailedCount = invalid
+            m._lastConnectionType = invalid
+            m._viewApiEncryptionRequestCount = invalid
+            m._requestCompletedCount = invalid
+            m._totalLatency = invalid
+            m._viewMaxRequestLatency = invalid
+            m._viewAverageRequestLatency = invalid
         end if
     end sub
 
@@ -1302,10 +1971,10 @@ function muxAnalytics() as object
         if m._configProperties <> invalid
             newEvent.Append(m._configProperties)
         end if
-
-        if newEvent.property_key = invalid or newEvent.property_key = ""
+        ' Warn if env_key is not set
+        if newEvent.env_key = invalid or newEvent.env_key = ""
             if m._playerSequence <> invalid and m._playerSequence < 2
-                print "[mux-analytics] warning property_key not set."
+                print "[mux-analytics] warning env_key not set."
             end if
         end if
 
@@ -1340,7 +2009,10 @@ function muxAnalytics() as object
         props.viewer_device_model = seriesModel
         props.viewer_os_family = "Roku OS"
         props.viewer_os_version = firmwareVersion
-        props.viewer_connection_type = _getConnectionType(deviceInfo)
+        connectionType = _getConnectionType(deviceInfo)
+        if connectionType <> invalid
+            props.viewer_connection_type = connectionType
+        end if
         props.mux_api_version = m.MUX_API_VERSION
         props.player_mux_plugin_name = m.MUX_SDK_NAME
         props.player_mux_plugin_version = m.MUX_SDK_VERSION
@@ -1372,6 +2044,10 @@ function muxAnalytics() as object
 
             if video.videoFormat <> invalid and video.videoFormat <> ""
                 m._videoSourceFormat = video.videoFormat
+            end if
+
+            if video.audioFormat <> invalid and video.audioFormat <> ""
+                m._audioSourceFormat = video.audioFormat
             end if
         end if
 
@@ -1413,11 +2089,13 @@ function muxAnalytics() as object
                 end if
             end if
 
-            if (content.URL <> invalid and content.URL <> "")
+            if content.URL <> invalid and content.URL <> ""
                 props.video_source_url = content.URL
                 props.video_source_hostname = m._getHostname(content.URL)
                 props.video_source_domain = m._getDomain(content.URL)
-                m._videoSourceFormat = m._getVideoFormat(content.URL)
+                if m._videoSourceFormat = invalid or m._videoSourceFormat = ""
+                    m._videoSourceFormat = m._getVideoFormat(content.URL)
+                end if
             end if
 
             if content.StreamFormat <> invalid and (type(content.StreamFormat) = "String" or type(content.StreamFormat) = "roString") and content.StreamFormat <> "(null)"
@@ -1464,6 +2142,11 @@ function muxAnalytics() as object
             if adTagUrl <> invalid and adTagUrl <> ""
                 props.view_preroll_ad_tag_hostname = m._getHostname(adTagUrl)
                 props.view_preroll_ad_tag_domain = m._getDomain(adTagUrl)
+            end if
+            if adData.mux <> invalid
+                if adData.mux.ad_type <> invalid
+                    props.ad_type = adData.mux.ad_type
+                end if
             end if
         end if
         return props
@@ -1580,6 +2263,21 @@ function muxAnalytics() as object
         if m._viewRequestCount <> invalid
             props.view_request_count = m._viewRequestCount
         end if
+        if m._viewMaxRequestLatency <> invalid
+            props.view_max_request_latency = Int(m._viewMaxRequestLatency)
+        end if
+        if m._viewAverageRequestLatency <> invalid
+            props.view_average_request_latency = Int(m._viewAverageRequestLatency)
+        end if
+        if m._cumulativePlayingTime <> invalid and m._cumulativePlayingTime > 0
+            props.view_playing_time_ms_cumulative = m._cumulativePlayingTime
+        end if
+        if m._totalAdWatchTime <> invalid and m._totalAdWatchTime > 0
+            props.ad_playing_time_ms_cumulative = m._totalAdWatchTime
+        end if
+        if m._playbackRanges <> invalid and m._playbackRanges.count() > 0
+            props.video_playback_range = m._stringifiedPlaybackRanges(m._playbackRanges)
+        end if
         if m._configProperties <> invalid and m._configProperties.player_init_time <> invalid
             playerInitTime = invalid
             if Type(m._configProperties.player_init_time) = "roString"
@@ -1694,6 +2392,66 @@ function muxAnalytics() as object
         end if
 
         return "unknown"
+    end function
+
+    ' return format: Array of strings in the format "startTime:endTime" in milliseconds
+    prototype._stringifiedPlaybackRanges = function(ranges as object) as object
+        if ranges = invalid or ranges.count() = 0
+            return invalid
+        end if
+
+        ' Expects an array of objects with start and end properties
+        result = []
+        for each range in ranges
+            if range.start <> invalid and range.end <> invalid
+                startMs = m._floatSecsToMillis(range.start)
+                endMs = m._floatSecsToMillis(range.end)
+                rangeStr = startMs.ToStr() + ":" + endMs.ToStr()
+                result.push(rangeStr)
+            end if
+        end for
+        return result
+    end function
+
+    prototype._startPlaybackRange = sub(startPlayheadTimeSec)
+        if startPlayheadTimeSec = invalid
+            print "[mux-analytics] Warning: Attempted to start playback range with invalid start time"
+            return
+        end if
+
+        ' only start a new playback range if one is not already open.
+        if m._currentPlaybackRangeStart = invalid
+            m._currentPlaybackRangeStart = startPlayheadTimeSec
+        else
+            print "[mux-analytics] ignoring startPlaybackRange at " + Str(startPlayheadTimeSec) + ". range already open at " + Str(m._currentPlaybackRangeStart)
+        end if
+    end sub
+
+    prototype._endPlaybackRange = sub(endingPlayheadTimeSec)
+        if m._currentPlaybackRangeStart <> invalid and endingPlayheadTimeSec <> invalid
+            range = m._createPlaybackRange(m._currentPlaybackRangeStart, endingPlayheadTimeSec)
+            if range <> invalid
+                m._playbackRanges.push(range)
+            end if
+
+            m._currentPlaybackRangeStart = invalid
+        else
+            print "[mux-analytics] Warning: Attempted to end playback range with invalid start or end time"
+        end if
+    end sub
+
+    prototype._createPlaybackRange = function(startSec as float, endSec as float) as object
+        if startSec = invalid or endSec = invalid or startSec >= endSec
+            print "Invalid start or end time for playback range"
+            return invalid
+        end if
+
+        range = {
+            start: startSec,
+            end: endSec
+        }
+
+        return range
     end function
 
     prototype._setCookieData = sub(data as object)
@@ -1856,7 +2614,7 @@ function muxAnalytics() as object
             else
                 tot = tot + "{"
                 for each prop in evt
-                    tot = tot + prop + ":" + evt[prop].toStr() + ", "
+                    tot = tot + prop + ":" + m._safeDebugStr(evt[prop]) + ", "
                 end for
                 tot = Left(tot, len(tot) - 2)
                 tot = tot + "} "
@@ -1873,7 +2631,7 @@ function muxAnalytics() as object
             tot = tot + "{"
             for each prop in event
                 if event[prop] <> invalid
-                    tot = tot + prop + ":" + event[prop].toStr() + ", "
+                    tot = tot + prop + ":" + m._safeDebugStr(event[prop]) + ", "
                 end if
             end for
             tot = Left(tot, len(tot) - 2)
@@ -1954,6 +2712,7 @@ function muxAnalytics() as object
         "current": "cu",
         "connection": "cx",
         "context": "cz",
+        "cumulative": "cv",
         "downscaling": "dg",
         "domain": "dm",
         "cdn": "dn",
@@ -2013,8 +2772,10 @@ function muxAnalytics() as object
         "midroll": "ml",
         "min": "mm",
         "manufacturer": "mn",
+        "mode": "mp",
         "model": "mo",
         "mux": "mx",
+        "ms": "ms",
         "newest": "ne",
         "name": "nm",
         "number": "no",
@@ -2026,6 +2787,7 @@ function muxAnalytics() as object
         "producer": "pd",
         "percentage": "pe",
         "played": "pf",
+        "previous": "pv",
         "program": "pg",
         "playhead": "ph",
         "plugin": "pi",
@@ -2094,11 +2856,19 @@ function muxAnalytics() as object
     ' ' UTILS METHODS
     ' ' //////////////////////////////////////////////////////////////
 
+    prototype._floatSecsToMillis = function(secs as float) as integer
+        if secs = invalid
+            return invalid
+        else
+            return Int(secs * 1000)
+        end if
+    end function
+
     prototype._min = function(a, b) as object
         if a = invalid then a = 0
         if b = invalid then b = 0
 
-        if a < b then
+        if a < b
             return a
         else
             return b
@@ -2109,15 +2879,32 @@ function muxAnalytics() as object
         if a = invalid then a = 0
         if b = invalid then b = 0
 
-        if a < b then
+        if a < b
             return b
         else
             return a
         end if
     end function
 
+    prototype._safeDebugStr = function(value as dynamic) as string
+        if value = invalid
+            return "Invalid"
+        else if GetInterface(value, "ifArray") <> invalid
+            ' you can only Join() arrays of strings, so stringify each item before joining
+            stringifiedValues = []
+            for each item in value
+                stringifiedValues.push(m._safeDebugStr(item))
+            end for
+            return "Array[" + stringifiedValues.join(",") + "]"
+        else if GetInterface(value, "ifAssociativeArray") <> invalid
+            return "Object" + FormatJson(value)
+        else
+            return value.toStr()
+        end if
+    end function
+
     prototype._safeAdd = function(var, addValue) as object
-        if var = invalid then
+        if var = invalid
             return addValue
         else
             return var + addValue

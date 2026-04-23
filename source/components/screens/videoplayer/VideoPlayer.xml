@@ -5,6 +5,8 @@
         <field id="propertyMedia" type="assocArray" onChange="onPropertyMediaChanged" />
         <!-- Legacy MW v1 -->
         <field id="videoItem" type="assocArray" onChange="onVideoItemChanged" />
+        <!-- Set to true by SGDEX ComponentController when this view is removed from the view stack -->
+        <field id="wasClosed" type="boolean" onChange="onViewClosed" />
     </interface>
     <children>
         <Video id="videoPlayer" width="1920" height="1080" />

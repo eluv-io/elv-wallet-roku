@@ -61,9 +61,13 @@ sub onPropertyMediaChanged()
     }
 
     promises.chain(stores.propertyStore()@.getPropertyById(propertyId), context).then(function(property, context)
+        if m.top.wasClosed = true then return invalid
         context.property = property
         return http.get(context.playoutApi)
     end function).then(sub(result, context)
+        ' User may have backed out while the playout HTTP was in flight. Don't
+        ' start playback on a view that's already been torn down.
+        if m.top.wasClosed = true then return
         playoutConfig = result.json["hls-clear"] ?? result.json["hls-widevine-cenc"] ?? result.json["dash-clear"] ?? result.json["dash-widevine"]
         fabricUrl = stores.fabricConfigStore()@.getFabricBaseUrl()
         tenantId = context.property?.tenant?.tenant_id
@@ -90,6 +94,7 @@ sub onVideoItemChanged()
     optionsJsonUrl = UrlUtil.assetLinkToUrl(media.sources.default, `${baseUrl}/`)
     context = { requestUrl: optionsJsonUrl }
     promises.chain(http.get(optionsJsonUrl), context).then(sub (result, context)
+        if m.top.wasClosed = true then return
         ' Sorted by priority
         playoutConfig = result.json["dash-clear"] ?? result.json["hls-clear"] ?? result.json["dash-widevine"]
         m.videoPlayer.content.setFields({
@@ -113,9 +118,6 @@ function buildDrm(properties) as dynamic
 end function
 
 sub initMux()
-    ' Disable mux for now
-    return
-
     envKey = stores.envStore().currentEnv?.muxEnvKey
     if strNullOrEmpty(envKey)
         ' Only init mux if envKey is set
@@ -134,9 +136,6 @@ sub initMux()
 end sub
 
 sub updateMuxConfig(fabricUrl as string, playoutConfig as dynamic, tenantId as string, mediaTitle as dynamic)
-    ' Disable mux for now
-    return
-
     muxConfig = m.muxConfig
     mux = m.mux
     if mux = invalid or muxConfig = invalid
@@ -191,15 +190,23 @@ function sha256(input as string) as string
     return digest.Process(bytes)
 end function
 
-sub onPause()
-    ' When mux is enabled, video doesn't stop after going Back, so we need to manually stop it
-    ' m.videoPlayer.control = "stop"
-end sub
-
-function onKeyEvent(key as string, press as boolean) as boolean
-    if press and key = "back" and m.top.propertyMedia.isLive <> true
-        ' Store current playback position, but don't interfere with normal back behavior.
-        PlaybackStore.setPlaybackPosition(m.top.propertyMedia.mediaId, m.videoPlayer.position, m.videoPlayer.duration)
+sub onViewClosed()
+    ' Save playback position before we stop the Video. Covers every dismissal
+    ' path — back press, programmatic pop, deeplink replacement — not just back.
+    mediaId = m.top.propertyMedia?.mediaId
+    if mediaId <> invalid and m.top.propertyMedia?.isLive <> true
+        PlaybackStore.setPlaybackPosition(mediaId, m.videoPlayer.position, m.videoPlayer.duration)
     end if
-    return false
-end function
+
+    ' MuxTask runs on its own thread and holds a reference to the Video node. If we
+    ' don't signal it to exit, the thread keeps looping and the Video keeps playing
+    ' audio in the background even after the view is popped.
+    if m.mux <> invalid
+        ' "soft" drains queued beacons to Mux before the task thread terminates
+        m.mux.exitType = "soft"
+        m.mux.exit = true
+        m.mux = invalid
+        m.muxConfig = invalid
+    end if
+    m.videoPlayer.control = "stop"
+end sub
