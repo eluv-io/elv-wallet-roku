@@ -31,6 +31,8 @@ namespace CarouselHelpers
             _navigateToPage(property.id, sectionItem.page_id)
         else if sectionItem.type = "item_purchase"
             _navigateToPurchasePrompt(sectionItem.permissions._content, permissionContext)
+        else if sectionItem.type = "visual_only"
+            ' Do nothing, this is just a visual element
         else
             Toast.show(`to be impl: click on ${sectionItem.type}`)
         end if
