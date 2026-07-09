@@ -131,6 +131,8 @@ end sub
 
 sub setupAsBanner(bannerImageLink)
     image = m.image
+    ' Banner images can have any aspect ratio, fit and center them inside the bounds instead of stretching
+    image.loadDisplayMode = "scaleToFit"
     image.width = m.top.width
     image.height = m.top.height
     image.uri = UrlUtil.imageLinkToUrl(bannerImageLink, image.height)
