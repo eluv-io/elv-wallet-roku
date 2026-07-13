@@ -1,8 +1,18 @@
 import "pkg:/components/utils/RouterUtils.bs"
+import "pkg:/components/utils/CustomBuild.bs"
 
 namespace SignInUtil
     ' nextScreenName is optional. If not provided, we'll navigate to PropertyDetail.
     sub onAuthSuccess(property, nextScreenName, nextScreenArgs)
+        if strNullOrEmpty(nextScreenName) and CustomBuild.isSinglePropertyMode()
+            ' Single Property builds boot signed-in users straight into PropertyDetail.
+            ' Rebuild the app stack instead of pushing on top of the landing page,
+            ' so pressing Back from the Property exits the app (same as a fresh launch).
+            router().removeStack = "signin"
+            router().removeStack = "app"
+            return
+        end if
+
         nextViewName = nextScreenName
         if strNotEmpty(nextViewName)
             args = nextScreenArgs

@@ -59,6 +59,10 @@ function getPropertyById(propertyId, skipCache = false)
     ' Property not in cache - fetch it from network
     return promises.chain(PropertyApi.getPropertyById(propertyId)).then(function(result)
         property = result.json
+        if property?.id = invalid
+            Logger.log(`Failed to fetch property (id=${propertyId}, code=${result.code})`)
+            return invalid
+        end if
         Logger.log(`Fetched property from network (id=${property.id})`)
         PermissionResolver.resolvePermissions(property, invalid, property.permission_auth_state)
         propMap = m.propertyMap

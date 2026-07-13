@@ -8,6 +8,8 @@ import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/screens/property/CarouselHelpers.bs"
+import "pkg:/components/utils/CustomBuild.bs"
+import "pkg:/components/utils/Time.bs"
 import "pkg:/components/stores/stores.bs"
 
 const SUPPORTED_ITEM_TYPES = { "media": 1,
@@ -39,12 +41,18 @@ sub init()
         router()@.show({ view: view })
     end sub)
 
-    ' Only show Search button when top row is focused.
+    m.btnProfile = m.top.findNode("btnProfile")
+    observe(m.btnProfile, "buttonSelected", sub()
+        router()@.show({ view: createObject("roSGNode", "Profile") })
+    end sub)
+
+    ' Only show action buttons when top row is focused.
     observe(m.rowList, "currFocusRow", sub()
         scrollPosition = m.rowList.currFocusRow
         if scrollPosition < 1
-            ' Scrolling is between 0 and 1, update Search button opacity
+            ' Scrolling is between 0 and 1, update action button opacity
             m.btnSearch.opacity = 1 - scrollPosition
+            m.btnProfile.opacity = 1 - scrollPosition
         end if
     end sub)
 end sub
@@ -53,6 +61,12 @@ sub onPageLinkChanged()
     link = m.top.linkData
     ' Load property object and save in m.top.property
     promises.chain(stores.propertyStore()@.getPropertyById(link.propertyId)).then(sub (property)
+        if property?.id = invalid
+            ' Most likely a network hiccup - retry
+            Toast.show("Error loading content. Retrying...")
+            time.setTimer(onPageLinkChanged, 10)
+            return
+        end if
         m.top.property = property
     end sub)
 end sub
@@ -185,6 +199,9 @@ sub onSectionsChanged()
     m.rowList.content = content
     m.spinner.visible = false
     m.btnSearch.visible = true
+    ' Profile is a Dashboard tab; on Single Property builds there's no Dashboard,
+    ' so give access to it from here instead.
+    m.btnProfile.visible = CustomBuild.isSinglePropertyMode()
 end sub
 
 ' Each "section" from the backend might end up being 0-n rows on the UI
@@ -421,8 +438,18 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 handled = true
             end if
         else if key = "down"
-            if m.btnSearch.IsInFocusChain()
+            if m.btnSearch.IsInFocusChain() or m.btnProfile.IsInFocusChain()
                 m.rowList.setFocus(true)
+                handled = true
+            end if
+        else if key = "left"
+            if m.btnSearch.IsInFocusChain() and m.btnProfile.visible
+                m.btnProfile.setFocus(true)
+                handled = true
+            end if
+        else if key = "right"
+            if m.btnProfile.IsInFocusChain()
+                m.btnSearch.setFocus(true)
                 handled = true
             end if
         end if

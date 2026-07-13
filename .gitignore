@@ -1,6 +1,7 @@
 dist/
 node_modules/
 out/
+custom_build/build/
 .env
 .DS_Store
 secrets

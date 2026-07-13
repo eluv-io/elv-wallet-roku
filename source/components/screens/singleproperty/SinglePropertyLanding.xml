@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landing page for Single Property (custom) builds, shown instead of the Dashboard when logged out. -->
+<component name="SinglePropertyLanding" extends="BaseView" initialFocus="signInButton">
+    <children>
+        <ImageFader id="bgImage" width="1920" height="1080" />
+        <LayoutGroup
+            layoutDirection="vert"
+            horizAlignment="center"
+            vertAlignment="center"
+            translation="[960, 540]">
+            <Poster
+                id="logo"
+                width="900"
+                height="380"
+                loadDisplayMode="scaleToFit"
+            />
+            <Spacer height="60" />
+            <TvButton id="signInButton" text="Sign In" minWidth="360" />
+        </LayoutGroup>
+    </children>
+</component>

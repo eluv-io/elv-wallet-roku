@@ -1,4 +1,5 @@
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/CustomBuild.bs"
 import "pkg:/components/http/http.bs"
 import "pkg:/components/utils/Base58.bs"
 import "pkg:/components/utils/Time.bs"
@@ -79,5 +80,19 @@ end sub
 sub initAppStack()
     print `Initializing "app" stack`
     router().addStack = "app"
-    router()@.show({ view: CreateObject("roSGNode", "Dashboard") })
+    router()@.show({ view: createInitialView() })
 end sub
+
+function createInitialView()
+    if CustomBuild.isSinglePropertyMode()
+        if strNotEmpty(stores.tokenStore().fabricToken)
+            ' Returning user: drop directly into the Property
+            view = CreateObject("roSGNode", "PropertyDetail")
+            view.linkData = { propertyId: CustomBuild.propertyId() }
+            return view
+        end if
+        ' Logged out: show the branded landing page
+        return CreateObject("roSGNode", "SinglePropertyLanding")
+    end if
+    return CreateObject("roSGNode", "Dashboard")
+end function

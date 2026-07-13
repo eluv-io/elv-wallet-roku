@@ -98,3 +98,11 @@ The app targets the Eluvio Content Fabric. Available environments are defined in
 
 On a fresh launch the app fetches the `main` config and caches it in the Roku
 registry; subsequent launches restore it from there.
+
+## Custom Wallet Build (Single Property)
+
+The channel can be built as a white-label app that is branded for, and locked to,
+a single Media Property: custom name/poster/splash, and a landing page that leads
+directly into the Property instead of the Discover grid.
+
+See [`custom_build/README.md`](custom_build/README.md).

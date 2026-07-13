@@ -1,0 +1,21 @@
+' Utilities for reading the Custom ("Single Property") build configuration.
+' Standard builds ship an empty config, in which case the app behaves as a normal multi-property wallet.
+' Custom builds overwrite pkg:/config/custom_build.json at build time (see custom_build/README.md).
+namespace CustomBuild
+    ' Parsed contents of the bundled config file. Empty AA when file is missing/empty.
+    function config() as object
+        if m._customBuildConfig = invalid
+            m._customBuildConfig = ParseJson(ReadAsciiFile("pkg:/config/custom_build.json")) ?? {}
+        end if
+        return m._customBuildConfig
+    end function
+
+    ' The single Property this build is locked to. Empty string for standard builds.
+    function propertyId() as string
+        return CustomBuild.config().property_id ?? ""
+    end function
+
+    function isSinglePropertyMode() as boolean
+        return CustomBuild.propertyId() <> ""
+    end function
+end namespace

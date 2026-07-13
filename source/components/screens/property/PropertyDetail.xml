@@ -29,7 +29,23 @@
         <ActionButton
             id="btnSearch"
             translation="[1764, 66]"
-            iconUri="pkg:/images/search_icon.png"
+            iconUri="pkg:/images/action_buttons/search.png"
+            size="60"
+            visible="false"
+        />
+        <!-- Only shown on Single Property (custom) builds, where there's no Dashboard -->
+        <ActionButton
+            id="btnProfile"
+            translation="[1668, 66]"
+            iconUri="pkg:/images/action_buttons/profile.png"
+            size="60"
+            visible="false"
+        />
+        <!-- Only shown on Single Property (custom) builds, where there's no Dashboard -->
+        <ActionButton
+            id="btnProfile"
+            translation="[1668, 66]"
+            iconUri="pkg:/images/tab_icons/profile.png"
             size="60"
             visible="false"
         />

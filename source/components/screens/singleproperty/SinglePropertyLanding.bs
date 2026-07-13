@@ -1,0 +1,70 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/CustomBuild.bs"
+import "pkg:/components/utils/Time.bs"
+import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/promise.bs"
+import "pkg:/components/screens/signin/SignInUtil.bs"
+import "pkg:/components/stores/stores.bs"
+
+sub init()
+    m.logo = m.top.findNode("logo")
+    m.bgImage = m.top.findNode("bgImage")
+    m.signInButton = m.top.findNode("signInButton")
+
+    m.signInButton.ObserveFieldScoped("buttonSelected", "onSignInClicked")
+    stores.tokenStore().ObserveFieldScoped("fabricToken", "updateSignInButtonText")
+    updateSignInButtonText()
+
+    fetchProperty()
+end sub
+
+sub fetchProperty()
+    promises.onThen(
+    stores.propertyStore()@.getPropertyById(CustomBuild.propertyId(), true),
+    sub(property)
+        if property?.id = invalid
+            Toast.show("Error loading content. Retrying...")
+            time.setTimer(fetchProperty, 10)
+            return
+        end if
+        m.property = property
+        logoLink = property.start_screen_logo ?? property.tv_header_logo ?? property.header_logo
+        m.logo.uri = UrlUtil.imageLinkToUrl(logoLink, m.logo.height)
+        m.bgImage@.changeImage(UrlUtil.imageLinkToUrl(property.start_screen_background ?? property.image_tv, m.bgImage.height))
+    end sub)
+end sub
+
+sub updateSignInButtonText()
+    loggedIn = stores.tokenStore().fabricToken <> ""
+    m.signInButton.text = loggedIn ? "Welcome Back" : "Sign In"
+end sub
+
+' Same navigation logic as selecting a property card on the Discover page
+sub onSignInClicked()
+    property = m.property
+    ' Ignore clicks until the property is loaded
+    if property = invalid then return
+
+    skipLogin = property?.login?.settings?.disable_login = true
+    loginProvider = SignInUtil.getLoginProvider(property)
+    if stores.tokenStore().loginProvider = loginProvider
+        ' Already signed in ("Welcome Back"): rebuild the app stack so PropertyDetail
+        ' becomes the root view (same as a fresh launch), instead of stacking on
+        ' top of this landing page.
+        router().removeStack = "app"
+    else if skipLogin
+        view = CreateObject("roSGNode", "PropertyDetail")
+        view.property = property
+        router()@.show({ view: view })
+    else
+        if loginProvider = "ory"
+            signIn = CreateObject("roSGNode", "SignInSelector")
+        else
+            ' Don't offer manual sign-in for auth0
+            signIn = CreateObject("roSGNode", "QrSignIn")
+        end if
+        signIn.property = property
+        router().addStack = "signin"
+        router()@.show({ view: signIn })
+    end if
+end sub

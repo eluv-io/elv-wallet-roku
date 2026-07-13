@@ -27,7 +27,8 @@ sub onSizeChanged()
     m.bg.width = size
     m.bg.height = size
 
-    iconSize = size * 10 / 16
+    ' round to a whole pixel so icon assets exported at this size render 1:1
+    iconSize = cint(size * 10 / 16)
     m.icon.width = iconSize
     m.icon.height = iconSize
     offset = (size - iconSize) / 2
