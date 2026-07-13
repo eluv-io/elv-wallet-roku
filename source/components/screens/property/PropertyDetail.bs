@@ -18,6 +18,10 @@ const SUPPORTED_ITEM_TYPES = { "media": 1,
 
 sub init()
     m.bgImage = m.top.findNode("bgImage")
+    m.spinner = m.top.findNode("spinner")
+    ' Size the spinner and center it on screen (translation is its top-left corner)
+    m.spinner.poster.width = 80
+    m.spinner.poster.height = 80
     m.rowList = m.top.findNode("rowList")
     listLeftPadding = m.rowList.translation[0]
     m.rowList.rowWidth = 1920 - listLeftPadding
@@ -179,6 +183,7 @@ sub onSectionsChanged()
     CarouselHelpers.updateZoomRowListHeights(m.rowList, content, m.dummyLabel)
 
     m.rowList.content = content
+    m.spinner.visible = false
     m.btnSearch.visible = true
 end sub
 

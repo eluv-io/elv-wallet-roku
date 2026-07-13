@@ -8,6 +8,11 @@
     </interface>
     <children>
         <Poster id="bgImage" width="1920" height="1080" />
+        <BusySpinner
+            id="spinner"
+            uri="pkg:/images/busyspinner_hd.png"
+            translation="[920, 500]"
+        />
         <ZoomRowList
             id="rowList"
             itemComponentName="SectionItem"
