@@ -13,6 +13,11 @@ sub init()
     m.rowList.clippingRect = [-listLeftPadding, 0, 1920, 1080]
     observe(m.rowList, "rowItemSelected", onSectionItemSelected)
 
+    m.gridGroup = m.top.findNode("gridGroup")
+    m.gridTitle = m.top.findNode("gridTitle")
+    m.grid = m.top.findNode("grid")
+    observe(m.grid, "itemSelected", onGridItemSelected)
+
     m.searchBox = m.top.findNode("searchBox")
     observe(m.searchBox, "focusedChild", onSearchBoxFocusChange)
     m.searchBoxBorder = m.top.findNode("searchBoxBorder")
@@ -44,6 +49,8 @@ sub onQueryChanged()
 
     m.spinner.visible = true
     m.rowList.content = invalid
+    m.grid.content = invalid
+    m.gridGroup.visible = false
 
     if property?.id <> invalid
         ' run query
@@ -112,9 +119,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
             onSearchBoxClicked()
             handled = true
         else if key = "down" and m.searchBox.IsInFocusChain()
-            m.rowList.setFocus(true)
+            if m.gridGroup.visible
+                m.grid.setFocus(true)
+            else
+                m.rowList.setFocus(true)
+            end if
             handled = true
-        else if key = "up" and m.rowList.IsInFocusChain()
+        else if key = "up" and (m.rowList.IsInFocusChain() or m.grid.IsInFocusChain())
             m.searchBox.setFocus(true)
             handled = true
         end if
@@ -148,14 +159,37 @@ sub onSectionsLoaded(sectionsResponse)
     PermissionResolver.resolvePermissions(sectionContainer, property.permissions?._search, property.permission_auth_state)
 
     permissionContext = { propertyId: property.id }
+
+    ' When only a single section is returned, display it as a grid instead of a row
+    gridRow = invalid
+    if sections.count() = 1
+        gridRow = CarouselHelpers.createCarouselSection(sections[0], permissionContext, m.dummyLabel, true, "grid")[0]
+    end if
+
+    m.spinner.visible = false
+    if gridRow <> invalid
+        m.gridTitle.text = sections[0].display?.title ?? ""
+        m.grid.content = gridRow
+        m.gridGroup.visible = true
+        m.rowList.visible = false
+        return
+    end if
+
+    m.rowList.visible = true
     content = createObject("roSGNode", "ContentNode")
     for each section in sections
         newRows = CarouselHelpers.createCarouselSection(section, permissionContext, m.dummyLabel)
         content.appendChildren(newRows)
     end for
-    m.spinner.visible = false
     m.rowList.content = content
     CarouselHelpers.updateZoomRowListHeights(m.rowList, content, m.dummyLabel)
+end sub
+
+sub onGridItemSelected()
+    item = m.grid.content.getChild(m.grid.itemSelected)?.aa?.item
+    if item <> invalid
+        CarouselHelpers.onSectionItemClicked(item, m.top.property)
+    end if
 end sub
 
 sub onSectionItemSelected(event)

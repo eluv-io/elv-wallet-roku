@@ -24,6 +24,24 @@
             uri="pkg:/images/busyspinner_hd.png"
             translation="[864, 540]"
         />
+        <Group id="gridGroup" visible="false">
+            <TvLabel
+                id="gridTitle"
+                fontStyle="body_32"
+                translation="[96, 190]"
+            />
+            <MarkupGrid
+                id="grid"
+                itemComponentName="SectionItem"
+                numColumns="4"
+                numRows="3"
+                translation="[96, 250]"
+                itemSize="[402, 270]"
+                itemSpacing="[24,30]"
+                vertFocusAnimationStyle="fixedFocus"
+                drawFocusFeedback="true"
+            />
+        </Group>
         <ZoomRowList
             id="rowList"
             width="1920"
