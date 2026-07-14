@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landing page for Single Property (custom) builds, shown instead of the Dashboard when logged out. -->
-<component name="SinglePropertyLanding" extends="BaseView" initialFocus="signInButton">
+<!-- Landing page for Single Property (custom) builds, shown instead of the Dashboard when logged out.
+     Same login options as SignInSelector, but branded with the Property's logo and background. -->
+<component name="SinglePropertyLanding" extends="BaseView" initialFocus="qrSignInButton">
     <children>
         <ImageFader id="bgImage" width="1920" height="1080" />
         <LayoutGroup
@@ -14,8 +15,14 @@
                 height="380"
                 loadDisplayMode="scaleToFit"
             />
+            <Spacer height="48" />
+            <TvLabel text="How would you like to log in?" fontStyle="title_62" />
             <Spacer height="60" />
-            <TvButton id="signInButton" text="Sign In" minWidth="360" />
+            <LayoutGroup layoutDirection="horiz">
+                <TvButton id="qrSignInButton" text="Use another device" />
+                <Spacer width="30" />
+                <TvButton id="manualSignInButton" text="Use this device" />
+            </LayoutGroup>
         </LayoutGroup>
     </children>
 </component>
