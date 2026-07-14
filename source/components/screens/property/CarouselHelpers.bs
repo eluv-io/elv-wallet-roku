@@ -1,4 +1,5 @@
 import "pkg:/components/utils/Toast.bs"
+import "pkg:/components/utils/AspectRatio.bs"
 import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/screens/property/SectionConstants.bs"
 import "pkg:/components/screens/property/DisplaySettings.bs"
@@ -98,7 +99,7 @@ namespace CarouselHelpers
     end sub
 
     function createCarouselSection(section, parentPermissionContext, dummyLabel, ignoreDisplayLimit = false, forceDisplayFormat = invalid)
-        rowHeight = 270
+        isBannerSection = (forceDisplayFormat ?? section.display.display_format) = "banner"
         titleLabelSettings = {
             fontStyle: "20_medium"
             maxLines: 1
@@ -109,8 +110,19 @@ namespace CarouselHelpers
         ' the settings of m.dummyLabel until the end of the for-loop;
         ' But it's more efficient than settings the same values in every iteration.
         dummyLabel.update(titleLabelSettings)
+        ' Make sure the label has text, so we measure a real line height
+        dummyLabel.text = "A"
+        titleBlockHeight = dummyLabel.boundingRect().height + SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING + SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING
 
-        isBannerSection = (forceDisplayFormat ?? section.display.display_format) = "banner"
+        ' card_size only applies to regular carousel rows: banners span the full
+        ' screen width, and MediaGrid ("grid") has a fixed MarkupGrid itemSize.
+        if isBannerSection or forceDisplayFormat = "grid"
+            rowHeight = 270
+        else
+            ' Size the row so the thumbnails match the design spec, with room for the title below
+            rowHeight = _cardImageHeight(section.display?.card_size, _rowAspectRatio(section)) + titleBlockHeight
+        end if
+
         itemNodes = []
         displayLimit = (ignoreDisplayLimit or isBannerSection) ? 0 : section.display?.display_limit ?? 0
         for each item in section.content
@@ -194,17 +206,8 @@ namespace CarouselHelpers
             result = createObject("roSGNode", "AAContentNode")
             if item.media <> invalid
                 item._permissionContext.mediaItemId = item.media.id
-                if item.use_media_settings = true
-                    display = item.media
-                else
-                    ' Keep media display settings, but override with anything that is well-defined in item.display
-                    display = DisplaySettings.applyOverrides(item.media, item.display)
-                end if
-            else
-                display = item.display
             end if
-            ' Propogate forced aspect ratio from the section_item to the display settings
-            display.aspect_ratio = item.display.aspect_ratio
+            display = _resolveItemDisplaySettings(item)
 
             if isBannerSection
                 ratio = invalid ' Let the code below calculate the real ratio
@@ -284,6 +287,55 @@ namespace CarouselHelpers
         zoomRowList.rowItemZoomYOffset = rowItemZoomYOffsets
         zoomRowList.rowTitleOffset = rowTitleOffsets
     end sub
+
+    ' Thumbnail height for a section row, set on section.display.card_size and
+    ' applied to every card in that row. Card widths are derived from this height
+    ' and each card's aspect ratio, so they scale along with it.
+    ' Heights follow the design spec, nudged to multiples of 3 so cards scale
+    ' cleanly on 720p UIs (2/3 scale factor). Portrait cards get a taller row.
+    function _cardImageHeight(cardSize, rowAspectRatio)
+        isPortrait = rowAspectRatio = AspectRatio.POSTER
+        size = LCase(cardSize ?? "")
+        if size = "extra_small" then return isPortrait ? 294 : 171
+        if size = "small" then return isPortrait ? 348 : 201
+        ' No design dimensions for extra_large yet, render it as large
+        if size = "large" or size = "extra_large" then return isPortrait ? 486 : 279
+        return isPortrait ? 399 : 234 ' medium (server sends "") / default
+    end function
+
+    ' All cards in a row share a single height, so resolve one aspect ratio for
+    ' the whole row: the section's forced ratio if set, otherwise the ratio of
+    ' the first visible item that has one.
+    function _rowAspectRatio(section)
+        ratio = AspectRatio.fromString(section.display?.aspect_ratio)
+        if ratio <> invalid then return ratio
+        for each item in section.content ?? []
+            if not PermissionUtil.isHidden(item.permissions?._content)
+                ratio = DisplaySettings.getThumbnailAndRatio(_resolveItemDisplaySettings(item))?.aspectRatio
+                if ratio <> invalid then return ratio
+            end if
+        end for
+        return AspectRatio.SQUARE
+    end function
+
+    ' The effective display settings for a section item, merging media settings
+    ' with item-level overrides.
+    function _resolveItemDisplaySettings(item)
+        if item.display = invalid then item.display = {}
+        if item.media <> invalid
+            if item.use_media_settings = true
+                display = item.media
+            else
+                ' Keep media display settings, but override with anything that is well-defined in item.display
+                display = DisplaySettings.applyOverrides(item.media, item.display)
+            end if
+        else
+            display = item.display
+        end if
+        ' Propogate forced aspect ratio from the section_item to the display settings
+        display.aspect_ratio = item.display?.aspect_ratio
+        return display
+    end function
 
     function _createNewSection(display = invalid)
         section = createObject("roSGNode", "AAContentNode")
