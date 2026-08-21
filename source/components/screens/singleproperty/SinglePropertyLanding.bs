@@ -10,6 +10,15 @@ sub init()
     m.logo = m.top.findNode("logo")
     m.bgImage = m.top.findNode("bgImage")
 
+    ' Baked-in branding shows immediately as a fallback; the Property's images
+    ' (fetched below) are preferred and replace it once loaded.
+    if CustomBuild.startScreenLogo() <> ""
+        m.logo.uri = CustomBuild.startScreenLogo()
+    end if
+    if CustomBuild.startScreenBackground() <> ""
+        m.bgImage@.changeImage(CustomBuild.startScreenBackground())
+    end if
+
     m.qrSignInButton = m.top.findNode("qrSignInButton")
     m.qrSignInButton.ObserveFieldScoped("buttonSelected", "onQrSignInClicked")
 
@@ -29,9 +38,12 @@ sub fetchProperty()
             return
         end if
         m.property = property
-        logoLink = property.start_screen_logo ?? property.tv_header_logo ?? property.header_logo
-        m.logo.uri = UrlUtil.imageLinkToUrl(logoLink, m.logo.height)
-        m.bgImage@.changeImage(UrlUtil.imageLinkToUrl(property.start_screen_background ?? property.image_tv, m.bgImage.height))
+        ' Only the Property's dedicated start screen images may replace the baked-in
+        ' fallback - the header logo / hero image don't belong on this screen.
+        logoUrl = UrlUtil.imageLinkToUrl(property.start_screen_logo, m.logo.height)
+        if logoUrl <> "" then m.logo.uri = logoUrl
+        bgUrl = UrlUtil.imageLinkToUrl(property.start_screen_background, m.bgImage.height)
+        if bgUrl <> "" then m.bgImage@.changeImage(bgUrl)
 
         if property?.login?.settings?.disable_login = true
             ' No login for this property, drop directly into it

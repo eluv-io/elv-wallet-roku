@@ -21,9 +21,11 @@ Build a version of the Media Wallet Roku channel that is branded for, and locked
    3 channel poster sizes and 3 splash screen sizes. See
    [`config/images/README.md`](config/images/README.md) for exact filenames and dimensions.
 
-3. **(Optional) Set start-screen branding in Creator Studio**: the in-app landing page uses the
-   Property's `start_screen_logo` and `start_screen_background` (falling back to the TV header
-   logo / TV background image when unset).
+3. **Set start-screen branding**: the landing page uses the Property's `start_screen_logo` and
+   `start_screen_background` from Creator Studio. Drop `start-screen-logo.png` and
+   `start-screen-background.jpg` into [`config/images/`](config/images/) to bake a fallback into
+   the app — shown instantly while the Property loads, and kept when the Creator Studio images
+   are unset.
 
 4. **Verify**: `./build.sh -v` checks the config without building.
 
@@ -45,9 +47,9 @@ wallet and each custom build are separate channels with separate signing keys.
 
 - `build.sh` copies `source/` into `custom_build/build/` (a disposable dir that mirrors the
   repo root layout: `source/` → `dist/`), patches the copy's `manifest` (title, version,
-  splash color), overwrites its poster/splash images, and writes the Property ID into its
-  `source/config/custom_build.json`, then compiles and zips it. The repo working tree is
-  not modified.
+  splash color), overwrites its poster/splash images, and writes the Property ID (plus the
+  baked-in start-screen image paths, when provided) into its `source/config/custom_build.json`,
+  then compiles and zips it. The repo working tree is not modified.
 - At runtime, `CustomBuild.bs` reads `pkg:/config/custom_build.json`. When `property_id` is
   non-empty the app runs in "single property mode": instead of the Dashboard, the app boots
   straight into `PropertyDetail` when signed in, or into `SinglePropertyLanding` when signed

@@ -80,10 +80,28 @@ sed \
     -e "s|^splash_color=.*|splash_color=${SPLASH_COLOR:-#000000}|" \
     ../source/manifest > "$BUILD_DIR/source/manifest"
 
+# Optional baked-in start screen branding (landing page logo/background).
+# When present, the app uses these instead of the Property's Creator Studio images.
+START_SCREEN_LOGO=""
+START_SCREEN_BG=""
+if [ -f config/images/start-screen-logo.png ] || [ -f config/images/start-screen-background.jpg ]; then
+    mkdir -p "$BUILD_DIR/source/images/startscreen"
+    if [ -f config/images/start-screen-logo.png ]; then
+        cp config/images/start-screen-logo.png "$BUILD_DIR/source/images/startscreen/"
+        START_SCREEN_LOGO="pkg:/images/startscreen/start-screen-logo.png"
+    fi
+    if [ -f config/images/start-screen-background.jpg ]; then
+        cp config/images/start-screen-background.jpg "$BUILD_DIR/source/images/startscreen/"
+        START_SCREEN_BG="pkg:/images/startscreen/start-screen-background.jpg"
+    fi
+fi
+
 # Runtime config consumed by CustomBuild.bs
 cat > "$BUILD_DIR/source/config/custom_build.json" <<EOF
 {
-    "property_id": "$PROPERTY_ID"
+    "property_id": "$PROPERTY_ID",
+    "start_screen_logo": "$START_SCREEN_LOGO",
+    "start_screen_background": "$START_SCREEN_BG"
 }
 EOF
 

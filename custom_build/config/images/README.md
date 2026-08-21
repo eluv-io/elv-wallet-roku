@@ -10,3 +10,12 @@ Place the following 6 JPGs in this directory (exact filenames and sizes):
 | `splash-screen_fhd.jpg`  | 1920x1080 | Splash screen                  |
 | `splash-screen_hd.jpg`   | 1280x720  | Splash screen                  |
 | `splash-screen_sd.jpg`   | 720x480   | Splash screen                  |
+
+Optionally, bake the sign-in landing page branding into the app. When present, these show
+immediately as a fallback while the Property loads; the Property's Creator Studio
+start-screen images are preferred and replace them when set:
+
+| File                          | Size (px)         | Used for                    |
+| ----------------------------- | ----------------- | --------------------------- |
+| `start-screen-logo.png`       | fits in 900x380   | Landing page logo           |
+| `start-screen-background.jpg` | 1920x1080         | Landing page background     |

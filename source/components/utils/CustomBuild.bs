@@ -18,4 +18,15 @@ namespace CustomBuild
     function isSinglePropertyMode() as boolean
         return CustomBuild.propertyId() <> ""
     end function
+
+    ' Baked-in start screen (landing page) branding, shown until the Property's
+    ' Creator Studio images (always preferred) are loaded. Empty string when the
+    ' build doesn't bundle one.
+    function startScreenLogo() as string
+        return CustomBuild.config().start_screen_logo ?? ""
+    end function
+
+    function startScreenBackground() as string
+        return CustomBuild.config().start_screen_background ?? ""
+    end function
 end namespace
