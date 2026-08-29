@@ -102,6 +102,11 @@ sub setupDisplaySettings(display, titleLabelSettings)
     title.width = width
 
     image = m.image
+    ' The fetched bitmap's size can be a few pixels off from the card size (it's scaled
+    ' server-side by height only). Zoom it to exactly fill the card, so it can't
+    ' poke out from under the dim overlay. Not set in XML because recycled nodes
+    ' might come back from setupAsBanner with "scaleToFit".
+    image.loadDisplayMode = "scaleToZoom"
     image.width = width
     image.height = height - titleHeight - SectionConstants.CAROUSEL_CARD_TITLE_TOP_PADDING - SectionConstants.CAROUSEL_CARD_TITLE_BOTTOM_PADDING
     ' Round down to a multiple of 3 to prevent scaling issues
