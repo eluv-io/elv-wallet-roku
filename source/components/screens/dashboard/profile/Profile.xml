@@ -3,50 +3,71 @@
     <children>
         <LayoutGroup
             layoutDirection="vert"
-            itemSpacings="[20]"
-            translation="[442,114]"
+            horizAlignment="center"
+            itemSpacings="[40]"
+            translation="[882,290]"
         >
-            <!-- Wrapping elements in a Rectangle is the easiest way I found to make
-                "translation" work inside a LayoutGroup -->
-            <Rectangle>
-                <TvLabel
-                    text="PROFILE"
-                    fontStyle="header_30"
-                    color="#979797"
-                    translation="[20,0]"
-                />
-            </Rectangle>
+            <LayoutGroup layoutDirection="horiz" itemSpacings="[40]">
+                <!-- Left column: Profile + App -->
+                <LayoutGroup layoutDirection="vert" itemSpacings="[12]">
+                    <!-- Wrapping elements in a Rectangle is the easiest way I found to make
+                        "translation" work inside a LayoutGroup -->
+                    <Rectangle>
+                        <TvLabel
+                            text="PROFILE"
+                            fontStyle="header_30"
+                            color="#979797"
+                            translation="[20,0]"
+                        />
+                    </Rectangle>
 
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="address" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="userid" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="address" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="userid" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
 
-            <Rectangle>
-                <TvLabel
-                    text="FABRIC"
-                    fontStyle="header_30"
-                    color="#979797"
-                    translation="[20,24]"
-                />
-            </Rectangle>
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="networkName" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="fabricnode" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="authservice" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
-            <Rectangle color="#232323" width="1036" height="82">
-                <TvLabel id="ethservice" fontStyle="header_30" translation="[20,24]" />
-            </Rectangle>
-            <Rectangle>
-                <TvButton text="Sign Out" id="btn_signout" translation="[320,0]" />
-            </Rectangle>
+                    <Rectangle>
+                        <TvLabel
+                            text="APP"
+                            fontStyle="header_30"
+                            color="#979797"
+                            translation="[20,24]"
+                        />
+                    </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="appversion" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                </LayoutGroup>
+
+                <!-- Right column: Fabric -->
+                <LayoutGroup layoutDirection="vert" itemSpacings="[12]">
+                    <Rectangle>
+                        <TvLabel
+                            text="FABRIC"
+                            fontStyle="header_30"
+                            color="#979797"
+                            translation="[20,0]"
+                        />
+                    </Rectangle>
+
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="networkName" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="fabricnode" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="authservice" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                    <Rectangle color="#232323" width="760" height="68">
+                        <TvLabel id="ethservice" fontStyle="label_24" translation="[20,20]" />
+                    </Rectangle>
+                </LayoutGroup>
+            </LayoutGroup>
+
+            <TvButton text="Sign Out" id="btn_signout" />
         </LayoutGroup>
     </children>
 </component>

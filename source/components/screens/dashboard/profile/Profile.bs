@@ -16,6 +16,10 @@ sub init()
     userId = base58.encode(userId)
     m.top.findNode("userid").text = `User ID: iusr${userId}`
 
+    appInfo = createObject("roAppInfo")
+    version = `${appInfo.getValue("major_version")}.${appInfo.getValue("minor_version")}.${appInfo.getValue("build_version")}`
+    m.top.findNode("appversion").text = `Version: ${version}`
+
     config = stores.fabricConfigStore().config
     networkName = config.qspace.names[0]
     m.top.findNode("fabricnode").text = `Fabric Node: ${config.network.services.fabric_api[0]}/s/${networkName}`
