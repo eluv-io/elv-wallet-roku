@@ -21,15 +21,21 @@ namespace UrlUtil
         if assetLinkJson = invalid
             return ""
         end if
-        if (assetLinkJson["/"].startsWith("/qfab/"))
+
+        slash = assetLinkJson["/"]
+        if(slash = invalid or slash = "")
+            return ""
+        end if
+
+        if (slash.startsWith?("/qfab/") = true)
             ' When the link contains "qfab", it also has a different "container" value,
             ' in that case we ignore [assetLinkJson["."].container]
             ' remove "/qfab/" prefix (6 chars)
             return `${baseUrl}q/${assetLinkJson["/"].mid(6)}`.EncodeUri()
         else
-            hash = assetLinkJson["."].container
+            hash = assetLinkJson["."]?.container
             ' remove "./" prefix (2 chars)
-            filePath = assetLinkJson["/"].mid(2)
+            filePath = slash.mid(2)
             return `${baseUrl}q/${hash}/${filePath}`.EncodeUri()
         end if
     end function
