@@ -47,3 +47,8 @@ end sub
 ' Overridable callback for when the view loses focus (goes in the backstack)
 sub onPause()
 end sub
+
+' Overridable callback for when a Dashboard tab is switched back to. Unlike [onResume] this
+' only fires on an actual tab change, not every time focus passes through the side nav.
+sub onTabShown(_ = invalid)
+end sub

@@ -99,6 +99,13 @@ sub onResume()
     onParentTranslationChanged()
 end sub
 
+' Re-fetch when the user tabs back in. Profile can change what Discover should show without
+' telling anyone - the staging flag swaps the content wholesale - and there's no signal to
+' observe, so a fetch per visit is the only way to catch it.
+sub onTabShown(_ = invalid)
+    stores.propertyStore()@.fetchDiscover()
+end sub
+
 sub onParentTranslationChanged()
     offset = m.top.getParent?()?.translation?[0] ?? 0
     padding = m.root.translation[0]
@@ -120,6 +127,12 @@ end sub
 sub onDiscoverRowsChanged(event)
     rows = event.getData()
     if rows = invalid or rows.count() = 0 then return
+
+    ' A re-fetch usually brings back the same rows. Rebuilding the list would reset focus to
+    ' the first card, so only do it when the rows are actually different.
+    signature = rowsSignature(rows)
+    if signature = m.rowsSignature then return
+    m.rowsSignature = signature
 
     content = CreateObject("roSGNode", "ContentNode")
     for each row in rows
@@ -151,6 +164,20 @@ sub setRowListContent(content)
     m.rowList.showRowLabel = showRowLabel
     m.rowList.content = content
 end sub
+
+' Identifies what the rows are made of, so an unchanged re-fetch can be ignored. Only the
+' titles and the Properties' identity and order matter - the cards are built from nothing else.
+function rowsSignature(rows) as string
+    parts = []
+    for each row in rows
+        ids = []
+        for each property in row.properties
+            ids.push(property.id)
+        end for
+        parts.push(`${row.title}:${ids.join(",")}`)
+    end for
+    return parts.join("|")
+end function
 
 ' [aa] is where TvLabel picks up the row title's font.
 function newRow(content, title as string)

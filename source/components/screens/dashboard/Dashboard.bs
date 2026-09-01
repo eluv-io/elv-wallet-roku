@@ -28,6 +28,7 @@ sub onTabSelected()
             m.tabCache[nextTabName] = m.tabContainer.createChild(nextTabName)
         else
             m.tabContainer.appendChild(cachedTab)
+            cachedTab@.onTabShown()
         end if
     end if
     m.tabContainer.getChild(0).setFocus(true)

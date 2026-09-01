@@ -1,2 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="BaseView" extends="Group" />
+<component name="BaseView" extends="Group">
+    <interface>
+        <function name="onTabShown" />
+    </interface>
+</component>
