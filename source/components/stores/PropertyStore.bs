@@ -5,7 +5,7 @@ import "pkg:/components/utils/Logger.bs"
 import "pkg:/components/utils/promise.bs"
 
 sub init()
-    ' m.top.properties is an array of properties that show up on the Discover page.
+    ' m.top.discoverRows are the categorized rows of properties on the Discover page.
     ' m.propertyMap is a cache of ALL properties keyed by their IDs.
     ' This includes properties individually fetched (e.g. from links or subproperty switching)
     m.propertyMap = {}
@@ -15,22 +15,24 @@ sub init()
 end sub
 
 sub wipe(_ = invalid)
-    m.top.properties = []
+    m.top.discoverRows = []
     m.top.sections = {}
     m.propertyMap = {}
     m.pageMap = {}
 end sub
 
-function fetchDiscoverableProperties(_ = invalid)
-    Logger.log("Starting Discover Property fetch")
+' Fetches the Discover page: its rows of properties, and every property they reference.
+function fetchDiscover(_ = invalid)
+    Logger.log("Starting Discover fetch")
     return promises.onThen(
-    PropertyApi.discoverableProperties(),
+    PropertyApi.discover(),
     sub (result)
-        properties = result.json.contents ?? []
+        properties = result.json.properties ?? {}
         propertyMap = {}
         pageMap = m.pageMap
 
-        for each item in properties
+        for each propertyId in properties
+            item = properties[propertyId]
             propertyMap[item.id] = item
             pages = pageMap[item.id] ?? {}
             pages[item.main_page.id] = item.main_page
@@ -40,9 +42,31 @@ function fetchDiscoverableProperties(_ = invalid)
 
         m.propertyMap = propertyMap
         m.pageMap = pageMap
-        m.top.properties = properties
-        Logger.log("Properties fetched and saved")
+        m.top.discoverRows = _buildDiscoverRows(result.json.contents ?? [], propertyMap)
+        Logger.log("Discover rows fetched and saved")
     end sub)
+end function
+
+' Resolves the property ids of every row into the property objects we just cached.
+' Rows of an unsupported type, or that reference nothing we know about, are dropped.
+function _buildDiscoverRows(contents, propertyMap) as object
+    rows = []
+    for each row in contents
+        if row.type <> "properties" then continue for
+
+        properties = []
+        for each propertyId in (row.property_ids ?? [])
+            property = propertyMap[propertyId]
+            if property <> invalid then properties.push(property)
+        end for
+        if properties.count() = 0 then continue for
+
+        ' Featured rows get a hero treatment on mobile. On TV they're just a
+        ' row of cards without a title, same as the other TV apps.
+        title = row.featured = true ? "" : (row.title ?? "")
+        rows.push({ title: title, properties: properties })
+    end for
+    return rows
 end function
 
 ' Returns a Promise that will resolve to a Property object.

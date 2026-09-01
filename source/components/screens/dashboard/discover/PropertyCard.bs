@@ -1,13 +1,33 @@
-import "pkg:/components/utils/NftOps.bs"
-import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/UrlUtil.bs"
 
 sub init()
-    m.image = m.top
-    m.image.loadDisplayMode = "scaleToZoom"
+    m.image = m.top.findNode("image")
+    m.sheen = m.top.findNode("sheen")
+    m.ring = m.top.findNode("ring")
+end sub
+
+' The row list sets our size and our content in no particular order, and the image is
+' requested at our height - so (re)build the uri from both.
+sub onSizeChanged()
+    for each node in [m.image, m.sheen, m.ring]
+        node.width = m.top.width
+        node.height = m.top.height
+    end for
+    updateImage()
 end sub
 
 sub onContentChanged()
-    property = m.top.itemContent.aa
+    updateImage()
+end sub
+
+sub updateImage()
+    property = m.top.itemContent?.aa
     uri = UrlUtil.imageLinkToUrl(property?.image, m.image.height)
-    m.image.uri = uri
+    if m.image.uri <> uri then m.image.uri = uri
+end sub
+
+sub onFocusPercentChanged()
+    focusPercent = m.top.focusPercent
+    m.sheen.opacity = focusPercent
+    m.ring.opacity = focusPercent
 end sub

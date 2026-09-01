@@ -2,36 +2,96 @@ import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/UrlUtil.bs"
 import "pkg:/components/screens/signin/SignInUtil.bs"
 import "pkg:/components/stores/stores.bs"
+import "pkg:/components/utils/str.bs"
+
+' Card art is 2:3. 1080p pixels are 2x Android's dp, so these are its 120x180dp cards.
+const CARD_WIDTH = 240
+const CARD_HEIGHT = 360
+const CARD_SPACING = 20
+' Gap between a row's title and its cards, and between one row and the next.
+const ROW_TITLE_GAP = 50
+const ROW_SPACING = 50
+const ROW_TITLE_FONT = "28_medium"
+' Keeps the first row's title clear of the top of the list.
+const ROWS_TOP_PADDING = 36
+
+' The hero sits at fixed positions rather than growing to fit: every Property reserves the
+' same room for its logo and description, so the rows below never move as focus changes.
+const LOGO_TOP = 160
+const LOGO_HEIGHT = 180
+const LOGO_MAX_WIDTH = 1000
+const HERO_TEXT_FONT = "26_semibold"
+const HERO_TEXT_LINES = 3
+const HERO_TEXT_LINE_SPACING = 10
+' Between the logo box and the description, and between the description and the rows.
+const HERO_TEXT_TOP_GAP = 55
+const HERO_TEXT_BOTTOM_GAP = 22
 
 sub init()
-    stores.propertyStore()@.fetchDiscoverableProperties()
+    stores.propertyStore()@.fetchDiscover()
 
     m.root = m.top.findNode("root")
     m.logo = m.top.findNode("logo")
+    m.logoText = m.top.findNode("logoText")
+    m.heroDescription = m.top.findNode("heroDescription")
     m.bgImage = m.top.findNode("bgImage")
-    grid = m.top.findNode("grid")
-    m.grid = grid
+    m.scrims = m.top.findNode("scrims")
+    m.rowsFade = m.top.findNode("rowsFade")
 
-    grid.ObserveFieldScoped("currFocusRow", "onFocusRowChanged")
-    grid.ObserveFieldScoped("itemSelected", "onPropertySelected")
-    grid.ObserveFieldScoped("itemFocused", "onPropertyFocused")
-    ' When the logo gains focus it means the grid is no longer focused
-    m.logo.ObserveFieldScoped("focusedChild", "onLogoFocused")
+    layoutHero()
 
-    observe(stores.propertyStore(), "properties", onPropertiesChanged)
+    rowList = m.top.findNode("rowList")
+    m.rowList = rowList
+    rowList.translation = [0, m.rowsTop + ROWS_TOP_PADDING]
+    rowList.rowItemSize = [[CARD_WIDTH, CARD_HEIGHT]]
+    rowList.rowItemSpacing = [[CARD_SPACING, 0]]
+    rowList.rowSpacings = [ROW_SPACING]
+    rowList.rowLabelOffset = [[0, ROW_TITLE_GAP]]
+    m.rowTitleHeight = measureLine(ROW_TITLE_FONT)
+    rowList.rowHeights = [m.rowTitleHeight + ROW_TITLE_GAP + CARD_HEIGHT]
+
+    observe(rowList, "rowItemSelected", onPropertySelected)
+    observe(rowList, "rowItemFocused", onPropertyFocused)
+    observe(m.logo, "loadStatus", onLogoLoaded)
+
+    observe(stores.propertyStore(), "discoverRows", onDiscoverRowsChanged)
 end sub
+
+' Places the logo and the description, and works out where that leaves the rows.
+sub layoutHero()
+    m.logo.translation = [0, LOGO_TOP]
+    ' The name stands in for a missing logo, on the logo box's bottom edge.
+    m.logoText.translation = [0, LOGO_TOP + LOGO_HEIGHT - measureLine("48_bold")]
+
+    descriptionTop = LOGO_TOP + LOGO_HEIGHT + HERO_TEXT_TOP_GAP
+    descriptionHeight = (measureLine(HERO_TEXT_FONT) * HERO_TEXT_LINES) + (HERO_TEXT_LINE_SPACING * (HERO_TEXT_LINES - 1))
+    m.heroDescription.translation = [0, descriptionTop]
+    m.heroDescription.height = descriptionHeight
+
+    m.rowsTop = descriptionTop + descriptionHeight + HERO_TEXT_BOTTOM_GAP
+end sub
+
+' Height of a single line of text in [fontStyle].
+function measureLine(fontStyle as string) as float
+    label = createObject("roSGNode", "TvLabel")
+    label.update({ fontStyle: fontStyle, text: "A" })
+    return label.boundingRect().height
+end function
 
 sub initAfterParenting()
     m.top.getParent().observeFieldScoped("translation", "onParentTranslationChanged")
     onParentTranslationChanged()
 
     ' init with dummy cards that shimmer while we load real data
-    if m.grid.content = invalid
+    if m.rowList.content = invalid
         content = CreateObject("roSGNode", "ContentNode")
-        for i = 1 to 10
-            content.createChild("ContentNode")
+        for i = 1 to 2
+            row = newRow(content, "")
+            for j = 1 to 8
+                row.createChild("AAContentNode")
+            end for
         end for
-        m.grid.content = content
+        setRowListContent(content)
     end if
 end sub
 
@@ -43,20 +103,99 @@ sub onParentTranslationChanged()
     offset = m.top.getParent?()?.translation?[0] ?? 0
     padding = m.root.translation[0]
 
-    ' Calc grid itemSize so it fits [numColumns] with equal padding on left/right
-    cols = m.grid.numColumns
-    itemWidth = (1920 - offset - (padding * 2)) / cols
-    itemWidth -= m.grid.itemSpacing[0]
-    itemHeight = itemWidth * 3 / 2
-    m.grid.itemSize = [itemWidth, itemHeight]
-
-    ' Give bgImage negative translation to make sure it starts at the global x=0,
-    ' even if parent is translated to have an offset.
+    ' Give the background and its scrims negative translation to make sure they start
+    ' at the global x=0, even though the parent is translated to clear the side nav.
     m.bgImage.translation = [-offset, 0]
+    m.scrims.translation = [-offset, 0]
+    m.rowsFade.translation = [-offset, 1080 - m.rowsFade.height]
+
+    rowWidth = 1920 - offset - padding
+    rowsHeight = 1080 - m.rowList.translation[1]
+    m.rowList.itemSize = [rowWidth, m.rowList.rowHeights[0]]
+    ' Rows scroll up past the top of the list, keep them from drawing over the hero info.
+    m.rowList.clippingRect = [0, 0, rowWidth, rowsHeight]
+    m.rowList.itemClippingRect = { x: 0, y: 0, width: rowWidth, height: rowsHeight }
+end sub
+
+sub onDiscoverRowsChanged(event)
+    rows = event.getData()
+    if rows = invalid or rows.count() = 0 then return
+
+    content = CreateObject("roSGNode", "ContentNode")
+    for each row in rows
+        rowNode = newRow(content, row.title)
+        for each property in row.properties
+            rowNode.createChild("AAContentNode").aa = property
+        end for
+    end for
+    setRowListContent(content)
+
+    ' Nothing is focused until the user moves, so preview the first Property meanwhile.
+    showHeroInfo(rows[0].properties[0])
+end sub
+
+' Sizes every row before handing over the content: a row with no title reserves no room
+' for one, so its cards sit where the title would have been.
+sub setRowListContent(content)
+    rowCount = content.getChildCount()
+    rowHeights = CreateObject("roArray", rowCount, false)
+    showRowLabel = CreateObject("roArray", rowCount, false)
+
+    for i = 0 to rowCount - 1
+        titled = content.getChild(i).title <> ""
+        showRowLabel[i] = titled
+        rowHeights[i] = titled ? m.rowTitleHeight + ROW_TITLE_GAP + CARD_HEIGHT : CARD_HEIGHT
+    end for
+
+    m.rowList.rowHeights = rowHeights
+    m.rowList.showRowLabel = showRowLabel
+    m.rowList.content = content
+end sub
+
+' [aa] is where TvLabel picks up the row title's font.
+function newRow(content, title as string)
+    row = content.createChild("AAContentNode")
+    row.title = title
+    row.aa = { fontStyle: ROW_TITLE_FONT }
+    return row
+end function
+
+sub onPropertyFocused()
+    showHeroInfo(propertyAt(m.rowList.rowItemFocused))
+end sub
+
+' Swaps the background, logo and description over to [property].
+sub showHeroInfo(property)
+    if property = invalid then return
+
+    bgImageLink = property.image_tv ?? property.main_page?.layout?.background_image
+    m.bgImage@.changeImage(UrlUtil.imageLinkToUrl(bgImageLink, m.bgImage.height))
+
+    logoLink = property.tv_header_logo ?? property.header_logo
+    logoUrl = UrlUtil.imageLinkToUrl(logoLink, LOGO_HEIGHT)
+    m.logo.width = LOGO_MAX_WIDTH
+    m.logo.uri = logoUrl
+    ' Properties without a logo show their name instead.
+    if logoUrl = ""
+        title = property.title
+        m.logoText.text = strNotEmpty(title) ? title : (property.name ?? "")
+    else
+        m.logoText.text = ""
+    end if
+
+    m.heroDescription.text = property.main_page_description ?? ""
+end sub
+
+' Shrink the logo to the bitmap's real width, or a narrow logo ends up centered
+' inside its max-width box instead of left-aligned.
+sub onLogoLoaded()
+    if m.logo.loadStatus = "ready" and m.logo.width > m.logo.bitmapWidth
+        m.logo.width = m.logo.bitmapWidth
+    end if
 end sub
 
 sub onPropertySelected()
-    property = m.grid.content.getchild(m.grid.itemfocused)?.aa
+    property = propertyAt(m.rowList.rowItemSelected)
     if property = invalid
         Toast.show("Error loading property")
         return
@@ -81,53 +220,8 @@ sub onPropertySelected()
     end if
 end sub
 
-' The logo is our "focus placeholder" for when we want to have nothing selected in the grid
-sub onLogoFocused()
-    if m.logo.IsInFocusChain()
-        m.bgImage@.changeImage("")
-    end if
-end sub
-
-sub onPropertyFocused()
-    property = m.grid.content?.getchild?(m.grid.itemfocused)?.aa
-    if property = invalid
-        return
-    end if
-    m.bgImage@.changeImage(UrlUtil.imageLinkToUrl(property.image_tv, m.bgImage.height))
-end sub
-
-sub onFocusRowChanged()
-    ' Offset the entire Discover screen to move the logo up when scrolling the Property list
-    rowHeight = m.grid.itemSize[1]
-    offset = rowHeight * m.grid.currFocusRow
-    maxOffset = m.logo.height + m.logo.translation[1]
-    if offset > (maxOffset)
-        offset = maxOffset
-    end if
-    m.root.translation = [m.root.translation[0], -offset]
-end sub
-
-sub onPropertiesChanged(event)
-    properties = event.getData()
-    content = CreateObject("roSGNode", "ContentNode")
-    if properties <> invalid and properties.count() > 0
-        for each property in properties
-            content.createChild("AAContentNode").aa = property
-        end for
-    end if
-    m.grid.content = content
-end sub
-
-function onKeyEvent(key as string, press as boolean) as boolean
-    if press
-        if key = "up" and m.grid.IsInFocusChain()
-            ' only gets called when grid didn't already handle the "up" event
-            m.logo.setFocus(true)
-            return true
-        else if key = "down" and m.logo.IsInFocusChain()
-            m.grid.setFocus(true)
-            return true
-        end if
-    end if
-    return false
+' [index] is a [rowIndex, itemIndex] pair, as reported by the RowList.
+function propertyAt(index)
+    if index.count() < 2 then return invalid
+    return m.rowList.content?.getChild(index[0])?.getChild(index[1])?.aa
 end function
