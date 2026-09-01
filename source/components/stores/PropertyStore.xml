@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="PropertyStore" extends="Node">
     <interface>
-        <!-- Array of all Properties known to the app -->
-        <field id="properties" type="array" value="[]" />
+        <!-- Categorized rows of Properties that make up the Discover page. -->
+        <!-- Each row is { title: string, properties: [property] } -->
+        <field id="discoverRows" type="array" value="[]" />
         <!-- A map of PropertyID_PageID to list of sections in the papge -->
         <field id="sections" type="assocArray" value="{}" />
 
         <function name="wipe" />
-        <function name="fetchDiscoverableProperties" />
+        <function name="fetchDiscover" />
         <function name="fetchSections" />
         <function name="getPropertyById" />
         <function name="getPageById" />

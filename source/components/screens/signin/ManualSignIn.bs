@@ -61,7 +61,7 @@ sub doAuth(isSignUp as boolean)
     loginPromise = stores.tokenStore()@.passwordAuth(m.emailTextBox.text, m.pwTextBox.text, m.top.property, isSignUp)
     promises.chain(loginPromise).then(function(result)
         ' Re-fetch Properties before navigating away from sign-in
-        return stores.propertyStore()@.fetchDiscoverableProperties()
+        return stores.propertyStore()@.fetchDiscover()
     end function).then(sub (result)
         SignInUtil.onAuthSuccess(m.top.property, m.top.nextScreenName, m.top.nextScreenArgs)
     end sub).catch(sub(e)

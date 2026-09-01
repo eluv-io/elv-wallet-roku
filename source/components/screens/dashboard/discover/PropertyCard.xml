@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="PropertyCard" extends="ShimmerPoster">
+<component name="PropertyCard" extends="Group">
     <interface>
         <field id="itemContent" type="node" onChange="onContentChanged" />
+        <field id="width" type="float" onChange="onSizeChanged" />
+        <field id="height" type="float" onChange="onSizeChanged" />
+        <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />
     </interface>
     <children>
+        <!-- The mask rounds the card's corners. The art and the focus sheen live inside it;
+        the ring is drawn on the same outline, so it stays outside. -->
+        <MaskGroup id="mask" maskUri="pkg:/images/card_mask.png">
+            <ShimmerPoster id="image" loadDisplayMode="scaleToZoom" />
+            <Poster
+                id="sheen"
+                uri="pkg:/images/card_sheen.png"
+                loadDisplayMode="scaleToFill"
+                opacity="0"
+            />
+        </MaskGroup>
+        <Poster id="ring" uri="pkg:/images/card_focus_ring.png" opacity="0" />
     </children>
 </component>

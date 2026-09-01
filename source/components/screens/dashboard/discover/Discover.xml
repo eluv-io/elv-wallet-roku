@@ -1,32 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="Discover" extends="BaseView" initialFocus="grid">
+<component name="Discover" extends="BaseView" initialFocus="rowList">
     <children>
         <ImageFader id="bgImage" width="1920" height="1080" />
-        <Group id="root" translation="[69,0]">
-            <!-- Roku is dumb so if we don't give it the correct aspect ratio, we're gonna have a
-            bad
-            time raw size of the current bitmap is 1569x376 -->
+        <!-- Scrims over the hero image, so the logo/text/rows stay readable -->
+        <Group id="scrims">
             <Poster
-                uri="pkg:/images/discover_logo.png"
-                id="logo"
-                height="210"
-                focusable="true"
-                width="879"
-                translation="[0, 55]"
-                loadSync="true"
-                loadDisplayMode="scaleToFit"
+                uri="pkg:/images/scrim_left.png"
+                width="1920"
+                height="1080"
+                loadDisplayMode="scaleToFill"
             />
-            <MarkupGrid
-                id="grid"
-                itemComponentName="PropertyCard"
-                numColumns="5"
-                translation="[0, 288]"
-                numRows="5"
-                itemSize="[306, 456]"
-                itemSpacing="[24,30]"
-                vertFocusAnimationStyle="fixedFocus"
-                drawFocusFeedback="true"
+            <Poster
+                uri="pkg:/images/scrim_bottom.png"
+                width="1920"
+                height="1080"
+                loadDisplayMode="scaleToFill"
             />
         </Group>
+        <Group id="root" translation="[124,0]">
+            <!-- Fixed box for the focused Property's logo, so the text below it doesn't jump as
+            focus moves between Properties with differently shaped logos. The width is a maximum:
+            it shrinks to the bitmap's real width once loaded, to keep the logo left-aligned. -->
+            <Poster id="logo" width="1000" height="180" loadDisplayMode="scaleToFit" />
+            <!-- Stands in for the logo when a Property doesn't have one -->
+            <TvLabel id="logoText" fontStyle="48_bold" color="#F5F5F5FF" width="1000" />
+            <!-- The Property's Discover-page description. Always reserves its full height,
+            whether or not the Property defines one, so the rows below never move. -->
+            <TvLabel
+                id="heroDescription"
+                fontStyle="26_semibold"
+                color="#F5F5F5FF"
+                width="800"
+                wrap="true"
+                maxLines="3"
+                lineSpacing="10"
+                vertAlign="top"
+            />
+            <!-- fixedFocus in both directions keeps the focused card pinned to the top-left of
+            the list. It also means the row doesn't loop back around, so Left on the first card
+            falls through to the Dashboard, which hands focus to the nav rail. -->
+            <RowList
+                id="rowList"
+                itemComponentName="PropertyCard"
+                rowTitleComponentName="TvLabel"
+                rowFocusAnimationStyle="fixedFocus"
+                vertFocusAnimationStyle="fixedFocus"
+                numRows="2"
+                drawFocusFeedback="false"
+            />
+        </Group>
+        <!-- Fades the bottom row out instead of letting the screen edge chop it off -->
+        <Poster
+            id="rowsFade"
+            uri="pkg:/images/rows_fade.png"
+            width="1920"
+            height="308"
+            loadDisplayMode="scaleToFill"
+        />
     </children>
 </component>
