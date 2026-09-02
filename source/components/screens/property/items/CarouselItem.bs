@@ -44,6 +44,10 @@ sub onContentChanged()
         permissions = sectionItem.permissions._content
     end if
 
+    progress = PlaybackStore.getPlaybackProgress(content?.item?.media?.id)
+    m.playbackProgressBar.progress = progress
+    m.playbackProgressBar.visible = progress > 0
+
     if content.bannerImageLink <> invalid
         setupAsBanner(content.bannerImageLink)
     else
@@ -66,10 +70,6 @@ sub onContentChanged()
         m.purchaseOptionsLabel.visible = false
         m.overlayBg.opacity = 0.0
     end if
-
-    progress = PlaybackStore.getPlaybackProgress(content?.item?.media?.id)
-    m.playbackProgressBar.progress = progress
-    m.playbackProgressBar.visible = progress > 0
 
     onFocusPercentChanged()
 end sub
