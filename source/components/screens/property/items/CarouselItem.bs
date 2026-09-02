@@ -117,7 +117,7 @@ sub setupDisplaySettings(display, titleLabelSettings)
     m.overlayBg.height = image.height
     updateOverlayTexts(display)
     ' Text padding depends on if this is a Wide or not
-    textPadding = (image.width / image.height) > 1 ? 36 : 24
+    textPadding = (image.width / image.height) > 1 ? 18 : 15
     updateOverlayTextPositions(image.width, textPadding)
 
     imageLink = DisplaySettings.getThumbnailAndRatio(display)?.thumbnail
