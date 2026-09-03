@@ -6,6 +6,7 @@ import "pkg:/components/utils/MediaItemUtil.bs"
 import "pkg:/components/stores/permissions/PermissionUtil.bs"
 import "pkg:/components/utils/NftOps.bs"
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/PixelUtil.bs"
 
 sub init()
     m.image = m.top.findNode("image")
@@ -112,9 +113,14 @@ sub setupDisplaySettings(display, titleLabelSettings)
     ' Round down to a multiple of 3 to prevent scaling issues
     image.height -= image.height mod 3
     m.overlay.width = image.width
-    m.overlayBg.width = image.width
+    ' The dim Rectangle rasterizes short of the Poster on its right and bottom edges, even
+    ' when both report identical bounds, leaving an undimmed 1px sliver of image. The gap is
+    ' one *physical* pixel, so the correction has to be converted out of design pixels or it
+    ' comes up short on a 720p UI (where the card also lands on a fractional physical y).
+    overhang = PixelUtil.realPixelsToDesign(1)
+    m.overlayBg.width = image.width + overhang
     m.overlay.height = image.height
-    m.overlayBg.height = image.height
+    m.overlayBg.height = image.height + overhang
     updateOverlayTexts(display)
     ' Text padding depends on if this is a Wide or not
     textPadding = (image.width / image.height) > 1 ? 18 : 15

@@ -3,4 +3,14 @@ namespace PixelUtil
         resolutionFactor = CreateObject("roDeviceInfo").GetUIResolution().width / 1920
         return rokuDimensionValue * resolutionFactor
     end function
+
+    ' The number of design pixels needed to cover [realPixels] physical pixels, rounded up.
+    ' 1 physical pixel is 1 design pixel on a 1080p UI, but 1.5 on a 720p one.
+    function realPixelsToDesign(realPixels)
+        resolutionFactor = CreateObject("roDeviceInfo").GetUIResolution().width / 1920
+        value = realPixels / resolutionFactor
+        result = Int(value)
+        if result < value then result += 1
+        return result
+    end function
 end namespace
