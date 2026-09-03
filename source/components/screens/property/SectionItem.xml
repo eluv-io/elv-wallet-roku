@@ -8,5 +8,6 @@
 
         <field id="itemHasFocus" type="boolean" onChange="delegate" />
         <field id="focusPercent" type="float" onChange="delegate" />
+        <field id="rowListHasFocus" type="boolean" onChange="delegate" />
     </interface>
 </component>

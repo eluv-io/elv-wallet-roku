@@ -75,7 +75,7 @@ sub onContentChanged()
 end sub
 
 sub onFocusPercentChanged()
-    focusPercent = m.top.focusPercent
+    focusPercent = m.top.rowListHasFocus ? m.top.focusPercent : 0
     if m.locked = true
         ' always show dim for locked items
         m.overlayBg.opacity = 1.0

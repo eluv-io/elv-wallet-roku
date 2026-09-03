@@ -7,6 +7,10 @@
         <field id="height" type="float" />
 
         <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />
+        <!-- The RowList keeps focusPercent at 1 on the last-focused item even after focus
+        leaves the list (e.g. up to the search/profile buttons), so the dim has to be
+        gated on the list actually holding focus. -->
+        <field id="rowListHasFocus" type="boolean" onChange="onFocusPercentChanged" />
     </interface>
     <children>
         <Poster id="image" />
