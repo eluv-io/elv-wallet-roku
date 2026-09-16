@@ -45,7 +45,6 @@ sub init()
     rowList.translation = [0, m.rowsTop + ROWS_TOP_PADDING]
     rowList.rowItemSize = [[CARD_WIDTH, CARD_HEIGHT]]
     rowList.rowItemSpacing = [[CARD_SPACING, 0]]
-    rowList.rowSpacings = [ROW_SPACING]
     rowList.rowLabelOffset = [[0, ROW_TITLE_GAP]]
     m.rowTitleHeight = measureLine(ROW_TITLE_FONT)
     rowList.rowHeights = [m.rowTitleHeight + ROW_TITLE_GAP + CARD_HEIGHT]
@@ -148,19 +147,23 @@ sub onDiscoverRowsChanged(event)
 end sub
 
 ' Sizes every row before handing over the content: a row with no title reserves no room
-' for one, so its cards sit where the title would have been.
+' for one, so its cards sit where the title would have been. rowSpacings needs an entry
+' per row too - a shorter array is ignored outright, leaving the rows touching.
 sub setRowListContent(content)
     rowCount = content.getChildCount()
     rowHeights = CreateObject("roArray", rowCount, false)
+    rowSpacings = CreateObject("roArray", rowCount, false)
     showRowLabel = CreateObject("roArray", rowCount, false)
 
     for i = 0 to rowCount - 1
         titled = content.getChild(i).title <> ""
         showRowLabel[i] = titled
         rowHeights[i] = titled ? m.rowTitleHeight + ROW_TITLE_GAP + CARD_HEIGHT : CARD_HEIGHT
+        rowSpacings[i] = ROW_SPACING
     end for
 
     m.rowList.rowHeights = rowHeights
+    m.rowList.rowSpacings = rowSpacings
     m.rowList.showRowLabel = showRowLabel
     m.rowList.content = content
 end sub
