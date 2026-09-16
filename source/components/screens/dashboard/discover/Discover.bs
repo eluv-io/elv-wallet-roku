@@ -203,8 +203,12 @@ sub showHeroInfo(property)
 
     logoLink = property.tv_header_logo ?? property.header_logo
     logoUrl = UrlUtil.imageLinkToUrl(logoLink, LOGO_HEIGHT)
-    m.logo.width = LOGO_MAX_WIDTH
-    m.logo.uri = logoUrl
+    ' Only touch the Poster when the logo actually changes: re-setting the same uri doesn't
+    ' reload it, so loadStatus never moves and onLogoLoaded would never restore the width.
+    if logoUrl <> m.logo.uri
+        m.logo.width = LOGO_MAX_WIDTH
+        m.logo.uri = logoUrl
+    end if
     ' Properties without a logo show their name instead.
     if logoUrl = ""
         title = property.title
