@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="FilterChip" extends="Group">
+    <interface>
+        <!-- The filter value this chip stands for, and its label in "text" style. -->
+        <field id="text" type="string" onChange="onTextChanged" />
+        <!-- When set, the chip renders as the image instead of a text pill. -->
+        <field id="imageUri" type="string" onChange="onImageUriChanged" />
+        <!-- Secondary chips sit on a transparent background until selected or focused. -->
+        <field id="secondary" type="boolean" value="false" onChange="updateVisuals" />
+        <field id="selected" type="boolean" value="false" onChange="updateVisuals" />
+        <!-- The chip's measured size. Width changes once an image loads, so the row re-lays out. -->
+        <field id="chipHeight" type="float" />
+        <field id="chipWidth" type="float" />
+    </interface>
+    <children>
+        <Poster id="bg" uri="pkg:/images/rounded/$$RES$$.9.png" />
+        <TvLabel id="label" fontStyle="label_37" />
+        <Poster id="image" visible="false" />
+    </children>
+</component>

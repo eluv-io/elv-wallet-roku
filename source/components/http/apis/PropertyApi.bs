@@ -32,9 +32,20 @@ namespace PropertyApi
         return http.post(url, formatJson(sectionIds))
     end function
 
-    function search(propertyId as string, query as string) as object
+    ' The primary/secondary filters a Property offers on its search screen.
+    function getSearchFilters(propertyId as string) as object
+        url = `${baseUrl()}/mw/properties/${propertyId}/filters`
+        return http.get(url)
+    end function
+
+    ' [attributes] maps a filter attribute id to the selected values, e.g. { genre: ["Action"] }.
+    function search(propertyId as string, query as string, attributes = invalid as object) as object
         url = `${baseUrl()}/mw/properties/${propertyId}/search`
-        return http.post(url, formatJson({ search_term: query }))
+        body = { search_term: query }
+        if attributes <> invalid and attributes.count() > 0
+            body.attributes = attributes
+        end if
+        return http.post(url, formatJson(body))
     end function
 
     function getMediaItems(propertyId as string, mediaItemIds) as object

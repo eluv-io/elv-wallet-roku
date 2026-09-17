@@ -1,0 +1,128 @@
+import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/str.bs"
+
+' Image-style filter chips are built and working, but switched off - we're shipping text chips
+' only for now. Flip this to true to bring them back; nothing else needs changing.
+#const IMAGE_FILTERS = false
+
+' Builds the filter model the Search screen renders, out of a Property's /filters response.
+' Like the Android and tvOS apps, a Property defines a single "primary" filter whose values
+' each carry their own "secondary" filter.
+namespace SearchFilters
+    ' The server sends an empty filter value to mean "everything". We show it as a chip, and
+    ' leave it out of the search request.
+    const ALL = "All"
+
+    const STYLE_IMAGE = "image"
+    const STYLE_TEXT = "text"
+
+    ' The height every image-style chip is laid out at. Widths follow each image's own shape.
+    const IMAGE_HEIGHT = 80
+
+    ' Returns the primary filter as
+    '   { id, title, style, values: [{ value, imageUri, nextFilter }] }
+    ' or invalid when the Property doesn't define one. [nextFilter] has that same shape.
+    function buildPrimaryFilter(filtersJson, property) as object
+        attributes = filtersJson?.attributes
+        if attributes = invalid then return invalid
+
+        primaryAttribute = attributes[filtersJson.primary_filter ?? ""]
+        if primaryAttribute = invalid then return invalid
+
+        options = []
+        for each option in filtersJson.filter_options ?? []
+            options.push(_primaryOption(option))
+        end for
+
+        return _build(primaryAttribute, options, filtersJson.secondary_filter, attributes, _primaryStyle(property, options))
+    end function
+
+    ' An explicit "primary_filter_style" always wins. Properties configured before that field
+    ' existed only have images to go by, so - like Android and tvOS - we show them when there's
+    ' no style saying otherwise.
+    function _primaryStyle(property, options) as string
+        style = property?.search?.primary_filter_style
+        if strNotEmpty(style) then return _styleFrom(style)
+        for each option in options
+            if strNotEmpty(option.imageUri) then return STYLE_IMAGE
+        end for
+        return STYLE_TEXT
+    end function
+
+    function _styleFrom(style) as string
+        #if IMAGE_FILTERS
+            if LCase(style ?? "") = STYLE_IMAGE then return STYLE_IMAGE
+        #end if
+        return STYLE_TEXT
+    end function
+
+    ' [options] describe [attribute]'s values. When there are none, the attribute's own tags are
+    ' the values, and they all share the Property-level secondary filter ([defaultNextAttribute]).
+    function _build(attribute, options, defaultNextAttribute, attributeMap, style as string) as object
+        values = []
+        if options.count() = 0
+            nextFilter = invalid
+            nextAttribute = attributeMap[defaultNextAttribute ?? ""]
+            if nextAttribute <> invalid
+                nextFilter = _build(nextAttribute, [], invalid, attributeMap, STYLE_TEXT)
+            end if
+            for each tag in attribute.tags ?? []
+                values.push({ value: tag, imageUri: "", nextFilter: nextFilter })
+            end for
+        else
+            for each option in options
+                nextFilter = invalid
+                nextAttribute = attributeMap[option.nextAttribute ?? ""]
+                if nextAttribute <> invalid
+                    nextFilter = _build(nextAttribute, option.nextOptions, invalid, attributeMap, _styleFrom(option.nextStyle))
+                end if
+                values.push({ value: option.value, imageUri: option.imageUri, nextFilter: nextFilter })
+            end for
+        end if
+        return { id: attribute.id, title: attribute.title ?? "", style: style, values: values }
+    end function
+
+    ' Primary and secondary options carry the same data under different keys. Normalizing them
+    ' lets [_build] treat both the same way.
+    function _primaryOption(option) as object
+        nextOptions = []
+        for each nextOption in option.secondary_filter_options ?? []
+            nextOptions.push(_secondaryOption(nextOption))
+        end for
+        return {
+            value: _valueOrAll(option.primary_filter_value)
+            imageUri: _imageUri(option.primary_filter_image_tv, option.primary_filter_image)
+            nextAttribute: option.secondary_filter_attribute
+            nextOptions: nextOptions
+            nextStyle: option.secondary_filter_style
+        }
+    end function
+
+    function _secondaryOption(option) as object
+        return {
+            value: _valueOrAll(option.secondary_filter_value)
+            imageUri: _imageUri(option.secondary_filter_image_tv, option.secondary_filter_image)
+            nextAttribute: invalid
+            nextOptions: []
+            nextStyle: invalid
+        }
+    end function
+
+    function _valueOrAll(value) as string
+        if strNotEmpty(value) then return value
+        return ALL
+    end function
+
+    ' Prefer the TV-specific image, like the Property's header logo does. With [IMAGE_FILTERS]
+    ' off every value comes back imageless, which is what keeps the chips textual: a row only
+    ' draws an image chip for a value that actually has one.
+    function _imageUri(tvLink, link) as string
+        #if IMAGE_FILTERS
+            uri = UrlUtil.imageLinkToUrl(tvLink, IMAGE_HEIGHT)
+            if uri <> "" then return uri
+            return UrlUtil.imageLinkToUrl(link, IMAGE_HEIGHT)
+        #else
+            return ""
+        #end if
+    end function
+end namespace

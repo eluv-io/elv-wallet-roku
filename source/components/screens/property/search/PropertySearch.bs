@@ -1,16 +1,22 @@
 import "pkg:/components/http/apis/PropertyApi.bs"
 import "pkg:/components/screens/property/CarouselHelpers.bs"
+import "pkg:/components/screens/property/search/SearchFilters.bs"
 import "pkg:/components/stores/permissions/PermissionsResolver.bs"
 import "pkg:/components/utils/UrlUtil.bs"
+
+' Where the filter rows start, and the gaps around them.
+const FILTERS_X = 96
+const FILTERS_TOP_GAP = 30
+const FILTERS_ROW_GAP = 18
+
 sub init()
     m.dummyLabel = createObject("roSGNode", "TvLabel")
     m.spinner = m.top.findNode("spinner")
 
     m.rowList = m.top.findNode("rowList")
-    listLeftPadding = m.rowList.translation[0]
-    m.rowList.rowWidth = 1920 - listLeftPadding
-    m.rowList.itemClippingRect = { x: -listLeftPadding, y: 0, width: 1920, height: 1080 }
-    m.rowList.clippingRect = [-listLeftPadding, 0, 1920, 1080]
+    ' The list's resting position. It moves down as the filters above it grow.
+    m.listTop = m.rowList.translation[1]
+    m.rowList.rowWidth = 1920 - FILTERS_X
     observe(m.rowList, "rowItemSelected", onSectionItemSelected)
 
     m.gridGroup = m.top.findNode("gridGroup")
@@ -28,15 +34,29 @@ sub init()
 
     m.header = m.top.findNode("header")
 
+    m.primaryFilters = m.top.findNode("primaryFilters")
+    observe(m.primaryFilters, "clickedIndex", onPrimaryFilterClicked)
+    observe(m.primaryFilters, "rowHeight", layoutFilters)
+    m.secondaryFilters = m.top.findNode("secondaryFilters")
+    observe(m.secondaryFilters, "clickedIndex", onSecondaryFilterClicked)
+    observe(m.secondaryFilters, "rowHeight", layoutFilters)
+    m.selectedPrimary = ""
+    m.selectedSecondary = ""
+
     m.underline = m.top.findNode("underline")
     positionUnderline()
 
     m.top.addFields({ queryString: "" })
     observe(m.top, "queryString", onQueryChanged)
-    onQueryChanged()
+    updateSearchBoxText()
 end sub
 
 sub onQueryChanged()
+    updateSearchBoxText()
+    runSearch()
+end sub
+
+sub updateSearchBoxText()
     query = m.top.queryString
     property = m.top.property
     if strNotEmpty(query)
@@ -46,23 +66,124 @@ sub onQueryChanged()
         m.searchBox.color = "#9b9b9b"
         m.searchBox.text = `Search ${property?.name ?? ""}`
     end if
-
-    m.spinner.visible = true
-    m.rowList.content = invalid
-    m.grid.content = invalid
-    m.gridGroup.visible = false
-
-    if property?.id <> invalid
-        ' run query
-        promises.chain(PropertyApi.search(property.id, query)).then(onSectionsLoaded)
-    end if
 end sub
 
 sub onPropertyChanged()
     property = m.top.property
     logoUri = property.tv_header_logo ?? property.header_logo
     m.propertyLogo.uri = UrlUtil.imageLinkToUrl(logoUri, m.propertyLogo.height)
-    onQueryChanged()
+    updateSearchBoxText()
+    loadFilters()
+end sub
+
+' A Property that offers no filters, or whose filters fail to load, just gets a plain search.
+sub loadFilters()
+    property = m.top.property
+    if property?.id = invalid then return
+
+    promises.chain(PropertyApi.getSearchFilters(property.id)).then(sub (response)
+        m.primaryFilter = SearchFilters.buildPrimaryFilter(response.json, m.top.property)
+        applyInitialSelection()
+        bindPrimaryRow()
+        bindSecondaryRow()
+        runSearch()
+    end sub)
+end sub
+
+' Open with the "All" value selected when the Property defines one, like Android does.
+sub applyInitialSelection()
+    m.selectedPrimary = ""
+    m.selectedSecondary = ""
+    m.secondaryFilter = invalid
+    for each value in m.primaryFilter?.values ?? []
+        if value.value = SearchFilters.ALL
+            m.selectedPrimary = value.value
+            m.secondaryFilter = value.nextFilter
+            exit for
+        end if
+    end for
+end sub
+
+sub bindPrimaryRow()
+    values = m.primaryFilter?.values ?? []
+    m.primaryFilters.visible = values.count() > 0
+    if m.primaryFilters.visible
+        m.primaryFilters.filter = m.primaryFilter
+        m.primaryFilters.selectedValue = m.selectedPrimary
+    end if
+    layoutFilters()
+end sub
+
+sub bindSecondaryRow()
+    values = m.secondaryFilter?.values ?? []
+    wasFocused = m.secondaryFilters.isInFocusChain()
+    m.secondaryFilters.visible = m.primaryFilters.visible and values.count() > 0
+    if m.secondaryFilters.visible
+        m.secondaryFilters.filter = m.secondaryFilter
+        m.secondaryFilters.selectedValue = m.selectedSecondary
+    else if wasFocused
+        m.primaryFilters.focusRequest = true
+    end if
+    layoutFilters()
+end sub
+
+' Pins the filter rows under the search box, and moves the results down to make room.
+sub layoutFilters()
+    underlineBottom = m.underline.translation[1] + m.underline.height
+    y = underlineBottom + FILTERS_TOP_GAP
+    bottom = underlineBottom
+
+    if m.primaryFilters.visible
+        m.primaryFilters.translation = [FILTERS_X, y]
+        bottom = y + m.primaryFilters.rowHeight
+        y = bottom + FILTERS_ROW_GAP
+    end if
+    if m.secondaryFilters.visible
+        m.secondaryFilters.translation = [FILTERS_X, y]
+        bottom = y + m.secondaryFilters.rowHeight
+    end if
+
+    shift = bottom - underlineBottom
+    m.rowList.translation = [FILTERS_X, m.listTop + shift]
+    ' The list reserves space above its focused row, so it starts well above the results it
+    ' shows. Clip it where the content actually begins, so scrolled rows don't ride up over
+    ' the search box and the filters.
+    clipTop = underlineBottom - m.listTop
+    m.rowList.clippingRect = [-FILTERS_X, clipTop, 1920, 1080]
+    m.rowList.itemClippingRect = { x: -FILTERS_X, y: clipTop, width: 1920, height: 1080 }
+
+    m.gridGroup.translation = [0, shift]
+end sub
+
+sub onPrimaryFilterClicked()
+    clicked = (m.primaryFilter?.values ?? [])[m.primaryFilters.clickedIndex]
+    if clicked = invalid then return
+
+    if clicked.value = m.selectedPrimary
+        ' Clicking the selected filter clears it
+        m.selectedPrimary = ""
+        m.secondaryFilter = invalid
+    else
+        m.selectedPrimary = clicked.value
+        m.secondaryFilter = clicked.nextFilter
+    end if
+    m.selectedSecondary = ""
+    m.primaryFilters.selectedValue = m.selectedPrimary
+    bindSecondaryRow()
+    runSearch()
+end sub
+
+sub onSecondaryFilterClicked()
+    clicked = (m.secondaryFilter?.values ?? [])[m.secondaryFilters.clickedIndex]
+    if clicked = invalid then return
+
+    if clicked.value = m.selectedSecondary
+        m.selectedSecondary = ""
+    else
+        m.selectedSecondary = clicked.value
+    end if
+    m.secondaryFilters.selectedValue = m.selectedSecondary
+    runSearch()
 end sub
 
 sub onSearchBoxFocusChange()
@@ -118,19 +239,88 @@ function onKeyEvent(key as string, press as boolean) as boolean
         if key = "OK" and m.searchBox.IsInFocusChain()
             onSearchBoxClicked()
             handled = true
-        else if key = "down" and m.searchBox.IsInFocusChain()
-            if m.gridGroup.visible
-                m.grid.setFocus(true)
-            else
-                m.rowList.setFocus(true)
-            end if
-            handled = true
-        else if key = "up" and (m.rowList.IsInFocusChain() or m.grid.IsInFocusChain())
-            m.searchBox.setFocus(true)
-            handled = true
+        else if key = "down"
+            handled = focusBelow()
+        else if key = "up"
+            handled = focusAbove()
+        else if key = "back"
+            handled = clearOneFilter()
         end if
     end if
     return handled
+end function
+
+function focusBelow() as boolean
+    if m.searchBox.IsInFocusChain()
+        if m.primaryFilters.visible
+            m.primaryFilters.focusRequest = true
+        else
+            focusResults()
+        end if
+        return true
+    else if m.primaryFilters.IsInFocusChain()
+        if m.secondaryFilters.visible
+            m.secondaryFilters.focusRequest = true
+        else
+            focusResults()
+        end if
+        return true
+    else if m.secondaryFilters.IsInFocusChain()
+        focusResults()
+        return true
+    end if
+    return false
+end function
+
+' Only reached once the results list has nothing left to scroll up to.
+function focusAbove() as boolean
+    if m.secondaryFilters.IsInFocusChain()
+        m.primaryFilters.focusRequest = true
+        return true
+    else if m.primaryFilters.IsInFocusChain()
+        m.searchBox.setFocus(true)
+        return true
+    else if m.rowList.IsInFocusChain() or m.grid.IsInFocusChain()
+        if m.secondaryFilters.visible
+            m.secondaryFilters.focusRequest = true
+        else if m.primaryFilters.visible
+            m.primaryFilters.focusRequest = true
+        else
+            m.searchBox.setFocus(true)
+        end if
+        return true
+    end if
+    return false
+end function
+
+sub focusResults()
+    if m.gridGroup.visible
+        m.grid.setFocus(true)
+    else
+        m.rowList.setFocus(true)
+    end if
+end sub
+
+' Back walks the search back out one step at a time - the query first, then the filters -
+' before it's allowed to leave the screen. Matches the Android app.
+function clearOneFilter() as boolean
+    if strNotEmpty(m.top.queryString)
+        m.top.queryString = ""
+        return true
+    else if strNotEmpty(m.selectedSecondary)
+        m.selectedSecondary = ""
+        m.secondaryFilters.selectedValue = ""
+        runSearch()
+        return true
+    else if strNotEmpty(m.selectedPrimary)
+        m.selectedPrimary = ""
+        m.secondaryFilter = invalid
+        m.primaryFilters.selectedValue = ""
+        bindSecondaryRow()
+        runSearch()
+        return true
+    end if
+    return false
 end function
 
 sub positionUnderline()
@@ -144,7 +334,39 @@ sub positionUnderline()
     m.searchBoxBorder.translation = [x, rect.y - 24]
     m.searchBoxBorder.height = rect.height + 48
     m.searchBoxBorder.width = 1920 - x - 72
+
+    layoutFilters()
 end sub
+
+sub runSearch()
+    property = m.top.property
+    if property?.id = invalid then return
+
+    m.spinner.visible = true
+    m.rowList.content = invalid
+    m.grid.content = invalid
+    m.gridGroup.visible = false
+
+    ' Filter clicks can outpace the network, so only the newest request gets to render.
+    m.searchToken = (m.searchToken ?? 0) + 1
+    context = { token: m.searchToken }
+    promises.chain(PropertyApi.search(property.id, m.top.queryString, selectedAttributes()), context).then(sub (response, context)
+        if context.token = m.searchToken then onSectionsLoaded(response)
+    end sub)
+end sub
+
+' The selected filters, keyed by attribute id, as the search endpoint wants them.
+' "All" means "no filter", so it's left out.
+function selectedAttributes() as object
+    attributes = {}
+    if strNotEmpty(m.selectedPrimary) and m.selectedPrimary <> SearchFilters.ALL
+        attributes[m.primaryFilter.id] = [m.selectedPrimary]
+    end if
+    if strNotEmpty(m.selectedSecondary) and m.selectedSecondary <> SearchFilters.ALL and m.secondaryFilter <> invalid
+        attributes[m.secondaryFilter.id] = [m.selectedSecondary]
+    end if
+    return attributes
+end function
 
 sub onSectionsLoaded(sectionsResponse)
     sections = sectionsResponse.json.contents ?? []

@@ -1,0 +1,89 @@
+import "pkg:/components/utils/NodeUtil.bs"
+import "pkg:/components/utils/str.bs"
+import "pkg:/components/screens/property/search/SearchFilters.bs"
+
+' A chip renders as its image when it's given one, and as a text pill otherwise. Nothing hands
+' one an image while SearchFilters' IMAGE_FILTERS flag is off, so the image path below is dormant
+' rather than dead - flipping that flag brings it back.
+const CHIP_H_PADDING = 30
+const CHIP_V_PADDING = 12
+' How far a text chip is dimmed while it's neither selected nor focused. Image chips, which
+' carry no background of their own, go further down - the same values tvOS uses.
+const CHIP_DIM_OPACITY = 0.6
+const CHIP_IMAGE_DIM_OPACITY = 0.3
+const CHIP_FOCUS_SCALE = 1.08
+
+sub init()
+    m.bg = m.top.findNode("bg")
+    m.label = m.top.findNode("label")
+    m.image = m.top.findNode("image")
+    observe(m.image, "loadStatus", onImageLoaded)
+
+    m.top.focusable = true
+    observe(m.top, "focusedChild", updateVisuals)
+    updateVisuals()
+end sub
+
+sub onTextChanged()
+    m.label.text = m.top.text
+    measure()
+end sub
+
+sub onImageUriChanged()
+    isImage = strNotEmpty(m.top.imageUri)
+    m.image.uri = m.top.imageUri
+    m.image.visible = isImage
+    m.label.visible = not isImage
+    updateVisuals()
+    measure()
+end sub
+
+sub onImageLoaded()
+    if m.image.loadStatus <> "ready" or m.image.bitmapHeight = 0 then return
+    m.image.height = SearchFilters.IMAGE_HEIGHT
+    m.image.width = cint(SearchFilters.IMAGE_HEIGHT * (m.image.bitmapWidth / m.image.bitmapHeight))
+    measure()
+end sub
+
+sub measure()
+    if strNotEmpty(m.top.imageUri)
+        ' Until the image loads there's nothing to measure, and the chip stays zero-width.
+        width = m.image.width
+        height = SearchFilters.IMAGE_HEIGHT
+    else
+        rect = m.label.localBoundingRect()
+        width = rect.width + CHIP_H_PADDING * 2
+        height = rect.height + CHIP_V_PADDING * 2
+        m.label.translation = [CHIP_H_PADDING, CHIP_V_PADDING]
+        m.bg.width = width
+        m.bg.height = height
+    end if
+
+    m.top.scaleRotateCenter = [width / 2, height / 2]
+    m.top.chipHeight = height
+    ' Set last: the row re-lays out on this, and wants the height to be current by then.
+    m.top.chipWidth = width
+end sub
+
+sub updateVisuals()
+    focused = m.top.isInFocusChain()
+    lit = m.top.selected or focused
+
+    if strNotEmpty(m.top.imageUri)
+        m.top.opacity = lit ? 1 : CHIP_IMAGE_DIM_OPACITY
+        scale = focused ? CHIP_FOCUS_SCALE : 1
+        m.top.scale = [scale, scale]
+        return
+    end if
+
+    m.top.opacity = lit ? 1 : CHIP_DIM_OPACITY
+    ' A secondary chip has no background of its own until it's selected or focused.
+    m.bg.visible = lit or not m.top.secondary
+    if m.top.selected
+        m.bg.blendColor = "#FFFFFF"
+        m.label.color = "#000000"
+    else
+        m.bg.blendColor = focused ? "#8B8B8B" : "#3B3B3B"
+        m.label.color = "#FFFFFF"
+    end if
+end sub

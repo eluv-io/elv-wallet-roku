@@ -19,6 +19,8 @@
                 focusable="true"
             />
         </LayoutGroup>
+        <FilterRow id="primaryFilters" label="Filters" visible="false" />
+        <FilterRow id="secondaryFilters" secondary="true" visible="false" />
         <BusySpinner
             id="spinner"
             uri="pkg:/images/busyspinner_hd.png"

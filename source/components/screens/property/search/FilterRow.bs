@@ -1,0 +1,120 @@
+import "pkg:/components/utils/NodeUtil.bs"
+import "pkg:/components/utils/str.bs"
+import "pkg:/components/screens/property/search/SearchFilters.bs"
+
+' Gap between chips, and between the row label and the first chip.
+const CHIP_SPACING = 24
+const ROW_LABEL_SPACING = 30
+' Room left above and below the chips so a focused chip's scale-up isn't clipped away.
+const ROW_CLIP_SLACK = 12
+
+sub init()
+    m.rowLabel = m.top.findNode("rowLabel")
+    m.viewport = m.top.findNode("viewport")
+    m.track = m.top.findNode("track")
+    m.chips = []
+    m.focusedIndex = 0
+    m.viewportWidth = m.top.availableWidth
+end sub
+
+sub onFilterChanged()
+    m.track.removeChildren(m.track.getChildren(-1, 0))
+    m.chips = []
+    m.focusedIndex = 0
+
+    filter = m.top.filter
+    isImageStyle = filter?.style = SearchFilters.STYLE_IMAGE
+    for each value in filter?.values ?? []
+        chip = m.track.createChild("FilterChip")
+        chip.secondary = m.top.secondary
+        ' A value without an image falls back to a text chip, even in an image-styled row.
+        if isImageStyle and strNotEmpty(value.imageUri)
+            chip.imageUri = value.imageUri
+        end if
+        chip.text = value.value
+        observe(chip, "chipWidth", layoutChips)
+        m.chips.push(chip)
+    end for
+
+    onSelectedValueChanged()
+    layoutChips()
+end sub
+
+sub onLabelChanged()
+    m.rowLabel.text = m.top.label
+    layoutChips()
+end sub
+
+sub onSelectedValueChanged()
+    for each chip in m.chips
+        chip.selected = chip.text = m.top.selectedValue
+    end for
+end sub
+
+sub layoutChips()
+    labelWidth = 0
+    if strNotEmpty(m.top.label)
+        labelWidth = m.rowLabel.localBoundingRect().width + ROW_LABEL_SPACING
+    end if
+    m.viewportWidth = m.top.availableWidth - labelWidth
+    m.viewport.translation = [labelWidth, 0]
+
+    rowHeight = m.rowLabel.localBoundingRect().height
+    for each chip in m.chips
+        if chip.chipHeight > rowHeight then rowHeight = chip.chipHeight
+    end for
+
+    x = 0
+    for each chip in m.chips
+        ' Chips of different heights (an image row with a text fallback) share a center line.
+        chip.translation = [x, (rowHeight - chip.chipHeight) / 2]
+        x += chip.chipWidth + CHIP_SPACING
+    end for
+    m.rowLabel.translation = [0, (rowHeight - m.rowLabel.localBoundingRect().height) / 2]
+
+    m.viewport.clippingRect = [0, -ROW_CLIP_SLACK, m.viewportWidth, rowHeight + ROW_CLIP_SLACK * 2]
+    m.top.rowHeight = rowHeight
+    scrollToFocused()
+end sub
+
+' Scrolls the chips just far enough to bring the focused one fully into view.
+sub scrollToFocused()
+    if m.chips.count() = 0 then return
+    chip = m.chips[m.focusedIndex]
+    left = chip.translation[0]
+    right = left + chip.chipWidth
+
+    offset = -m.track.translation[0]
+    if right > offset + m.viewportWidth then offset = right - m.viewportWidth
+    if left < offset then offset = left
+    m.track.translation = [-offset, 0]
+end sub
+
+sub onFocusRequested()
+    focusChip(m.focusedIndex)
+end sub
+
+sub focusChip(index as integer)
+    if index < 0 or index >= m.chips.count() then return
+    m.focusedIndex = index
+    m.chips[index].setFocus(true)
+    scrollToFocused()
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    if key = "left"
+        if m.focusedIndex = 0 then return false
+        focusChip(m.focusedIndex - 1)
+        return true
+    else if key = "right"
+        if m.focusedIndex >= m.chips.count() - 1 then return false
+        focusChip(m.focusedIndex + 1)
+        return true
+    else if key = "OK" and m.chips.count() > 0
+        m.top.clickedIndex = m.focusedIndex
+        return true
+    end if
+    return false
+end function

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="FilterRow" extends="Group">
+    <interface>
+        <!-- A filter as built by SearchFilters. Setting it rebuilds the row's chips. -->
+        <field id="filter" type="assocArray" onChange="onFilterChanged" />
+        <!-- Optional text shown to the left of the chips (the primary row's "Filters"). -->
+        <field id="label" type="string" onChange="onLabelChanged" />
+        <!-- Secondary rows style their chips differently. -->
+        <field id="secondary" type="boolean" value="false" />
+        <!-- The selected value, or "" when nothing is selected. -->
+        <field id="selectedValue" type="string" onChange="onSelectedValueChanged" />
+        <!-- How much room the row gets before its chips start scrolling. -->
+        <field id="availableWidth" type="float" value="1776" onChange="layoutChips" />
+
+        <!-- Fires with the index of the chip that was clicked. It's the index and not the
+             value because a Property can define two options with the same value. -->
+        <field id="clickedIndex" type="integer" alwaysNotify="true" />
+        <!-- The row's laid-out height, so the screen can place whatever comes below it. -->
+        <field id="rowHeight" type="float" />
+        <!-- Set to move focus onto the row's chips. Focus lands back where it was left. -->
+        <field id="focusRequest" type="boolean" alwaysNotify="true" onChange="onFocusRequested" />
+    </interface>
+    <children>
+        <TvLabel id="rowLabel" fontStyle="carousel_36" />
+        <Group id="viewport">
+            <Group id="track" />
+        </Group>
+    </children>
+</component>
