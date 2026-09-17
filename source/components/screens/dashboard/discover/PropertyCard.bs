@@ -1,29 +1,52 @@
 import "pkg:/components/utils/UrlUtil.bs"
+import "pkg:/components/utils/str.bs"
+
+' Keeps the "inaccessible" message clear of the card's edges.
+const MESSAGE_PADDING = 16
 
 sub init()
     m.image = m.top.findNode("image")
     m.sheen = m.top.findNode("sheen")
     m.ring = m.top.findNode("ring")
+    m.inaccessible = m.top.findNode("inaccessible")
+    m.inaccessibleScrim = m.top.findNode("inaccessibleScrim")
+    m.inaccessibleMessage = m.top.findNode("inaccessibleMessage")
 end sub
 
 ' The row list sets our size and our content in no particular order, and the image is
 ' requested at our height - so (re)build the uri from both.
 sub onSizeChanged()
-    for each node in [m.image, m.sheen, m.ring]
+    for each node in [m.image, m.sheen, m.ring, m.inaccessibleScrim]
         node.width = m.top.width
         node.height = m.top.height
     end for
+    m.inaccessibleMessage.translation = [MESSAGE_PADDING, 0]
+    m.inaccessibleMessage.width = m.top.width - (MESSAGE_PADDING * 2)
+    m.inaccessibleMessage.height = m.top.height
     updateImage()
 end sub
 
 sub onContentChanged()
     updateImage()
+    updateInaccessible()
 end sub
 
 sub updateImage()
     property = m.top.itemContent?.aa
     uri = UrlUtil.imageLinkToUrl(property?.image, m.image.height)
     if m.image.uri <> uri then m.image.uri = uri
+end sub
+
+' A Property can be marked main_page_inaccessible, meaning its main page can't be opened
+' from Discover. Cover its card with main_page_inaccessible_message instead.
+sub updateInaccessible()
+    property = m.top.itemContent?.aa
+    inaccessible = property?.main_page_inaccessible = true
+    m.inaccessible.visible = inaccessible
+    if inaccessible
+        message = property.main_page_inaccessible_message
+        m.inaccessibleMessage.text = ucase(strNotEmpty(message) ? message : "Coming Soon")
+    end if
 end sub
 
 sub onFocusPercentChanged()

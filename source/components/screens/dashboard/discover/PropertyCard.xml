@@ -11,6 +11,19 @@
         the ring is drawn on the same outline, so it stays outside. -->
         <MaskGroup id="mask" maskUri="pkg:/images/card_mask.png">
             <ShimmerPoster id="image" loadDisplayMode="scaleToZoom" />
+            <!-- Covers the card of a Property whose main page can't be opened, with the
+            Property's own copy ("Coming Soon" when it doesn't define any). -->
+            <Group id="inaccessible" visible="false">
+                <Rectangle id="inaccessibleScrim" color="#000000" opacity="0.6" />
+                <TvLabel
+                    id="inaccessibleMessage"
+                    fontStyle="30_bold"
+                    color="#F5F5F5FF"
+                    wrap="true"
+                    horizAlign="center"
+                    vertAlign="center"
+                />
+            </Group>
             <Poster
                 id="sheen"
                 uri="pkg:/images/card_sheen.png"

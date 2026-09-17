@@ -235,6 +235,9 @@ sub onPropertySelected()
         return
     end if
 
+    ' The card stays focusable so the hero still follows it, but there's nothing to open.
+    if property.main_page_inaccessible = true then return
+
     skipLogin = property?.login?.settings?.disable_login = true
     loginProvider = SignInUtil.getLoginProvider(property)
     if skipLogin or (stores.tokenStore().loginProvider = loginProvider)
