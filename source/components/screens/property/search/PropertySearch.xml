@@ -11,6 +11,7 @@
             layoutDirection="horiz"
             itemSpacings="[36]"
             vertAlignment="center"
+            translation="[48, 73]"
         >
             <Poster id="propertyLogo" height="48" />
             <Poster id="searchIcon" uri="pkg:/images/search_icon.png" width="48" height="48" />

@@ -44,11 +44,24 @@ sub init()
     m.selectedSecondary = ""
 
     m.underline = m.top.findNode("underline")
-    positionUnderline()
 
     m.top.addFields({ queryString: "" })
     observe(m.top, "queryString", onQueryChanged)
     updateSearchBoxText()
+end sub
+
+' The header's position comes out of sceneBoundingRect(), which only reads true once the view is
+' part of the scene. Laying out here means the first frame is already right, instead of snapping
+' into place whenever the Property's logo happens to arrive.
+sub initAfterParenting()
+    layoutHeader()
+end sub
+
+' The header sits on the top margin, and the underline and everything below follow from it. Only
+' the logo's width waits on the image - its height is fixed - so this doesn't wait for the load.
+sub layoutHeader()
+    m.header.translation = [48, m.header.boundingRect().height / 2 + 48]
+    positionUnderline()
 end sub
 
 sub onQueryChanged()
@@ -228,8 +241,8 @@ sub onLogoLoadStatusChanged()
     logo = m.propertyLogo
     if logo.loadStatus = "ready"
         logo.width = cint(logo.height * (logo.bitmapWidth / logo.bitmapHeight))
-        m.header.translation = [48, m.header.boundingRect().height / 2 + 48]
-        positionUnderline()
+        ' The logo's width shifts everything to its right, so lay the header out again.
+        layoutHeader()
     end if
 end sub
 
