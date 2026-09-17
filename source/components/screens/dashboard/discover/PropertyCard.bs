@@ -53,4 +53,5 @@ sub onFocusPercentChanged()
     focusPercent = m.top.focusPercent
     m.sheen.opacity = focusPercent
     m.ring.opacity = focusPercent
+    m.inaccessible.opacity = focusPercent
 end sub

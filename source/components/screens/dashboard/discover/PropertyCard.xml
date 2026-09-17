@@ -12,8 +12,9 @@
         <MaskGroup id="mask" maskUri="pkg:/images/card_mask.png">
             <ShimmerPoster id="image" loadDisplayMode="scaleToZoom" />
             <!-- Covers the card of a Property whose main page can't be opened, with the
-            Property's own copy ("Coming Soon" when it doesn't define any). -->
-            <Group id="inaccessible" visible="false">
+            Property's own copy ("Coming Soon" when it doesn't define any). Only shown
+            while the card is focused. -->
+            <Group id="inaccessible" visible="false" opacity="0">
                 <Rectangle id="inaccessibleScrim" color="#000000" opacity="0.6" />
                 <TvLabel
                     id="inaccessibleMessage"
